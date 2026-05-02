@@ -167,4 +167,4 @@ python manage.py runserver
 
 ## Licença
 
-[Definir licença do projeto]
+Este projeto está sob a licença MIT. Consulte o arquivo [LICENSE](LICENSE) para mais detalhes.
