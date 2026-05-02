@@ -1,3 +1,4 @@
+import uuid
 from datetime import timedelta
 
 from asgiref.sync import async_to_sync
@@ -38,6 +39,16 @@ def serialize_focus_card(card):
 		"content": card.content,
 		"vote_count": card.vote_count,
 	}
+
+
+def ensure_invite_token(retrospective):
+	if retrospective.status == RetrospectiveStatus.CLOSED or retrospective.invite_token:
+		return False
+
+	retrospective.invite_token = uuid.uuid4()
+	retrospective.invite_revoked_at = None
+	retrospective.save(update_fields=["invite_token", "invite_revoked_at"])
+	return True
 
 
 class RetrospectiveAccessMixin:
@@ -88,6 +99,7 @@ class RetrospectiveListCreateView(generics.ListCreateAPIView):
 
 	def perform_create(self, serializer):
 		retrospective = serializer.save(facilitator=self.request.user, status=RetrospectiveStatus.SETUP)
+		ensure_invite_token(retrospective)
 		Participant.objects.create(
 			retrospective=retrospective,
 			user=self.request.user,
@@ -113,6 +125,11 @@ class RetrospectiveDetailView(generics.RetrieveAPIView):
 			.prefetch_related("participants__user", "milestones")
 			.distinct()
 		)
+
+	def get_object(self):
+		retrospective = super().get_object()
+		ensure_invite_token(retrospective)
+		return retrospective
 
 
 class TeamSuggestionView(APIView):

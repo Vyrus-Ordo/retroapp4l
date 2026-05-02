@@ -32,6 +32,7 @@ const draftColumn = ref<CardColumn>('loved')
 const editingCard = ref<Card | null>(null)
 const editingAction = ref<ActionItem | null>(null)
 const pageError = ref('')
+const requestUrl = useRequestURL()
 
 const current = computed(() => retroStore.current)
 const activePhase = computed(() => retroStore.activePhase)
@@ -42,7 +43,7 @@ const currentUserVotes = computed(() =>
 )
 const inviteLink = computed(() => {
   if (!current.value?.invite_token) return ''
-  return window.location.origin + '/join?token=' + current.value.invite_token
+  return requestUrl.origin + '/retro/invite/' + current.value.invite_token
 })
 const discussionQueue = computed(() =>
   retroStore.cards.slice().sort((a, b) => b.vote_count - a.vote_count),

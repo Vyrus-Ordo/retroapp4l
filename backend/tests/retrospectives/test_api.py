@@ -108,9 +108,27 @@ class RetrospectiveApiTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         retrospective = Retrospective.objects.get(id=response.data["id"])
         self.assertEqual(retrospective.status, RetrospectiveStatus.SETUP)
+        self.assertIsNotNone(retrospective.invite_token)
         self.assertTrue(
             Participant.objects.filter(retrospective=retrospective, user=self.user, votes_remaining=retrospective.max_votes_per_user).exists()
         )
+
+    def test_detail_backfills_missing_invite_token_for_active_retro(self):
+        retrospective = Retrospective.objects.create(
+            title="Sprint 1 Retro",
+            team_key="platform-team",
+            facilitator=self.user,
+            status=RetrospectiveStatus.LOBBY,
+            invite_token=None,
+        )
+        Participant.objects.create(retrospective=retrospective, user=self.user, votes_remaining=3)
+
+        response = self.client.get(f"/api/retrospectives/{retrospective.id}/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        retrospective.refresh_from_db()
+        self.assertIsNotNone(retrospective.invite_token)
+        self.assertEqual(response.data["invite_token"], str(retrospective.invite_token))
 
     def test_list_returns_retrospectives_for_facilitator_and_participant(self):
         owned = Retrospective.objects.create(title="Owned", team_key="alpha", facilitator=self.user)
