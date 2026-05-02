@@ -2,8 +2,11 @@ from django.urls import include, path
 
 from apps.retrospectives.views import (
     ClosedRetrospectiveDetailView,
+    InviteStatusView,
     MilestoneDetailView,
     MilestoneListCreateView,
+    PresenceView,
+    ReopenEntryView,
     RetrospectiveCloseView,
     RetrospectiveDetailView,
     RetrospectiveFocusCardView,
@@ -21,6 +24,9 @@ urlpatterns = [
     path("retrospectives/<uuid:retrospective_id>/close/", RetrospectiveCloseView.as_view(), name="retrospective-close"),
     path("retrospectives/<uuid:retrospective_id>/focus-card/", RetrospectiveFocusCardView.as_view(), name="retrospective-focus-card"),
     path("retrospectives/<uuid:retrospective_id>/next-card/", RetrospectiveNextFocusCardView.as_view(), name="retrospective-next-card"),
+    path("retrospectives/<uuid:retrospective_id>/reopen-entry/", ReopenEntryView.as_view(), name="retrospective-reopen-entry"),
+    path("retrospectives/<uuid:retrospective_id>/invite-status/", InviteStatusView.as_view(), name="retrospective-invite-status"),
+    path("retrospectives/<uuid:retrospective_id>/presence/", PresenceView.as_view(), name="retrospective-presence"),
     path("teams/suggestions/", TeamSuggestionView.as_view(), name="team-suggestions"),
     path("retrospectives/<uuid:retrospective_id>/milestones/", MilestoneListCreateView.as_view(), name="milestone-list-create"),
     path("retrospectives/<uuid:retrospective_id>/milestones/<uuid:milestone_id>/", MilestoneDetailView.as_view(), name="milestone-detail"),

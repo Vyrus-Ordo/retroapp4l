@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db.models import Count, Prefetch, Q
@@ -310,5 +312,117 @@ class RetrospectiveNextFocusCardView(RetrospectiveAccessMixin, APIView):
 		)
 
 		return Response(serialize_focus_card(next_card), status=status.HTTP_200_OK)
+
+
+class ReopenEntryView(RetrospectiveAccessMixin, APIView):
+	"""POST /api/retrospectives/{id}/reopen-entry/ — Facilitador reabre link por 2 minutos."""
+
+	permission_classes = [IsAuthenticated]
+
+	REOPEN_DURATION_SECONDS = 120
+
+	def post(self, request, retrospective_id):
+		retrospective = self.get_retrospective()
+		self.ensure_facilitator(retrospective)
+
+		if retrospective.status == RetrospectiveStatus.LOBBY:
+			return Response(
+				{"detail": "Invite link is already open during lobby phase."},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
+		if retrospective.status == RetrospectiveStatus.CLOSED:
+			return Response(
+				{"detail": "Cannot reopen entry for a closed retrospective."},
+				status=status.HTTP_400_BAD_REQUEST,
+			)
+
+		now = timezone.now()
+		retrospective.invite_temporarily_open_until = now + timedelta(seconds=self.REOPEN_DURATION_SECONDS)
+		retrospective.save(update_fields=["invite_temporarily_open_until"])
+
+		AccessLog.objects.create(
+			retrospective=retrospective,
+			action=AccessLogAction.LINK_REOPENED,
+			triggered_by=request.user,
+		)
+
+		# Broadcast invite status update to all participants
+		channel_layer = get_channel_layer()
+		async_to_sync(channel_layer.group_send)(
+			f"retro_{retrospective.id}",
+			{
+				"type": "invite_status_updated",
+				"invite_status": "temporarily_open",
+				"expires_at": retrospective.invite_temporarily_open_until.isoformat(),
+			},
+		)
+
+		# Schedule auto-block task
+		from tasks.invite import auto_block_invite
+		auto_block_invite.apply_async(
+			args=[str(retrospective.id)],
+			countdown=self.REOPEN_DURATION_SECONDS,
+		)
+
+		return Response(
+			{
+				"status": "temporarily_open",
+				"expires_at": retrospective.invite_temporarily_open_until.isoformat(),
+			},
+			status=status.HTTP_200_OK,
+		)
+
+
+class InviteStatusView(RetrospectiveAccessMixin, APIView):
+	"""GET /api/retrospectives/{id}/invite-status/ — Status atual do link de convite."""
+
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request, retrospective_id):
+		retrospective = self.get_retrospective()
+		now = timezone.now()
+
+		if retrospective.status == RetrospectiveStatus.LOBBY and retrospective.invite_token:
+			invite_status = "active"
+			expires_at = None
+		elif (
+			retrospective.invite_temporarily_open_until
+			and retrospective.invite_temporarily_open_until > now
+		):
+			invite_status = "temporarily_open"
+			expires_at = retrospective.invite_temporarily_open_until.isoformat()
+		else:
+			invite_status = "blocked"
+			expires_at = None
+
+		return Response(
+			{"status": invite_status, "expires_at": expires_at},
+			status=status.HTTP_200_OK,
+		)
+
+
+class PresenceView(RetrospectiveAccessMixin, APIView):
+	"""GET /api/retrospectives/{id}/presence/ — Lista participantes online."""
+
+	permission_classes = [IsAuthenticated]
+
+	def get(self, request, retrospective_id):
+		retrospective = self.get_retrospective()
+		participants = (
+			Participant.objects.filter(retrospective=retrospective)
+			.select_related("user")
+			.order_by("joined_at")
+		)
+		data = [
+			{
+				"user_id": str(p.user_id),
+				"name": p.user.name,
+				"avatar_url": p.user.avatar_url if hasattr(p.user, "avatar_url") else None,
+				"joined_at": p.joined_at.isoformat(),
+			}
+			for p in participants
+		]
+		return Response({"participants": data}, status=status.HTTP_200_OK)
 
 # Create your views here.

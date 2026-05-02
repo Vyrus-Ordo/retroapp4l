@@ -29,6 +29,8 @@ class AccessLogAction(models.TextChoices):
 	OPENED = "opened", "Opened"
 	CLOSED = "closed", "Closed"
 	PARTICIPANT_JOINED = "participant_joined", "Participant joined"
+	LINK_REOPENED = "link_reopened", "Link reopened"
+	LINK_AUTO_BLOCKED = "link_auto_blocked", "Link auto-blocked"
 
 
 class Retrospective(models.Model):
@@ -50,6 +52,7 @@ class Retrospective(models.Model):
 		blank=True,
 		null=True,
 	)
+	invite_temporarily_open_until = models.DateTimeField(blank=True, null=True)
 	timer_started_at = models.DateTimeField(blank=True, null=True)
 	timer_paused_at = models.DateTimeField(blank=True, null=True)
 	timer_duration_seconds = models.PositiveIntegerField(blank=True, null=True)

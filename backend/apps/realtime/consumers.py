@@ -272,3 +272,12 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
                 "vote_count": event["vote_count"],
             }
         )
+
+    async def invite_status_updated(self, event):
+        await self.send_json(
+            {
+                "type": "invite.status_updated",
+                "invite_status": event["invite_status"],
+                "expires_at": event.get("expires_at"),
+            }
+        )
