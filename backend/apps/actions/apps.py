@@ -5,3 +5,6 @@ class ActionsConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.actions'
     label = 'actions'
+
+    def ready(self):
+        import apps.actions.signals  # noqa: F401

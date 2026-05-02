@@ -251,3 +251,24 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
                 "votes_remaining": event["votes_remaining"],
             }
         )
+
+    async def action_check_updated(self, event):
+        await self.send_json(
+            {
+                "type": "action.check_updated",
+                "action_id": event["action_id"],
+                "status": event["status"],
+            }
+        )
+
+    async def discussion_focus_updated(self, event):
+        await self.send_json(
+            {
+                "type": "discussion.focus_updated",
+                "card_id": event["card_id"],
+                "author": event["author"],
+                "column": event["column"],
+                "content": event["content"],
+                "vote_count": event["vote_count"],
+            }
+        )

@@ -1,7 +1,9 @@
 from django.contrib.auth import get_user_model
+from django.utils import timezone
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+from apps.actions.models import ActionItem, ActionItemStatus
 from apps.retrospectives.models import Milestone, MilestoneCategory, Participant, Retrospective, RetrospectiveStatus
 
 User = get_user_model()
@@ -131,3 +133,109 @@ class RetrospectiveApiTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(response.data["suggestions"], ["alpha", "beta"])
+
+    def test_history_lists_closed_retrospectives_with_counts(self):
+        closed = Retrospective.objects.create(
+            title="Closed Retro",
+            team_key="platform-team",
+            facilitator=self.user,
+            status=RetrospectiveStatus.CLOSED,
+            closed_at=timezone.now(),
+        )
+        Participant.objects.create(retrospective=closed, user=self.user, votes_remaining=3)
+        ActionItem.objects.create(retrospective=closed, description="Uma ação", assignee=self.user, status=ActionItemStatus.DONE)
+
+        response = self.client.get("/api/retrospectives/history/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data), 1)
+        self.assertEqual(response.data[0]["id"], str(closed.id))
+        self.assertEqual(response.data[0]["action_items_count"], 1)
+        self.assertEqual(response.data[0]["action_item_status_summary"], {"not_started": 0, "in_progress": 0, "done": 1})
+
+    def test_closed_detail_includes_cards_votes_milestones_and_action_items(self):
+        closed = Retrospective.objects.create(
+            title="Closed Retro",
+            team_key="platform-team",
+            facilitator=self.user,
+            status=RetrospectiveStatus.CLOSED,
+            closed_at=timezone.now(),
+        )
+        participant = Participant.objects.create(retrospective=closed, user=self.user, votes_remaining=3)
+        milestone = Milestone.objects.create(retrospective=closed, author=self.user, category=MilestoneCategory.ACHIEVEMENT, description="Marco")
+        from apps.cards.models import Card, CardVote
+
+        card = Card.objects.create(retrospective=closed, author=self.user, column="loathed", content="Dor")
+        vote = CardVote.objects.create(card=card, voter=self.user)
+        action_item = ActionItem.objects.create(retrospective=closed, description="Ação", assignee=self.user, card=card)
+
+        response = self.client.get(f"/api/retrospectives/{closed.id}/detail/")
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data["participants"][0]["id"], str(participant.id))
+        self.assertEqual(response.data["milestones"][0]["id"], str(milestone.id))
+        self.assertEqual(response.data["cards"][0]["id"], str(card.id))
+        self.assertEqual(response.data["votes"][0]["id"], str(vote.id))
+        self.assertEqual(response.data["action_items"][0]["id"], str(action_item.id))
+
+    def test_facilitator_can_focus_and_advance_discussion_card(self):
+        retro = Retrospective.objects.create(
+            title="Discussion Retro",
+            team_key="platform-team",
+            facilitator=self.user,
+            status=RetrospectiveStatus.DISCUSSION,
+        )
+        Participant.objects.create(retrospective=retro, user=self.user, votes_remaining=3)
+        from apps.cards.models import Card, CardVote
+
+        card_one = Card.objects.create(retrospective=retro, author=self.user, column="loathed", content="Primeiro")
+        card_two = Card.objects.create(retrospective=retro, author=self.user, column="longed", content="Segundo")
+        other_user = User.objects.create_user(name="Voter", email="voter-focus@example.com", password="supersecret123")
+        Participant.objects.create(retrospective=retro, user=other_user, votes_remaining=3)
+        CardVote.objects.create(card=card_two, voter=other_user)
+
+        focus_response = self.client.post(
+            f"/api/retrospectives/{retro.id}/focus-card/",
+            {"card_id": str(card_one.id)},
+            format="json",
+        )
+        self.assertEqual(focus_response.status_code, status.HTTP_200_OK)
+        retro.refresh_from_db()
+        self.assertEqual(retro.focus_card_id, card_one.id)
+
+        next_response = self.client.post(f"/api/retrospectives/{retro.id}/next-card/", format="json")
+        self.assertEqual(next_response.status_code, status.HTTP_200_OK)
+        self.assertEqual(next_response.data["card_id"], str(card_two.id))
+
+    def test_facilitator_can_close_retrospective_from_actions_phase(self):
+        retro = Retrospective.objects.create(
+            title="Actions Retro",
+            team_key="platform-team",
+            facilitator=self.user,
+            status=RetrospectiveStatus.ACTIONS,
+            invite_token="11111111-1111-1111-1111-111111111111",
+        )
+        Participant.objects.create(retrospective=retro, user=self.user, votes_remaining=3)
+
+        response = self.client.post(
+            f"/api/retrospectives/{retro.id}/close/",
+            {"confirm": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        retro.refresh_from_db()
+        self.assertEqual(retro.status, RetrospectiveStatus.CLOSED)
+        self.assertIsNotNone(retro.closed_at)
+        self.assertIsNone(retro.invite_token)
+
+    def test_close_requires_actions_phase(self):
+        retro = self.create_retrospective(status=RetrospectiveStatus.DISCUSSION)
+
+        response = self.client.post(
+            f"/api/retrospectives/{retro.id}/close/",
+            {"confirm": True},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)

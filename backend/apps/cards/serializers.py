@@ -5,6 +5,7 @@ from apps.cards.models import Card, CardVote
 
 class CardSerializer(serializers.ModelSerializer):
     author_name = serializers.CharField(source="author.name", read_only=True)
+    vote_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
         model = Card
@@ -17,6 +18,7 @@ class CardSerializer(serializers.ModelSerializer):
             "content",
             "group",
             "position",
+            "vote_count",
             "created_at",
         )
         read_only_fields = ("id", "author", "author_name", "created_at", "retrospective")

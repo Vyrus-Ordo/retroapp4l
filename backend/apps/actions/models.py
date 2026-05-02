@@ -8,7 +8,7 @@ from apps.retrospectives.models import Retrospective
 
 
 class ActionItemStatus(models.TextChoices):
-	PENDING = "pending", "Pending"
+	NOT_STARTED = "not_started", "Not started"
 	IN_PROGRESS = "in_progress", "In progress"
 	DONE = "done", "Done"
 
@@ -20,7 +20,8 @@ class ActionItem(models.Model):
 	description = models.TextField()
 	assignee = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="assigned_action_items")
 	due_date = models.DateField(blank=True, null=True)
-	status = models.CharField(max_length=20, choices=ActionItemStatus.choices, default=ActionItemStatus.PENDING)
+	external_tracker_url = models.URLField(blank=True)
+	status = models.CharField(max_length=20, choices=ActionItemStatus.choices, default=ActionItemStatus.NOT_STARTED)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:

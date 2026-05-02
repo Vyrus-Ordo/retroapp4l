@@ -71,6 +71,20 @@ class CardCRUDTests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
+    def test_discussion_phase_blocks_card_mutation(self):
+        self.retrospective.status = RetrospectiveStatus.DISCUSSION
+        self.retrospective.save(update_fields=["status"])
+        card = Card.objects.create(retrospective=self.retrospective, author=self.user, column="loved", content="A")
+        detail_url = f"/api/retrospectives/{self.retrospective.id}/cards/{card.id}/"
+
+        create_response = self.client.post(self.cards_url, {"column": "loved", "content": "Novo"})
+        update_response = self.client.put(detail_url, {"column": "loved", "content": "Editado"})
+        delete_response = self.client.delete(detail_url)
+
+        self.assertEqual(create_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(update_response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(delete_response.status_code, status.HTTP_403_FORBIDDEN)
+
 
 class CardGroupingTests(APITestCase):
     def setUp(self):

@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import F
+from django.db.models import Count, F
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.response import Response
@@ -13,6 +13,13 @@ from apps.retrospectives.models import Participant, Retrospective, Retrospective
 class RetrospectiveAccessMixin:
     def get_retrospective(self):
         return Retrospective.objects.get(id=self.kwargs["retrospective_id"])
+
+    def get_cards_queryset(self):
+        retrospective = self.get_retrospective()
+        queryset = Card.objects.filter(retrospective_id=self.kwargs["retrospective_id"]).annotate(vote_count=Count("votes"))
+        if retrospective.status == RetrospectiveStatus.DISCUSSION:
+            return queryset.order_by("-vote_count", "created_at")
+        return queryset.order_by("column", "position", "created_at")
 
     def ensure_participant(self, user):
         is_participant = Participant.objects.filter(
@@ -33,16 +40,26 @@ class RetrospectiveAccessMixin:
         if retrospective.status != RetrospectiveStatus.VOTING:
             raise PermissionDenied("Voting actions are only available during the voting phase.")
 
+    def ensure_card_mutation_allowed(self, retrospective):
+        if retrospective.status in {
+            RetrospectiveStatus.DISCUSSION,
+            RetrospectiveStatus.ACTIONS,
+            RetrospectiveStatus.CLOSED,
+        }:
+            raise PermissionDenied("Cards are read-only during discussion, actions, and closed phases.")
+
 
 class CardListCreateView(RetrospectiveAccessMixin, generics.ListCreateAPIView):
     serializer_class = CardSerializer
     permission_classes = [permissions.IsAuthenticated]
 
     def get_queryset(self):
-        return Card.objects.filter(retrospective_id=self.kwargs["retrospective_id"]).order_by("column", "position", "created_at")
+        return self.get_cards_queryset()
 
     def perform_create(self, serializer):
+        retrospective = self.get_retrospective()
         self.ensure_participant(self.request.user)
+        self.ensure_card_mutation_allowed(retrospective)
 
         serializer.save(author=self.request.user, retrospective_id=self.kwargs["retrospective_id"])  # author is always current user
 
@@ -59,12 +76,14 @@ class CardDetailView(RetrospectiveAccessMixin, generics.RetrieveUpdateDestroyAPI
     lookup_url_kwarg = "card_id"
 
     def get_queryset(self):
-        return Card.objects.filter(retrospective_id=self.kwargs["retrospective_id"]).order_by("column", "position", "created_at")
+        return self.get_cards_queryset()
 
     def perform_update(self, serializer):
+        retrospective = self.get_retrospective()
         card = self.get_object()
         if card.author != self.request.user:
             raise PermissionDenied("Only the author can edit this card.")
+        self.ensure_card_mutation_allowed(retrospective)
         serializer.save()
 
     def update(self, request, *args, **kwargs):
@@ -75,8 +94,10 @@ class CardDetailView(RetrospectiveAccessMixin, generics.RetrieveUpdateDestroyAPI
         return super().update(request, *args, **kwargs)
 
     def perform_destroy(self, instance):
+        retrospective = self.get_retrospective()
         if instance.author != self.request.user:
             raise PermissionDenied("Only the author can delete this card.")
+        self.ensure_card_mutation_allowed(retrospective)
         instance.delete()
 
 

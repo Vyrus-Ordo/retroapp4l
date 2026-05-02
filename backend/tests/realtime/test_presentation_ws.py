@@ -4,6 +4,7 @@ from channels.testing import WebsocketCommunicator
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import AccessToken
 
+from apps.actions.models import ActionItem
 from apps.cards.models import Card, CardVote
 from apps.retrospectives.models import Milestone, MilestoneCategory, Participant, Retrospective, RetrospectiveStatus
 from config.asgi import application
@@ -75,6 +76,17 @@ def revoke_vote(retro, vote, voter):
     participant.votes_remaining += 1
     participant.save(update_fields=["votes_remaining"])
     vote.delete()
+
+
+@database_sync_to_async
+def update_action_status(action_item, status_value):
+    action_item.status = status_value
+    action_item.save(update_fields=["status"])
+
+
+@database_sync_to_async
+def create_discussion_retro(user):
+    return Retrospective.objects.create(title="Sprint 5", team_key="discussion-team", facilitator=user, status=RetrospectiveStatus.DISCUSSION)
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
@@ -158,6 +170,7 @@ async def test_card_events_are_broadcast():
             "content": "Primeiro card",
             "group": None,
             "position": 0,
+            "vote_count": 0,
             "created_at": created["card"]["created_at"],
         },
     }
@@ -260,6 +273,81 @@ async def test_vote_events_are_broadcast():
         "card_id": str(card.id),
         "voter_id": str(voter.id),
         "votes_remaining": 3,
+    }
+
+    await communicator.disconnect()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_action_check_update_is_broadcast():
+    user = await create_user()
+    retro = await create_retro(user)
+    await create_participant(retro, user)
+    action_item = await database_sync_to_async(ActionItem.objects.create)(retrospective=retro, description="Atualizar guia", assignee=user)
+
+    token = str(AccessToken.for_user(user))
+    communicator = WebsocketCommunicator(
+        application,
+        f"/ws/retrospectives/{retro.id}/?token={token}",
+    )
+    connected, _ = await communicator.connect()
+    assert connected
+    snapshot = await communicator.receive_json_from()
+    assert snapshot["type"] == "session.snapshot"
+
+    await update_action_status(action_item, "in_progress")
+    event = await communicator.receive_json_from()
+    assert event == {
+        "type": "action.check_updated",
+        "action_id": str(action_item.id),
+        "status": "in_progress",
+    }
+
+    await communicator.disconnect()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_discussion_focus_update_is_broadcast():
+    user = await create_user()
+    retro = await create_discussion_retro(user)
+    await create_participant(retro, user)
+    card = await create_card(retro, user, "API instável")
+
+    token = str(AccessToken.for_user(user))
+    communicator = WebsocketCommunicator(
+        application,
+        f"/ws/retrospectives/{retro.id}/?token={token}",
+    )
+    connected, _ = await communicator.connect()
+    assert connected
+    snapshot = await communicator.receive_json_from()
+    assert snapshot["type"] == "session.snapshot"
+
+    from channels.layers import get_channel_layer
+
+    channel_layer = get_channel_layer()
+    await channel_layer.group_send(
+        f"retro_{retro.id}",
+        {
+            "type": "discussion_focus_updated",
+            "card_id": str(card.id),
+            "author": user.name,
+            "column": card.column,
+            "content": card.content,
+            "vote_count": 0,
+        },
+    )
+
+    event = await communicator.receive_json_from()
+    assert event == {
+        "type": "discussion.focus_updated",
+        "card_id": str(card.id),
+        "author": user.name,
+        "column": card.column,
+        "content": card.content,
+        "vote_count": 0,
     }
 
     await communicator.disconnect()

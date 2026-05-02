@@ -43,6 +43,13 @@ class Retrospective(models.Model):
 	invite_revoked_at = models.DateTimeField(blank=True, null=True)
 	max_votes_per_user = models.PositiveSmallIntegerField(default=3)
 	skip_check_phase = models.BooleanField(default=False)
+	focus_card = models.ForeignKey(
+		"cards.Card",
+		on_delete=models.SET_NULL,
+		related_name="focused_in_retrospectives",
+		blank=True,
+		null=True,
+	)
 	timer_started_at = models.DateTimeField(blank=True, null=True)
 	timer_paused_at = models.DateTimeField(blank=True, null=True)
 	timer_duration_seconds = models.PositiveIntegerField(blank=True, null=True)

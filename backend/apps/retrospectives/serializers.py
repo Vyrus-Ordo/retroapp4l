@@ -1,5 +1,7 @@
 from rest_framework import serializers
 
+from apps.actions.serializers import ActionItemSerializer
+from apps.cards.serializers import CardSerializer, CardVoteSerializer
 from apps.retrospectives.models import Milestone, Participant, Retrospective
 
 
@@ -62,6 +64,7 @@ class RetrospectiveDetailSerializer(serializers.ModelSerializer):
     facilitator_name = serializers.CharField(source="facilitator.name", read_only=True)
     participants = ParticipantSerializer(many=True, read_only=True)
     milestones = MilestoneSerializer(many=True, read_only=True)
+    focus_card_id = serializers.UUIDField(read_only=True)
 
     class Meta:
         model = Retrospective
@@ -78,6 +81,7 @@ class RetrospectiveDetailSerializer(serializers.ModelSerializer):
             "invite_revoked_at",
             "max_votes_per_user",
             "skip_check_phase",
+            "focus_card_id",
             "timer_started_at",
             "timer_paused_at",
             "timer_duration_seconds",
@@ -85,5 +89,63 @@ class RetrospectiveDetailSerializer(serializers.ModelSerializer):
             "closed_at",
             "participants",
             "milestones",
+        )
+        read_only_fields = fields
+
+
+class RetrospectiveHistorySerializer(serializers.ModelSerializer):
+    cards_count = serializers.IntegerField(read_only=True)
+    action_items_count = serializers.IntegerField(read_only=True)
+    action_item_status_summary = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Retrospective
+        fields = (
+            "id",
+            "title",
+            "sprint_name",
+            "team_key",
+            "closed_at",
+            "cards_count",
+            "action_items_count",
+            "action_item_status_summary",
+        )
+        read_only_fields = fields
+
+    def get_action_item_status_summary(self, obj):
+        summary = {"not_started": 0, "in_progress": 0, "done": 0}
+        for status_value in obj.action_items.values_list("status", flat=True):
+            if status_value in summary:
+                summary[status_value] += 1
+        return summary
+
+
+class ClosedRetrospectiveDetailSerializer(serializers.ModelSerializer):
+    facilitator_name = serializers.CharField(source="facilitator.name", read_only=True)
+    participants = ParticipantSerializer(many=True, read_only=True)
+    milestones = MilestoneSerializer(many=True, read_only=True)
+    cards = CardSerializer(many=True, read_only=True)
+    votes = CardVoteSerializer(source="all_votes", many=True, read_only=True)
+    action_items = ActionItemSerializer(many=True, read_only=True)
+    focus_card_id = serializers.UUIDField(read_only=True)
+
+    class Meta:
+        model = Retrospective
+        fields = (
+            "id",
+            "title",
+            "sprint_name",
+            "description",
+            "team_key",
+            "status",
+            "facilitator",
+            "facilitator_name",
+            "closed_at",
+            "focus_card_id",
+            "participants",
+            "milestones",
+            "cards",
+            "votes",
+            "action_items",
         )
         read_only_fields = fields
