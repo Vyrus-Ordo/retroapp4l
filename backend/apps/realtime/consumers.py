@@ -207,6 +207,18 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
     async def card_delete(self, event):
         await self.send_json({"type": "card.deleted", "card_id": event["card_id"]})
 
+    async def card_grouped(self, event):
+        await self.send_json({"type": "card.grouped", "card_id": event["card_id"], "group_id": event["group_id"]})
+
+    async def card_ungrouped(self, event):
+        await self.send_json(
+            {
+                "type": "card.ungrouped",
+                "card_id": event["card_id"],
+                "previous_group_id": event["previous_group_id"],
+            }
+        )
+
     async def milestone_create(self, event):
         await self.send_json({"type": "milestone.create", "milestone": event["milestone"]})
 
@@ -217,4 +229,25 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({"type": "milestone.delete", "milestone_id": event["milestone_id"]})
 
     async def vote_cast(self, event):
-        await self.send_json({"type": "vote.cast", "vote": event["vote"]})
+        if "vote" in event:
+            await self.send_json({"type": "vote.cast", "vote": event["vote"]})
+            return
+
+        await self.send_json(
+            {
+                "type": "vote.cast",
+                "card_id": event["card_id"],
+                "voter_id": event["voter_id"],
+                "votes_remaining": event["votes_remaining"],
+            }
+        )
+
+    async def vote_revoked(self, event):
+        await self.send_json(
+            {
+                "type": "vote.revoked",
+                "card_id": event["card_id"],
+                "voter_id": event["voter_id"],
+                "votes_remaining": event["votes_remaining"],
+            }
+        )

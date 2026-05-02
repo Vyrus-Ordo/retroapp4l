@@ -4,7 +4,7 @@ from channels.testing import WebsocketCommunicator
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.tokens import AccessToken
 
-from apps.cards.models import Card
+from apps.cards.models import Card, CardVote
 from apps.retrospectives.models import Milestone, MilestoneCategory, Participant, Retrospective, RetrospectiveStatus
 from config.asgi import application
 
@@ -42,6 +42,39 @@ def update_card(card, content):
 @database_sync_to_async
 def delete_card(card):
     card.delete()
+
+
+@database_sync_to_async
+def group_card(child_card, parent_card):
+    child_card.group = parent_card
+    child_card.save(update_fields=["group"])
+
+
+@database_sync_to_async
+def ungroup_card(card):
+    card.group = None
+    card.save(update_fields=["group"])
+
+
+@database_sync_to_async
+def create_voting_retro(user):
+    return Retrospective.objects.create(title="Sprint 4", team_key="vote-team", facilitator=user, status=RetrospectiveStatus.VOTING)
+
+
+@database_sync_to_async
+def cast_vote(retro, card, voter):
+    participant = Participant.objects.get(retrospective=retro, user=voter)
+    participant.votes_remaining -= 1
+    participant.save(update_fields=["votes_remaining"])
+    return CardVote.objects.create(card=card, voter=voter)
+
+
+@database_sync_to_async
+def revoke_vote(retro, vote, voter):
+    participant = Participant.objects.get(retrospective=retro, user=voter)
+    participant.votes_remaining += 1
+    participant.save(update_fields=["votes_remaining"])
+    vote.delete()
 
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
@@ -143,6 +176,90 @@ async def test_card_events_are_broadcast():
     assert deleted == {
         "type": "card.deleted",
         "card_id": card_id,
+    }
+
+    await communicator.disconnect()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_card_grouping_events_are_broadcast():
+    user = await create_user()
+    retro = await create_retro(user)
+    await create_participant(retro, user)
+
+    token = str(AccessToken.for_user(user))
+    communicator = WebsocketCommunicator(
+        application,
+        f"/ws/retrospectives/{retro.id}/?token={token}",
+    )
+    connected, _ = await communicator.connect()
+    assert connected
+
+    snapshot = await communicator.receive_json_from()
+    assert snapshot["type"] == "session.snapshot"
+
+    parent = await create_card(retro, user, "Pai")
+    await communicator.receive_json_from()
+    child = await create_card(retro, user, "Filho")
+    await communicator.receive_json_from()
+
+    await group_card(child, parent)
+    grouped = await communicator.receive_json_from()
+    assert grouped == {
+        "type": "card.grouped",
+        "card_id": str(child.id),
+        "group_id": str(parent.id),
+    }
+
+    await ungroup_card(child)
+    ungrouped = await communicator.receive_json_from()
+    assert ungrouped == {
+        "type": "card.ungrouped",
+        "card_id": str(child.id),
+        "previous_group_id": str(parent.id),
+    }
+
+    await communicator.disconnect()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_vote_events_are_broadcast():
+    author = await create_user()
+    voter = await database_sync_to_async(User.objects.create_user)(name="Voter", email="voter-ws@example.com", password="supersecret123")
+    retro = await create_voting_retro(author)
+    await create_participant(retro, author)
+    await create_participant(retro, voter)
+    card = await database_sync_to_async(Card.objects.create)(retrospective=retro, author=author, column="loathed", content="Pain")
+
+    token = str(AccessToken.for_user(voter))
+    communicator = WebsocketCommunicator(
+        application,
+        f"/ws/retrospectives/{retro.id}/?token={token}",
+    )
+    connected, _ = await communicator.connect()
+    assert connected
+
+    snapshot = await communicator.receive_json_from()
+    assert snapshot["type"] == "session.snapshot"
+
+    vote = await cast_vote(retro, card, voter)
+    cast_event = await communicator.receive_json_from()
+    assert cast_event == {
+        "type": "vote.cast",
+        "card_id": str(card.id),
+        "voter_id": str(voter.id),
+        "votes_remaining": 2,
+    }
+
+    await revoke_vote(retro, vote, voter)
+    revoked_event = await communicator.receive_json_from()
+    assert revoked_event == {
+        "type": "vote.revoked",
+        "card_id": str(card.id),
+        "voter_id": str(voter.id),
+        "votes_remaining": 3,
     }
 
     await communicator.disconnect()

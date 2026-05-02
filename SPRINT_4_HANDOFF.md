@@ -6,13 +6,15 @@
 - Migrations pendentes: não verificado nesta revisão
 
 ## O que foi implementado e está funcionando
-- Sprint 3 foi encerrada como backend-first
-- API REST de cards concluída com create, list, update e delete
-- Criação de cards restrita a participantes da retrospectiva
-- Broadcast realtime de cards concluído com eventos `card.created`, `card.updated` e `card.deleted`
-- API REST de milestones concluída com create, list, update e delete restritos à fase `setup`
-- Fluxo de `presentation` no WebSocket concluído com `start`, `next`, `prev`, `end` e auto-skip para `check`
-- WebSocket autenticado com JWT via middleware ASGI
+- Sprint 4 foi encerrada como backend-first
+- API REST de agrupamento concluída com `group` e `ungroup`
+- Validação de agrupamento implementada: apenas facilitador, mesma coluna e persistência via `Card.group`
+- API REST de votação concluída com `vote`, `vote revoke`, `votes list` e `votes-config`
+- Regra de 1 voto por card por participante validada no backend
+- Bloqueio de voto no próprio card implementado
+- Restrição de voto às colunas `loathed` e `longed` implementada
+- Broadcast realtime concluído com eventos `card.grouped`, `card.ungrouped`, `vote.cast` e `vote.revoked`
+- Configuração de `max_votes_per_user` atualiza `votes_remaining` dos participantes antes da votação
 - Testes do backend passam com `pytest -q` e `python manage.py test`
 - Código do backend está conforme Ruff
 
@@ -20,6 +22,7 @@
 - Frontend Nuxt 3 ainda não foi iniciado
 - MilestoneBar persistente no frontend ficou deferida para a Sprint 6
 - Board 4L visual no frontend ficou deferido para a Sprint 6
+- UI de agrupamento e votação no frontend ficou deferida para a Sprint 6
 - Integração frontend-backend via WebSocket ainda não foi iniciada no cliente
 - Aplicação efetiva da máquina de estados ao avanço de fases
 - Fluxo completo e persistente de cronômetro com Celery
@@ -27,9 +30,10 @@
 - Cobertura mínima de 80% ainda não foi comprovada
 
 ## Decisões técnicas tomadas nesta sprint
-- Sprint 3 formalizada como backend-first para alinhar com o roadmap do repositório → frontend adiado para Sprint 6 → `docs/sprint/SPRINT_3.md`
-- Broadcast de cards passou a cobrir create, update e delete via signals + consumer → `backend/apps/cards/signals.py`, `backend/apps/realtime/consumers.py`
-- Criação de cards passou a exigir participação explícita na retrospectiva → `backend/apps/cards/views.py`
+- Sprint 4 foi mantida como sprint backend-first → interfaces visuais de grouping e voting seguem para Sprint 6 → `docs/sprint/SPRINT_4.md`
+- Eventos de agrupamento foram emitidos a partir de mudanças em `Card.group` via signals → `backend/apps/cards/signals.py`
+- Eventos de votação foram emitidos a partir de `CardVote` + `Participant.votes_remaining` via signals → `backend/apps/cards/signals.py`
+- Configuração de votos foi centralizada em endpoint próprio e sincroniza `votes_remaining` dos participantes → `backend/apps/cards/views.py`
 
 ## Padrões estabelecidos que devem ser seguidos
 - Manter arquitetura modular, cobertura de testes e conformidade ruff
@@ -37,10 +41,10 @@
 - Enquanto o frontend não existir, qualquer requisito visual deve ser registrado como deferido, nunca como entregue
 
 ## Próxima sprint: o que deve ser feito
-- Implementar agrupamento por seleção múltipla no backend
-- Implementar dot voting restrito a `loathed` e `longed`
-- Garantir regra de 1 voto por card por participante
-- Emitir eventos realtime necessários para votação e agrupamento
+- Implementar check de ações anteriores do mesmo `team_key`
+- Implementar action items com responsável e prazo
+- Implementar fase de discussão/debate e card em foco
+- Implementar encerramento da retrospectiva e histórico/dashboard
 - Aplicar validação real de transição de fases usando a state machine
 - Fechar fluxo do cronômetro com persistência, broadcast e testes dedicados
 - Implementar fluxo de convites e entrada de participantes
