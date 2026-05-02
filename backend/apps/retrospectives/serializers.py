@@ -19,7 +19,7 @@ class MilestoneSerializer(serializers.ModelSerializer):
     class Meta:
         model = Milestone
         fields = ("id", "category", "description", "author", "author_name", "created_at")
-        read_only_fields = fields
+        read_only_fields = ("id", "author", "author_name", "created_at")
 
 
 class RetrospectiveCreateSerializer(serializers.ModelSerializer):

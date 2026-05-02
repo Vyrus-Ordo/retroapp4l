@@ -2,6 +2,9 @@ from django.apps import AppConfig
 
 
 class RetrospectivesConfig(AppConfig):
-    default_auto_field = 'django.db.models.BigAutoField'
-    name = 'apps.retrospectives'
-    label = 'retrospectives'
+    default_auto_field = "django.db.models.BigAutoField"
+    name = "apps.retrospectives"
+    label = "retrospectives"
+
+    def ready(self):
+        import apps.retrospectives.signals  # noqa: F401
