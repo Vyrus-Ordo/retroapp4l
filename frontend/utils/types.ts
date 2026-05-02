@@ -75,62 +75,60 @@ export interface RetrospectiveDetail {
   milestones: Milestone[]
 }
 
+export const COLUMN_META = {
+  loved: {
+    label: 'Gostei',
+    color: 'success',
+    bg: 'success-50',
+    icon: 'emoticon-happy-outline',
+  },
+  loathed: {
+    label: 'Não gostei',
+    color: 'warning',
+    bg: 'warning-50',
+    icon: 'emoticon-sad-outline',
+  },
+  longed: {
+    label: 'Senti falta',
+    color: 'brand',
+    bg: 'brand-50',
+    icon: 'star-outline',
+  },
+  learned: {
+    label: 'Aprendi',
+    color: 'gray',
+    bg: 'gray-50',
+    icon: 'book-open-variant',
+  },
+} as const
+
+export const MILESTONE_DISPLAY_META = {
+  achievement: { label: 'Conquista', icon: 'trophy-outline', color: 'success' },
+  challenge: { label: 'Desafio', icon: 'alert-outline', color: 'warning' },
+  change: { label: 'Mudança', icon: 'swap-horizontal', color: 'brand' },
+  recognition: { label: 'Reconhecimento', icon: 'account-star-outline', color: 'success' },
+  other: { label: 'Outro', icon: 'dots-horizontal', color: 'gray' },
+} as const
+
+export const PHASE_META = {
+  setup: { label: 'Configuração', icon: 'cog-outline' },
+  lobby: { label: 'Lobby', icon: 'door-open' },
+  check: { label: 'Check de ações', icon: 'clipboard-check-outline' },
+  presentation: { label: 'Marcos', icon: 'flag-outline' },
+  board: { label: 'Board 4L', icon: 'view-column-outline' },
+  grouping: { label: 'Agrupamento', icon: 'call-merge' },
+  voting: { label: 'Votação', icon: 'circle-small' },
+  discussion: { label: 'Discussão', icon: 'comment-multiple-outline' },
+  actions: { label: 'Ações', icon: 'checkbox-marked-circle-outline' },
+  closed: { label: 'Encerrada', icon: 'lock-outline' },
+} as const
+
 export interface Card {
   id: string
   retrospective: string
   anonymous: boolean
   groupedInto: string | null
   myVotes?: number
-  // Metadados de colunas 4L
-  export const COLUMN_META = {
-    loved: {
-      label: 'Gostei',
-      color: 'success',
-      bg: 'success-50',
-      icon: 'emoticon-happy-outline',
-    },
-    loathed: {
-      label: 'Não gostei',
-      color: 'warning',
-      bg: 'warning-50',
-      icon: 'emoticon-sad-outline',
-    },
-    longed: {
-      label: 'Senti falta',
-      color: 'brand',
-      bg: 'brand-50',
-      icon: 'star-outline',
-    },
-    learned: {
-      label: 'Aprendi',
-      color: 'gray',
-      bg: 'gray-50',
-      icon: 'book-open-variant',
-    },
-  } as const;
-
-  // Metadados de marcos
-  export const MILESTONE_DISPLAY_META = {
-    achievement: { label: 'Conquista', icon: 'trophy-outline', color: 'success' },
-    challenge: { label: 'Desafio', icon: 'alert-outline', color: 'warning' },
-    change: { label: 'Mudança', icon: 'swap-horizontal', color: 'brand' },
-    recognition: { label: 'Reconhecimento', icon: 'account-star-outline', color: 'success' },
-    other: { label: 'Outro', icon: 'dots-horizontal', color: 'gray' },
-  } as const;
-
-  // Metadados de fases
-  export const PHASE_META = {
-    setup: { label: 'Configuração', icon: 'cog-outline' },
-    lobby: { label: 'Lobby', icon: 'door-open' },
-    check: { label: 'Check de ações', icon: 'clipboard-check-outline' },
-    presentation: { label: 'Marcos', icon: 'flag-outline' },
-    board: { label: 'Board 4L', icon: 'view-column-outline' },
-    grouping: { label: 'Agrupamento', icon: 'call-merge' },
-    voting: { label: 'Votação', icon: 'circle-small' },
-    discussion: { label: 'Discussão', icon: 'comment-multiple-outline' },
-    actions: { label: 'Ações', icon: 'checkbox-marked-circle-outline' },
-    closed: { label: 'Encerrada', icon: 'lock-outline' },
-  } as const;
   author: string
   author_name: string
   column: CardColumn
