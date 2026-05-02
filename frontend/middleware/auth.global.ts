@@ -2,7 +2,7 @@ export default defineNuxtRouteMiddleware((to) => {
   const authStore = useAuthStore()
   authStore.init()
 
-  const publicPaths = ["/", "/auth/login", "/auth/register", "/join"]
+  const publicPaths = ["/auth/login", "/auth/register", "/join"]
   const isInvitePath = to.path.startsWith("/retro/invite/")
   const requiresAuth = !publicPaths.includes(to.path) && !isInvitePath
 

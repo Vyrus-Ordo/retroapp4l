@@ -4,6 +4,7 @@ import { UserPlusIcon } from "@heroicons/vue/24/outline"
 import { isEmail, minLength, required } from "~/utils/validation"
 
 const { authStore } = useAuth()
+const toastStore = useToastStore()
 const form = reactive({ name: "", email: "", password: "" })
 const errorMessage = ref("")
 const pending = ref(false)
@@ -26,9 +27,11 @@ async function submit() {
   pending.value = true
   try {
     await authStore.register(form)
+    toastStore.success("Account created successfully.")
     await navigateTo("/")
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : "Unable to register."
+    toastStore.error(errorMessage.value)
   } finally {
     pending.value = false
   }
@@ -43,10 +46,19 @@ async function submit() {
       <p class="mt-2 text-sm text-slate-600">Local accounts use the same JWT flow as the backend API.</p>
 
       <form class="mt-6 space-y-4" @submit.prevent="submit">
-        <input v-model="form.name" class="field-input" placeholder="Full name" type="text">
-        <input v-model="form.email" class="field-input" placeholder="Email" type="email">
-        <input v-model="form.password" class="field-input" placeholder="Password" type="password">
-        <p v-if="errorMessage" class="text-sm text-danger-500">{{ errorMessage }}</p>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700" for="name">Name</label>
+          <input id="name" v-model="form.name" class="field-input" placeholder="Full name" type="text" autocomplete="name">
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+          <input id="email" v-model="form.email" class="field-input" placeholder="Email" type="email" autocomplete="email">
+        </div>
+        <div class="space-y-2">
+          <label class="text-sm font-medium text-gray-700" for="password">Password</label>
+          <input id="password" v-model="form.password" class="field-input" placeholder="Password" type="password" autocomplete="new-password">
+        </div>
+        <p v-if="errorMessage" role="alert" class="text-sm text-danger-500">{{ errorMessage }}</p>
         <button :disabled="pending" class="button-primary w-full" type="submit">
           <UserPlusIcon class="mr-2 h-5 w-5" />
           {{ pending ? 'Creating account...' : 'Create account' }}
