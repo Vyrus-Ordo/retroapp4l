@@ -23,7 +23,8 @@ const timerStore = useTimerStore()
 const toastStore = useToastStore()
 const { getNextPhase, orderedPhases } = usePhase()
 const { start } = useTimer()
-const { connectionState, send } = useWebSocket(retrospectiveId)
+const websocketEnabled = ref(false)
+const { connectionState, send } = useWebSocket(retrospectiveId, websocketEnabled)
 const api = useApiClient()
 
 const cardModalOpen = ref(false)
@@ -128,6 +129,7 @@ async function submitAction(payload: ActionItem) {
 onMounted(async () => {
   try {
     await retroStore.fetchSession(retrospectiveId.value)
+    websocketEnabled.value = true
     participantStore.hydrate(retroStore.current?.participants ?? [])
     try {
       const status = await api.get('/retrospectives/' + retrospectiveId.value + '/invite-status/')
@@ -141,6 +143,7 @@ onMounted(async () => {
     }
     start()
   } catch (error) {
+    websocketEnabled.value = false
     pageError.value = error instanceof Error ? error.message : 'Unable to load session.'
   }
 })

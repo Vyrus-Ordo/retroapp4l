@@ -1,6 +1,9 @@
 import { playTimerExpiredAlert } from "~/utils/sound"
 
-export function useWebSocket(retrospectiveId: MaybeRefOrGetter<string | null>) {
+export function useWebSocket(
+  retrospectiveId: MaybeRefOrGetter<string | null>,
+  enabled: MaybeRefOrGetter<boolean> = true,
+) {
   const config = useRuntimeConfig()
   const authStore = useAuthStore()
   const retroStore = useRetroStore()
@@ -101,7 +104,7 @@ export function useWebSocket(retrospectiveId: MaybeRefOrGetter<string | null>) {
 
   function connect() {
     const id = toValue(retrospectiveId)
-    if (!import.meta.client || !id || !authStore.access) {
+    if (!import.meta.client || !toValue(enabled) || !id || !authStore.access) {
       return
     }
 
@@ -143,9 +146,9 @@ export function useWebSocket(retrospectiveId: MaybeRefOrGetter<string | null>) {
   onBeforeUnmount(disconnect)
 
   watch(
-    () => [toValue(retrospectiveId), authStore.access],
-    ([id, access]) => {
-      if (id && access) {
+    () => [toValue(retrospectiveId), authStore.access, toValue(enabled)],
+    ([id, access, isEnabled]) => {
+      if (id && access && isEnabled) {
         connect()
       } else {
         disconnect()
