@@ -147,7 +147,18 @@ export const useRetroStore = defineStore("retro", {
     },
     async fetchHistoryDetail(retrospectiveId: string) {
       const api = useApiClient()
-      this.historyDetail = await api.get<HistoryDetail>(`/retrospectives/${retrospectiveId}/detail/`)
+      this.loading = true
+      this.error = null
+      this.historyDetail = null
+
+      try {
+        this.historyDetail = await api.get<HistoryDetail>(`/retrospectives/${retrospectiveId}/detail/`)
+      } catch (error) {
+        this.error = error instanceof Error ? error.message : "Unable to load retrospective history."
+        throw error
+      } finally {
+        this.loading = false
+      }
     },
     async fetchTeamSuggestions(query = "") {
       const api = useApiClient()

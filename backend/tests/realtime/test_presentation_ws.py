@@ -194,6 +194,55 @@ async def test_card_events_are_broadcast():
     await communicator.disconnect()
 
 
+@database_sync_to_async
+def create_named_user(name, email):
+    return User.objects.create_user(name=name, email=email, password="supersecret123")
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_participant_join_is_broadcast_to_other_connected_clients():
+    facilitator = await create_named_user("Facilitator", "facilitator-join@example.com")
+    joining_user = await create_named_user("Participant", "participant-join@example.com")
+    retro = await create_retro(facilitator)
+    await create_participant(retro, facilitator)
+    await create_participant(retro, joining_user)
+
+    facilitator_token = str(AccessToken.for_user(facilitator))
+    joining_token = str(AccessToken.for_user(joining_user))
+
+    facilitator_communicator = WebsocketCommunicator(
+        application,
+        f"/ws/retrospectives/{retro.id}/?token={facilitator_token}",
+    )
+    connected, _ = await facilitator_communicator.connect()
+    assert connected
+
+    snapshot = await facilitator_communicator.receive_json_from()
+    assert snapshot["type"] == "session.snapshot"
+
+    joining_communicator = WebsocketCommunicator(
+        application,
+        f"/ws/retrospectives/{retro.id}/?token={joining_token}",
+    )
+    connected, _ = await joining_communicator.connect()
+    assert connected
+
+    joining_snapshot = await joining_communicator.receive_json_from()
+    assert joining_snapshot["type"] == "session.snapshot"
+
+    joined_event = await facilitator_communicator.receive_json_from()
+    assert joined_event == {
+        "type": "participant.joined",
+        "user_id": str(joining_user.id),
+        "name": joining_user.name,
+        "avatar_url": joining_user.avatar_url,
+    }
+
+    await facilitator_communicator.disconnect()
+    await joining_communicator.disconnect()
+
+
 @pytest.mark.django_db(transaction=True)
 @pytest.mark.asyncio
 async def test_card_grouping_events_are_broadcast():

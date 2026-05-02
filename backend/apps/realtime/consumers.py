@@ -29,14 +29,25 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
             "participants": [],
             "action_items": []
         })
+        await self.channel_layer.group_send(
+            self.group_name,
+            {
+                "type": "participant.joined",
+                "user_id": str(user.id),
+                "name": user.name,
+                "avatar_url": user.avatar_url,
+                "exclude_channel_name": self.channel_name,
+            },
+        )
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.group_name, self.channel_name)
+        user_id = getattr(self.scope.get("user"), "id", None)
         await self.channel_layer.group_send(
             self.group_name,
             {
                 "type": "participant.left",
-                "user_id": getattr(self.scope.get("user"), "id", None)
+                "user_id": str(user_id) if user_id is not None else None,
             }
         )
 
@@ -184,6 +195,8 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({"type": "timer.sync", "seconds_remaining": event["seconds_remaining"]})
 
     async def participant_joined(self, event):
+        if event.get("exclude_channel_name") == self.channel_name:
+            return
         await self.send_json({"type": "participant.joined", "user_id": event["user_id"], "name": event["name"], "avatar_url": event["avatar_url"]})
 
     async def participant_joined_late(self, event):

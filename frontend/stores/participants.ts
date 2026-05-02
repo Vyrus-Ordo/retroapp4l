@@ -32,6 +32,20 @@ export const useParticipantStore = defineStore("participants", {
       this.accessLog = [message, ...this.accessLog].slice(0, 20)
     },
     markJoined(payload: { user_id: string; name: string }) {
+      const existingParticipant = this.participants.find((participant) => participant.user === payload.user_id)
+      if (!existingParticipant) {
+        this.participants = [
+          ...this.participants,
+          {
+            id: payload.user_id,
+            user: payload.user_id,
+            user_name: payload.name,
+            user_email: "",
+            votes_remaining: 0,
+            joined_at: new Date().toISOString(),
+          },
+        ]
+      }
       if (!this.onlineIds.includes(payload.user_id)) {
         this.onlineIds.push(payload.user_id)
       }

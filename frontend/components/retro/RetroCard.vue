@@ -1,54 +1,108 @@
-defineProps<{
-defineEmits<{
-<template>
-  <div class="retro-card bg-gray-50 rounded-lg border border-gray-200 p-3 flex flex-col gap-2 shadow-sm">
-    <div class="flex items-center gap-2">
-      <span v-if="card.author" class="mdi mdi-account-circle text-lg text-gray-400" />
-      <span class="text-xs text-gray-500">{{ card.author || 'Anônimo' }}</span>
-    </div>
-    <div class="text-base text-gray-900 font-medium">{{ card.text }}</div>
-    <div class="flex gap-2 mt-1">
-      <button v-if="card.canEdit" class="button-tertiary text-xs" @click="$emit('action', { type: 'edit', card })">Editar</button>
-      <button v-if="card.canDelete" class="button-tertiary text-xs text-danger-500" @click="$emit('action', { type: 'delete', card })">Excluir</button>
-    </div>
-  </div>
-</template>
-
 <script setup lang="ts">
-const props = defineProps({
-  card: Object
-})
+import type { Card } from "~/utils/types"
+
+import VoteBadge from "./VoteBadge.vue"
+
+const props = withDefaults(
+  defineProps<{
+    card: Card
+    canEdit?: boolean
+    canDelete?: boolean
+    canVote?: boolean
+    selected?: boolean
+    showGrouping?: boolean
+    voteDisabled?: boolean
+    voteActive?: boolean
+  }>(),
+  {
+    canEdit: false,
+    canDelete: false,
+    canVote: false,
+    selected: false,
+    showGrouping: false,
+    voteDisabled: false,
+    voteActive: false,
+  },
+)
+
+const emit = defineEmits<{
+  edit: [card: Card]
+  delete: [card: Card]
+  vote: [card: Card]
+  "toggle-select": [cardId: string]
+  action: [payload: { type: "edit" | "delete"; card: Card }]
+}>()
+
+const cardAuthor = computed(() => props.card.author_name || props.card.author || "Anonymous")
+const cardContent = computed(() => props.card.content || "")
+
+function emitEdit() {
+  emit("edit", props.card)
+  emit("action", { type: "edit", card: props.card })
+}
+
+function emitDelete() {
+  emit("delete", props.card)
+  emit("action", { type: "delete", card: props.card })
+}
+
+function toggleSelection() {
+  emit("toggle-select", props.card.id)
+}
+
+function emitVote() {
+  emit("vote", props.card)
+}
 </script>
 
-<style scoped>
-.retro-card {
-  transition: box-shadow 0.2s;
-}
-.retro-card:hover {
-  box-shadow: 0 2px 8px 0 var(--ds-shadow-md);
-}
-</style>
+<template>
+  <article
+    :class="[
+      'rounded-xl border bg-white p-4 shadow-sm transition',
+      selected ? 'border-brand-300 ring-2 ring-brand-100' : 'border-slate-200 hover:border-slate-300',
+      showGrouping ? 'cursor-pointer' : '',
+    ]"
+    @click="showGrouping ? toggleSelection() : undefined"
+  >
+    <div class="flex items-start justify-between gap-3">
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{{ card.column }}</p>
+        <p class="mt-1 text-sm text-slate-500">{{ cardAuthor }}</p>
+      </div>
+      <VoteBadge :active="voteActive" :count="card.vote_count" />
+    </div>
 
-    <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-      <button v-if="canEdit" class="inline-flex items-center hover:text-slate-900" type="button" @click="$emit('edit', card)">
-        <PencilIcon class="mr-1 h-4 w-4" />
+    <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-800">{{ cardContent }}</p>
+
+    <div v-if="showGrouping || canEdit || canDelete || canVote" class="mt-4 flex flex-wrap items-center gap-3 text-xs font-medium">
+      <button
+        v-if="showGrouping"
+        :class="selected ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900'"
+        class="rounded-full border px-3 py-1.5 transition"
+        type="button"
+        @click.stop="toggleSelection"
+      >
+        {{ selected ? 'Selected' : 'Select for group' }}
+      </button>
+
+      <button v-if="canEdit" class="text-slate-600 transition hover:text-slate-900" type="button" @click.stop="emitEdit">
         Edit
       </button>
-      <button v-if="canDelete" class="inline-flex items-center hover:text-danger-500" type="button" @click="$emit('delete', card)">
-        <TrashIcon class="mr-1 h-4 w-4" />
+
+      <button v-if="canDelete" class="text-danger-500 transition hover:text-danger-600" type="button" @click.stop="emitDelete">
         Delete
       </button>
+
       <button
         v-if="canVote"
-        :class="voteActive ? 'text-brand-500' : 'text-slate-500 hover:text-brand-500'"
+        :class="voteActive ? 'text-brand-600' : 'text-slate-600 hover:text-brand-600'"
         :disabled="voteDisabled"
-        class="inline-flex items-center disabled:text-slate-300"
+        class="disabled:cursor-not-allowed disabled:text-slate-300"
         type="button"
-        @click="$emit('vote', card)"
+        @click.stop="emitVote"
       >
-        <VoteBadge :active="voteActive" :count="card.vote_count" />
+        Vote
       </button>
-      <span v-else class="text-brand-500 text-xs font-semibold">{{ card.vote_count }} votes</span>
     </div>
   </article>
 </template>

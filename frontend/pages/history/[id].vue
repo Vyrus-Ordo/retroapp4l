@@ -1,11 +1,21 @@
 <script setup lang="ts">
 import MilestoneCard from "~/components/retro/MilestoneCard.vue"
+import RetroCard from "~/components/retro/RetroCard.vue"
 
 const route = useRoute()
 const retroStore = useRetroStore()
+const pageError = ref<string | null>(null)
 
 onMounted(async () => {
-  await retroStore.fetchHistoryDetail(String(route.params.id))
+  try {
+    await retroStore.fetchHistoryDetail(String(route.params.id))
+  } catch (error) {
+    pageError.value = error instanceof Error ? error.message : "Unable to load retrospective history."
+
+    if (pageError.value === "Session expired. Please sign in again.") {
+      await navigateTo(`/auth/login?redirect=${encodeURIComponent(route.fullPath)}`)
+    }
+  }
 })
 
 const detail = computed(() => retroStore.historyDetail)
@@ -13,7 +23,13 @@ const detail = computed(() => retroStore.historyDetail)
 
 <template>
   <AppShell>
-    <section v-if="detail" class="space-y-6">
+    <section v-if="pageError" class="panel p-6 lg:p-8">
+      <p class="text-xs font-semibold text-brand-500">History detail</p>
+      <h1 class="mt-3 text-2xl font-semibold text-slate-900">Unable to load retrospective</h1>
+      <p class="mt-2 text-sm text-slate-600">{{ pageError }}</p>
+    </section>
+
+    <section v-else-if="detail" class="space-y-6">
       <div class="panel p-6 lg:p-8">
         <p class="text-xs font-semibold text-brand-500">History detail</p>
         <h1 class="mt-3 text-2xl font-semibold text-slate-900">{{ detail.title }}</h1>
@@ -41,6 +57,11 @@ const detail = computed(() => retroStore.historyDetail)
           </div>
         </div>
       </section>
+    </section>
+
+    <section v-else class="panel p-6 lg:p-8">
+      <p class="text-xs font-semibold text-brand-500">History detail</p>
+      <p class="mt-3 text-sm text-slate-600">Loading retrospective...</p>
     </section>
   </AppShell>
 </template>
