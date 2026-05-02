@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { PlusCircleIcon, SparklesIcon } from "@heroicons/vue/24/outline"
 
+import type { MilestoneCategory } from "~/utils/types"
+
 const retroStore = useRetroStore()
 
 const form = reactive({
@@ -12,8 +14,11 @@ const form = reactive({
   skip_check_phase: false,
 })
 
-const milestoneDraft = reactive({ category: "achievement", description: "" })
-const milestones = ref<Array<{ category: string; description: string }>>([])
+const milestoneDraft = reactive<{ category: MilestoneCategory; description: string }>({
+  category: "achievement",
+  description: "",
+})
+const milestones = ref<Array<{ category: MilestoneCategory; description: string }>>([])
 const suggestions = ref<string[]>([])
 const pending = ref(false)
 const errorMessage = ref("")
@@ -105,8 +110,9 @@ async function submit() {
           <select v-model="milestoneDraft.category" class="field-input">
             <option value="achievement">Achievement</option>
             <option value="challenge">Challenge</option>
-            <option value="decision">Decision</option>
-            <option value="incident">Incident</option>
+            <option value="change">Change</option>
+            <option value="recognition">Recognition</option>
+            <option value="other">Other</option>
           </select>
           <input v-model="milestoneDraft.description" class="field-input" placeholder="Describe the milestone">
           <button class="button-secondary" type="button" @click="addMilestone">Add milestone</button>

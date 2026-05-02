@@ -12,6 +12,7 @@ export type RetroPhase =
 
 export type CardColumn = "loved" | "loathed" | "longed" | "learned"
 export type ActionStatus = "not_started" | "in_progress" | "done"
+export type MilestoneCategory = "achievement" | "challenge" | "change" | "recognition" | "other"
 
 export interface User {
   id: string
@@ -33,7 +34,7 @@ export interface Participant {
 
 export interface Milestone {
   id: string
-  category: string
+  category: MilestoneCategory
   description: string
   author: string
   author_name: string

@@ -6,6 +6,7 @@ import type {
   DiscussionFocusPayload,
   HistoryDetail,
   HistoryItem,
+  MilestoneCategory,
   Milestone,
   PreviousActionsResponse,
   RetrospectiveDetail,
@@ -79,7 +80,7 @@ export const useRetroStore = defineStore("retro", {
       team_key: string
       max_votes_per_user: number
       skip_check_phase: boolean
-      milestones: Array<{ category: string; description: string }>
+      milestones: Array<{ category: MilestoneCategory; description: string }>
     }) {
       const api = useApiClient()
       const retrospective = await api.post<RetrospectiveDetail, Omit<typeof payload, "milestones">>(
