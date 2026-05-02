@@ -1,0 +1,768 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_date": "2026-05-02T00:00:00.000Z",
+  "__export_source": "GitHub Copilot GPT-5.4",
+  "resources": [
+    {
+      "_id": "wrk_retroapp4l_api",
+      "_type": "workspace",
+      "name": "RetroApp4L API",
+      "scope": "collection"
+    },
+    {
+      "_id": "env_retroapp4l_base",
+      "_type": "environment",
+      "parentId": "wrk_retroapp4l_api",
+      "name": "Base Environment",
+      "data": {
+        "base_url": "http://localhost:8000",
+        "access_token": "",
+        "refresh_token": "",
+        "retrospective_id": "00000000-0000-0000-0000-000000000001",
+        "milestone_id": "00000000-0000-0000-0000-000000000002",
+        "card_id": "00000000-0000-0000-0000-000000000003",
+        "card_id_2": "00000000-0000-0000-0000-000000000004",
+        "action_id": "00000000-0000-0000-0000-000000000005",
+        "previous_action_id": "00000000-0000-0000-0000-000000000006",
+        "participant_id": "00000000-0000-0000-0000-000000000007",
+        "team_query": "platform"
+      }
+    },
+    {
+      "_id": "fld_auth",
+      "_type": "request_group",
+      "parentId": "wrk_retroapp4l_api",
+      "name": "Auth"
+    },
+    {
+      "_id": "fld_retrospectives",
+      "_type": "request_group",
+      "parentId": "wrk_retroapp4l_api",
+      "name": "Retrospectives"
+    },
+    {
+      "_id": "fld_milestones",
+      "_type": "request_group",
+      "parentId": "wrk_retroapp4l_api",
+      "name": "Milestones"
+    },
+    {
+      "_id": "fld_cards",
+      "_type": "request_group",
+      "parentId": "wrk_retroapp4l_api",
+      "name": "Cards"
+    },
+    {
+      "_id": "fld_voting",
+      "_type": "request_group",
+      "parentId": "wrk_retroapp4l_api",
+      "name": "Voting"
+    },
+    {
+      "_id": "fld_actions",
+      "_type": "request_group",
+      "parentId": "wrk_retroapp4l_api",
+      "name": "Actions"
+    },
+    {
+      "_id": "req_auth_register",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Register",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/register/",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"name\": \"Taylor\",\n  \"email\": \"taylor@example.com\",\n  \"password\": \"supersecret123\"\n}"
+      }
+    },
+    {
+      "_id": "req_auth_login",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Login",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/login/",
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "afterResponseScript": "const body = insomnia.response.json();\n\nif (body?.access) {\n  insomnia.environment.set('access_token', body.access);\n}\n\nif (body?.refresh) {\n  insomnia.environment.set('refresh_token', body.refresh);\n}\n\ninsomnia.test('login returned tokens', () => {\n  insomnia.expect(body.access).to.be.a('string');\n  insomnia.expect(body.refresh).to.be.a('string');\n});\n",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"taylor@example.com\",\n  \"password\": \"supersecret123\"\n}"
+      }
+    },
+    {
+      "_id": "req_auth_logout",
+      "_type": "request",
+      "parentId": "fld_auth",
+      "name": "Logout",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/auth/logout/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"refresh\": \"{{ _.refresh_token }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_retro_list",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "List Retrospectives",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_retro_create",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "Create Retrospective",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"title\": \"Sprint 8 Retro\",\n  \"sprint_name\": \"Sprint 8\",\n  \"description\": \"Looking back on recent delivery.\",\n  \"team_key\": \"platform-team\",\n  \"max_votes_per_user\": 3,\n  \"skip_check_phase\": false\n}"
+      }
+    },
+    {
+      "_id": "req_retro_detail",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "Get Retrospective Detail",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_retro_history",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "List Retrospective History",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/history/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_retro_closed_detail",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "Get Closed Retrospective Detail",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/detail/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_retro_close",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "Close Retrospective",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/close/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"confirm\": true\n}"
+      }
+    },
+    {
+      "_id": "req_retro_focus_card",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "Set Focus Card",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/focus-card/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"card_id\": \"{{ _.card_id }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_retro_next_card",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "Advance Focus Card",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/next-card/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      }
+    },
+    {
+      "_id": "req_team_suggestions",
+      "_type": "request",
+      "parentId": "fld_retrospectives",
+      "name": "Team Suggestions",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/teams/suggestions/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ],
+      "parameters": [
+        {
+          "name": "q",
+          "value": "{{ _.team_query }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_milestone_list",
+      "_type": "request",
+      "parentId": "fld_milestones",
+      "name": "List Milestones",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/milestones/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_milestone_create",
+      "_type": "request",
+      "parentId": "fld_milestones",
+      "name": "Create Milestone",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/milestones/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"category\": \"achievement\",\n  \"description\": \"Delivered the MVP.\"\n}"
+      }
+    },
+    {
+      "_id": "req_milestone_detail",
+      "_type": "request",
+      "parentId": "fld_milestones",
+      "name": "Get Milestone Detail",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/milestones/{{ _.milestone_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_milestone_put",
+      "_type": "request",
+      "parentId": "fld_milestones",
+      "name": "Replace Milestone",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/milestones/{{ _.milestone_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"category\": \"challenge\",\n  \"description\": \"Build pipeline became unstable during the sprint.\"\n}"
+      }
+    },
+    {
+      "_id": "req_milestone_patch",
+      "_type": "request",
+      "parentId": "fld_milestones",
+      "name": "Patch Milestone",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/milestones/{{ _.milestone_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"description\": \"Delivered the MVP with stable onboarding.\"\n}"
+      }
+    },
+    {
+      "_id": "req_milestone_delete",
+      "_type": "request",
+      "parentId": "fld_milestones",
+      "name": "Delete Milestone",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/milestones/{{ _.milestone_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_card_list",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "List Cards",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_card_create",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Create Card",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"column\": \"loved\",\n  \"content\": \"Great collaboration during the sprint.\",\n  \"position\": 0,\n  \"group\": null\n}"
+      }
+    },
+    {
+      "_id": "req_card_detail",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Get Card Detail",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/{{ _.card_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_card_put",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Replace Card",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/{{ _.card_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"column\": \"learned\",\n  \"content\": \"We should document rollback steps sooner.\",\n  \"position\": 1,\n  \"group\": null\n}"
+      }
+    },
+    {
+      "_id": "req_card_patch",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Patch Card",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/{{ _.card_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"content\": \"Updated card content for discussion.\"\n}"
+      }
+    },
+    {
+      "_id": "req_card_delete",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Delete Card",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/{{ _.card_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_card_group",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Group Cards",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/group/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"card_ids\": [\n    \"{{ _.card_id }}\",\n    \"{{ _.card_id_2 }}\"\n  ],\n  \"group_parent_id\": \"{{ _.card_id }}\"\n}"
+      }
+    },
+    {
+      "_id": "req_card_ungroup",
+      "_type": "request",
+      "parentId": "fld_cards",
+      "name": "Ungroup Card",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/{{ _.card_id }}/ungroup/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      }
+    },
+    {
+      "_id": "req_vote_create",
+      "_type": "request",
+      "parentId": "fld_voting",
+      "name": "Vote On Card",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/{{ _.card_id }}/vote/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{}"
+      }
+    },
+    {
+      "_id": "req_vote_delete",
+      "_type": "request",
+      "parentId": "fld_voting",
+      "name": "Revoke Vote",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/cards/{{ _.card_id }}/vote/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_vote_list",
+      "_type": "request",
+      "parentId": "fld_voting",
+      "name": "List Votes",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/votes/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_votes_config",
+      "_type": "request",
+      "parentId": "fld_voting",
+      "name": "Update Votes Config",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/votes-config/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"max_votes_per_user\": 5\n}"
+      }
+    },
+    {
+      "_id": "req_action_list",
+      "_type": "request",
+      "parentId": "fld_actions",
+      "name": "List Action Items",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/action-items/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_action_create",
+      "_type": "request",
+      "parentId": "fld_actions",
+      "name": "Create Action Item",
+      "method": "POST",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/action-items/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"description\": \"Create an incident playbook.\",\n  \"assignee_id\": \"{{ _.participant_id }}\",\n  \"due_date\": \"2026-05-30\",\n  \"card_id\": \"{{ _.card_id }}\",\n  \"external_tracker_url\": \"https://github.com/diniz-prj/retroapp4l/issues/12\"\n}"
+      }
+    },
+    {
+      "_id": "req_action_detail",
+      "_type": "request",
+      "parentId": "fld_actions",
+      "name": "Get Action Item Detail",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/action-items/{{ _.action_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_action_put",
+      "_type": "request",
+      "parentId": "fld_actions",
+      "name": "Replace Action Item",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/action-items/{{ _.action_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"description\": \"Track rollback and document the final procedure.\",\n  \"assignee_id\": \"{{ _.participant_id }}\",\n  \"due_date\": \"2026-06-05\",\n  \"card_id\": \"{{ _.card_id }}\",\n  \"status\": \"in_progress\",\n  \"external_tracker_url\": \"https://github.com/diniz-prj/retroapp4l/issues/13\"\n}"
+      }
+    },
+    {
+      "_id": "req_action_patch",
+      "_type": "request",
+      "parentId": "fld_actions",
+      "name": "Patch Action Item",
+      "method": "PATCH",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/action-items/{{ _.action_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"done\"\n}"
+      }
+    },
+    {
+      "_id": "req_action_delete",
+      "_type": "request",
+      "parentId": "fld_actions",
+      "name": "Delete Action Item",
+      "method": "DELETE",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/action-items/{{ _.action_id }}/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_previous_actions",
+      "_type": "request",
+      "parentId": "fld_actions",
+      "name": "List Previous Actions",
+      "method": "GET",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/previous-actions/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        }
+      ]
+    },
+    {
+      "_id": "req_previous_action_status",
+      "_type": "request",
+      "parentId": "fld_actions",
+      "name": "Update Previous Action Status",
+      "method": "PUT",
+      "url": "{{ _.base_url }}/api/retrospectives/{{ _.retrospective_id }}/previous-actions/{{ _.previous_action_id }}/status/",
+      "headers": [
+        {
+          "name": "Authorization",
+          "value": "Bearer {{ _.access_token }}"
+        },
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"status\": \"pending\"\n}"
+      }
+    }
+  ]
+}
