@@ -82,7 +82,7 @@ export const useAuthStore = defineStore("auth", {
       const api = useApiClient()
       if (this.refresh) {
         try {
-          await api.post<void, { refresh: string }>("/auth/logout/", { refresh: this.refresh })
+          await api.post<unknown, { refresh: string }>("/auth/logout/", { refresh: this.refresh })
         } catch {
           // Ignore logout transport errors and clear local state.
         }

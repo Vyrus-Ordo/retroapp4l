@@ -17,5 +17,6 @@ defineProps<{
       </div>
     </div>
     <AppFooter />
+    <ToastContainer />
   </div>
 </template>

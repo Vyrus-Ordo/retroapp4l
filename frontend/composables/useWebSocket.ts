@@ -6,6 +6,7 @@ export function useWebSocket(retrospectiveId: MaybeRefOrGetter<string | null>) {
   const retroStore = useRetroStore()
   const participantStore = useParticipantStore()
   const timerStore = useTimerStore()
+  const toastStore = useToastStore()
   const socket = shallowRef<WebSocket | null>(null)
   const connectionState = ref<"idle" | "connecting" | "connected" | "reconnecting" | "closed">("idle")
   const reconnectAttempts = ref(0)
@@ -31,12 +32,45 @@ export function useWebSocket(retrospectiveId: MaybeRefOrGetter<string | null>) {
       }
     }
 
+    if (payload.type === "phase.changed") {
+      const phase = String(payload.phase || "")
+      const phaseLabels: Record<string, string> = {
+        lobby: "Lobby",
+        presentation: "Presentation",
+        check: "Check",
+        board: "Board",
+        grouping: "Grouping",
+        voting: "Voting",
+        discussion: "Discussion",
+        actions: "Actions",
+        closed: "Closed",
+      }
+      if (phaseLabels[phase]) {
+        toastStore.info(`Phase advanced: ${phaseLabels[phase]}`)
+      }
+    }
+
+    if (payload.type === "card.created") {
+      toastStore.success("Card created.")
+    }
+
+    if (payload.type === "vote.cast") {
+      toastStore.success("Vote registered.")
+    }
+
     if (payload.type === "participant.joined" || payload.type === "participant.joined_late") {
       participantStore.markJoined({ user_id: String(payload.user_id), name: String(payload.name) })
     }
 
     if (payload.type === "participant.left") {
       participantStore.markLeft(String(payload.user_id))
+    }
+
+    if (payload.type === "invite.status_updated") {
+      participantStore.setInviteStatus(
+        String(payload.invite_status) as "active" | "blocked" | "temporarily_open",
+        payload.expires_at ? String(payload.expires_at) : null,
+      )
     }
 
     if (payload.type === "timer.paused") {

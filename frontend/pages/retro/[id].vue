@@ -15,9 +15,11 @@ const { authStore } = useAuth()
 const retroStore = useRetroStore()
 const participantStore = useParticipantStore()
 const timerStore = useTimerStore()
+const toastStore = useToastStore()
 const { getNextPhase, getPhaseLabel } = usePhase()
 const { toneClass, start } = useTimer()
 const { connectionState, send } = useWebSocket(retrospectiveId)
+const api = useApiClient()
 
 const cardModalOpen = ref(false)
 const actionModalOpen = ref(false)
@@ -53,6 +55,19 @@ async function loadSession() {
     participantStore.hydrate(retroStore.current?.participants || [])
     timerStore.hydrate(retroStore.current)
     start()
+    // Sync invite status from REST on load
+    try {
+      const inviteStatusResponse = await api.get<{ status: string; expires_at: string | null }>(
+        `/retrospectives/${retrospectiveId.value}/invite-status/`,
+      )
+      participantStore.setInviteStatus(
+        inviteStatusResponse.status as "active" | "blocked" | "temporarily_open",
+        inviteStatusResponse.expires_at,
+      )
+    } catch {
+      // Non-critical — default to blocked
+      participantStore.setInviteStatus("blocked")
+    }
   } catch (error) {
     pageError.value = error instanceof Error ? error.message : "Unable to load retrospective."
   }
@@ -141,8 +156,20 @@ async function closeSession() {
   await retroStore.closeRetrospective(retrospectiveId.value)
 }
 
-function handleAllowEntry() {
-  participantStore.pushLog("Invite reopening still depends on a backend endpoint.")
+const allowEntryLoading = ref(false)
+
+async function handleAllowEntry() {
+  if (allowEntryLoading.value) return
+  allowEntryLoading.value = true
+  try {
+    await api.post(`/retrospectives/${retrospectiveId.value}/reopen-entry/`, {})
+    participantStore.setInviteStatus("temporarily_open", null)
+    toastStore.success("Entry window open for 2 minutes.")
+  } catch {
+    toastStore.error("Unable to reopen entry. Please try again.")
+  } finally {
+    allowEntryLoading.value = false
+  }
 }
 
 async function copyInviteLink() {
@@ -160,9 +187,10 @@ async function copyInviteLink() {
       <AppSidebar>
         <ParticipantPanel
           :access-log="participantStore.accessLog"
+          :allow-entry-loading="allowEntryLoading"
           :facilitator="isFacilitator"
-          :invite-blocked="Boolean(current?.invite_revoked_at || activePhase !== 'lobby')"
-          :invite-token="current?.invite_token"
+          :invite-expires-at="participantStore.inviteExpiresAt"
+          :invite-status="participantStore.inviteStatus"
           :online-ids="participantStore.onlineIds"
           :participants="participantStore.participants"
           @allow-entry="handleAllowEntry"

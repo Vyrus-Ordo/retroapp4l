@@ -166,7 +166,7 @@ export const useRetroStore = defineStore("retro", {
     },
     async deleteCard(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
-      await api.delete<void>(`/retrospectives/${retrospectiveId}/cards/${cardId}/`)
+      await api.delete<unknown>(`/retrospectives/${retrospectiveId}/cards/${cardId}/`)
       this.cards = this.cards.filter((card) => card.id !== cardId)
       this.selectedCardIds = this.selectedCardIds.filter((candidate) => candidate !== cardId)
     },

@@ -21,7 +21,7 @@ defineEmits<{
       In focus
     </div>
 
-    <div class="mt-4 space-y-2" v-if="focus">
+    <div v-if="focus" class="mt-4 space-y-2">
       <p class="text-sm font-medium text-slate-600">{{ focus.column }}</p>
       <h3 class="text-lg font-semibold leading-6 text-slate-900">{{ focus.content }}</h3>
       <p class="text-sm text-brand-500">{{ focus.vote_count }} votes</p>
