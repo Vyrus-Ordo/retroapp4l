@@ -1,0 +1,17 @@
+<template>
+  <div class="panel p-8 flex flex-col gap-6 min-h-[50vh]">
+    <h1 class="text-xl font-bold text-gray-900 mb-2">Agrupamento</h1>
+    <p class="text-gray-600">Agrupe cards semelhantes arrastando-os para dentro de outros cards.</p>
+    <div class="mt-6 text-center text-gray-400">(Agrupamento em construção — integrar grid e drag-and-drop)</div>
+    <div class="flex justify-end mt-4">
+      <button v-if="isFacilitator" class="button-primary" @click="$emit('advance-phase')">Próxima fase</button>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const props = defineProps({
+  current: Object,
+  isFacilitator: Boolean
+})
+</script>

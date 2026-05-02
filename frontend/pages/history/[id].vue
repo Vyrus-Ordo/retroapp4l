@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import MilestoneCard from "~/components/retro/MilestoneCard.vue"
+
 const route = useRoute()
 const retroStore = useRetroStore()
 

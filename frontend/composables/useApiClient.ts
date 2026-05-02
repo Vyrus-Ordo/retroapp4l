@@ -4,6 +4,18 @@ interface RequestOptions<T> {
   auth?: boolean
 }
 
+function isUnauthorizedApiError(error: unknown) {
+  const candidate = error as {
+    status?: number
+    statusCode?: number
+    response?: {
+      status?: number
+    }
+  }
+
+  return candidate?.status === 401 || candidate?.statusCode === 401 || candidate?.response?.status === 401
+}
+
 function normalizeApiError(error: unknown) {
   const candidate = error as {
     data?: Record<string, unknown>
@@ -42,6 +54,11 @@ export function useApiClient() {
         headers,
       })
     } catch (error) {
+      if (options.auth !== false && isUnauthorizedApiError(error)) {
+        authStore.clear()
+        throw new Error("Session expired. Please sign in again.")
+      }
+
       throw new Error(normalizeApiError(error))
     }
   }

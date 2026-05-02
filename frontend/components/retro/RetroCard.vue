@@ -1,42 +1,33 @@
-<script setup lang="ts">
-import { PencilIcon, TrashIcon } from "@heroicons/vue/24/outline"
-
-import type { Card } from "~/utils/types"
-
 defineProps<{
-  card: Card
-  showGrouping?: boolean
-  selected?: boolean
-  canEdit?: boolean
-  canDelete?: boolean
-  canVote?: boolean
-  voteActive?: boolean
-  voteDisabled?: boolean
-}>()
-
 defineEmits<{
-  edit: [card: Card]
-  delete: [card: Card]
-  toggleSelect: [cardId: string]
-  vote: [card: Card]
-}>()
+<template>
+  <div class="retro-card bg-gray-50 rounded-lg border border-gray-200 p-3 flex flex-col gap-2 shadow-sm">
+    <div class="flex items-center gap-2">
+      <span v-if="card.author" class="mdi mdi-account-circle text-lg text-gray-400" />
+      <span class="text-xs text-gray-500">{{ card.author || 'Anônimo' }}</span>
+    </div>
+    <div class="text-base text-gray-900 font-medium">{{ card.text }}</div>
+    <div class="flex gap-2 mt-1">
+      <button v-if="card.canEdit" class="button-tertiary text-xs" @click="$emit('action', { type: 'edit', card })">Editar</button>
+      <button v-if="card.canDelete" class="button-tertiary text-xs text-danger-500" @click="$emit('action', { type: 'delete', card })">Excluir</button>
+    </div>
+  </div>
+</template>
+
+<script setup lang="ts">
+const props = defineProps({
+  card: Object
+})
 </script>
 
-<template>
-  <article class="bg-white border border-slate-100 rounded-lg p-4 shadow-sm hover:shadow-md transition-shadow duration-150">
-    <div class="flex items-start justify-between gap-3">
-      <div>
-        <p class="text-xs text-slate-400">{{ card.author_name }} · {{ new Date(card.created_at).toLocaleString() }}</p>
-        <p class="mt-3 text-sm font-medium text-slate-900">{{ card.content }}</p>
-      </div>
-      <input
-        v-if="showGrouping"
-        :checked="selected"
-        class="mt-1 h-4 w-4 rounded border-slate-300 text-brand-500"
-        type="checkbox"
-        @change="$emit('toggleSelect', card.id)"
-      >
-    </div>
+<style scoped>
+.retro-card {
+  transition: box-shadow 0.2s;
+}
+.retro-card:hover {
+  box-shadow: 0 2px 8px 0 var(--ds-shadow-md);
+}
+</style>
 
     <div class="mt-4 flex flex-wrap items-center gap-3 text-xs text-slate-500">
       <button v-if="canEdit" class="inline-flex items-center hover:text-slate-900" type="button" @click="$emit('edit', card)">

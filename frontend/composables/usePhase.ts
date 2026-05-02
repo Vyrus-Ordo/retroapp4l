@@ -1,10 +1,12 @@
 import type { RetroPhase } from "~/utils/types"
 
+import { PHASE_META } from '~/utils/types'
+
 const orderedPhases: RetroPhase[] = [
   "setup",
   "lobby",
-  "presentation",
   "check",
+  "presentation",
   "board",
   "grouping",
   "voting",
@@ -15,7 +17,11 @@ const orderedPhases: RetroPhase[] = [
 
 export function usePhase() {
   function getPhaseLabel(phase: RetroPhase) {
-    return phase.charAt(0).toUpperCase() + phase.slice(1)
+    return PHASE_META[phase]?.label || phase
+  }
+
+  function getPhaseIcon(phase: RetroPhase) {
+    return PHASE_META[phase]?.icon || ''
   }
 
   function getNextPhase(phase: RetroPhase, skipCheckPhase = false) {
@@ -23,7 +29,6 @@ export function usePhase() {
     if (currentIndex === -1 || currentIndex === orderedPhases.length - 1) {
       return phase
     }
-
     const next = orderedPhases[currentIndex + 1]
     if (skipCheckPhase && next === "check") {
       return orderedPhases[currentIndex + 2]
@@ -34,6 +39,7 @@ export function usePhase() {
   return {
     orderedPhases,
     getPhaseLabel,
+    getPhaseIcon,
     getNextPhase,
   }
 }

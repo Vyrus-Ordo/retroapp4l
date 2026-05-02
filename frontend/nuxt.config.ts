@@ -1,10 +1,16 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+  ssr: false, // SPA only
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
-  ssr: false,
+  components: [
+    {
+      path: "~/components/layout",
+      pathPrefix: false,
+    },
+  ],
   modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt"],
-  css: ["~/assets/css/tailwind.css"],
+  css: ["~/assets/css/tokens.css", "~/assets/css/tailwind.css"],
   app: {
     head: {
       title: "RetroApp 4L",
@@ -26,5 +32,13 @@ export default defineNuxtConfig({
   tailwindcss: {
     cssPath: "~/assets/css/tailwind.css",
     viewer: false,
+  },
+  vite: {
+    server: {
+      hmr: {
+        port: 24678,
+        host: '127.0.0.1',
+      },
+    },
   },
 })

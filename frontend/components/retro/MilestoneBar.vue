@@ -9,10 +9,16 @@ defineProps<{
 </script>
 
 <template>
-  <div class="bg-slate-50 border-b border-slate-100 px-8 py-2 flex gap-4 flex-wrap text-sm">
-    <div v-for="milestone in milestones" :key="milestone.id" class="inline-flex items-center gap-2 text-slate-600">
-      <FlagIcon class="h-4 w-4 text-brand-500" />
-      <span>{{ milestone.description }}</span>
+  <div class="milestone-bar bg-primary-50 border-b border-primary-200 px-8 py-2 flex gap-4 flex-wrap text-sm">
+    <div v-for="milestone in milestones" :key="milestone.id" class="inline-flex items-center gap-2 text-primary-700">
+      <span class="mdi mdi-flag-checkered text-primary-500 text-base" />
+      <span>{{ milestone.title }}</span>
     </div>
   </div>
 </template>
+
+<style scoped>
+.milestone-bar {
+  min-height: 40px;
+}
+</style>
