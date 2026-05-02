@@ -1,0 +1,12 @@
+[tool.ruff]
+exclude = ["apps/*/migrations/*.py"]
+line-length = 120
+target-version = "py311"
+
+[tool.ruff.lint]
+ignore = ["E501"]
+select = ["E", "F", "I"]
+
+[tool.pytest.ini_options]
+DJANGO_SETTINGS_MODULE = "config.settings"
+python_files = ["test_*.py"]
