@@ -1,16 +1,14 @@
 from urllib.parse import parse_qs
 
 from channels.middleware import BaseMiddleware
-from django.contrib.auth import get_user_model
-from django.contrib.auth.models import AnonymousUser
 from django.db import close_old_connections
 from rest_framework_simplejwt.authentication import JWTAuthentication
 from rest_framework_simplejwt.tokens import UntypedToken
 
-User = get_user_model()
-
 class JWTAuthMiddleware(BaseMiddleware):
     async def __call__(self, scope, receive, send):
+        from django.contrib.auth.models import AnonymousUser
+
         query_string = scope.get('query_string', b'').decode()
         query_params = parse_qs(query_string)
         token = None

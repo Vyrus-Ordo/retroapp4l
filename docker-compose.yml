@@ -43,6 +43,20 @@ services:
     volumes:
       - redis_data:/data
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:8000/api
+      NUXT_PUBLIC_WS_BASE: ws://localhost:8000/ws
+      HOST: 0.0.0.0
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+
 volumes:
   postgres_data:
   redis_data:

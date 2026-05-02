@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    font-family: "Inter", sans-serif;
+  }
+
+  body {
+    @apply bg-slate-50 text-base font-normal tracking-tight text-slate-900;
+  }
+
+  button,
+  a,
+  input,
+  select,
+  textarea {
+    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black;
+  }
+}
+
+@layer components {
+  .button-primary {
+    @apply inline-flex items-center justify-center rounded-lg bg-brand-500 px-4 py-3 text-sm font-medium text-white transition-colors duration-150 hover:bg-brand-600 active:bg-brand-700 disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed;
+  }
+
+  .button-secondary {
+    @apply inline-flex items-center justify-center rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-700 transition-colors duration-150 hover:bg-slate-100 disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed;
+  }
+
+  .panel {
+    @apply rounded-2xl border border-slate-100 bg-white shadow-sm;
+  }
+
+  .field-input {
+    @apply w-full rounded-lg border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 placeholder:text-slate-400;
+  }
+}
