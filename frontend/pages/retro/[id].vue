@@ -1,6 +1,8 @@
 <script setup lang="ts">
-import type { ActionItem, Card, CardColumn, RetroPhase, Participant } from '~/utils/types'
+import type { ActionItem, Card, CardColumn, RetroPhase } from '~/utils/types'
 
+import ActionItemForm from '~/components/forms/ActionItemForm.vue'
+import CardComposer from '~/components/forms/CardComposer.vue'
 import SetupView from '~/components/retro/phases/SetupView.vue'
 import LobbyView from '~/components/retro/phases/LobbyView.vue'
 import CheckView from '~/components/retro/phases/CheckView.vue'
@@ -125,8 +127,7 @@ async function submitAction(payload: ActionItem) {
 onMounted(async () => {
   try {
     await retroStore.fetchSession(retrospectiveId.value)
-    const participants = await api.get('/retrospectives/' + retrospectiveId.value + '/participants/')
-    participantStore.hydrate(participants as Participant[])
+    participantStore.hydrate(retroStore.current?.participants ?? [])
     try {
       const status = await api.get('/retrospectives/' + retrospectiveId.value + '/invite-status/')
       const s = status as { status: string; expires_at: string | null }
