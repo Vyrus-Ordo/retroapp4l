@@ -3,13 +3,15 @@ from datetime import timedelta
 
 from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
+from django.contrib.auth import get_user_model
 from django.db.models import Count, Prefetch, Q
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.actions.models import ActionItem
 from apps.cards.models import Card, CardVote
@@ -23,12 +25,16 @@ from apps.retrospectives.models import (
 )
 from apps.retrospectives.serializers import (
 	ClosedRetrospectiveDetailSerializer,
+	InviteResolveSerializer,
 	MilestoneSerializer,
 	RetrospectiveCreateSerializer,
 	RetrospectiveDetailSerializer,
 	RetrospectiveHistorySerializer,
 	RetrospectiveListSerializer,
 )
+from apps.users.serializers import GuestInviteJoinSerializer, UserSerializer
+
+User = get_user_model()
 
 
 def serialize_focus_card(card):
@@ -49,6 +55,34 @@ def ensure_invite_token(retrospective):
 	retrospective.invite_revoked_at = None
 	retrospective.save(update_fields=["invite_token", "invite_revoked_at"])
 	return True
+
+
+def get_invite_status(retrospective):
+	now = timezone.now()
+	if retrospective.status == RetrospectiveStatus.LOBBY and retrospective.invite_token:
+		return "active", None
+	if retrospective.invite_temporarily_open_until and retrospective.invite_temporarily_open_until > now:
+		return "temporarily_open", retrospective.invite_temporarily_open_until
+	return "blocked", None
+
+
+def ensure_invite_open(retrospective):
+	invite_status, _expires_at = get_invite_status(retrospective)
+	if retrospective.status == RetrospectiveStatus.CLOSED:
+		raise PermissionDenied("This retrospective is closed.")
+	if invite_status == "blocked":
+		raise PermissionDenied("Invite link is currently blocked.")
+	return invite_status
+
+
+def build_guest_identity(name, public_email=""):
+	identifier = uuid.uuid4()
+	return {
+		"name": name,
+		"email": f"guest+{identifier}@guest.retroapp4l.local",
+		"public_email": public_email,
+		"is_guest": True,
+	}
 
 
 class RetrospectiveAccessMixin:
@@ -98,6 +132,8 @@ class RetrospectiveListCreateView(generics.ListCreateAPIView):
 		return RetrospectiveListSerializer
 
 	def perform_create(self, serializer):
+		if getattr(self.request.user, "is_guest", False):
+			raise PermissionDenied("Guest sessions cannot create retrospectives.")
 		retrospective = serializer.save(facilitator=self.request.user, status=RetrospectiveStatus.SETUP)
 		ensure_invite_token(retrospective)
 		Participant.objects.create(
@@ -136,6 +172,8 @@ class TeamSuggestionView(APIView):
 	permission_classes = [IsAuthenticated]
 
 	def get(self, request):
+		if getattr(request.user, "is_guest", False):
+			raise PermissionDenied("Guest sessions cannot access team suggestions.")
 		query = request.query_params.get("q", "").strip()
 		suggestions = Retrospective.objects.filter(facilitator=request.user)
 		if query:
@@ -146,44 +184,131 @@ class TeamSuggestionView(APIView):
 
 
 class MilestoneListCreateView(generics.ListCreateAPIView):
-    serializer_class = MilestoneSerializer
-    permission_classes = [permissions.IsAuthenticated]
+	serializer_class = MilestoneSerializer
+	permission_classes = [permissions.IsAuthenticated]
 
-    def get_queryset(self):
-        return Milestone.objects.filter(retrospective_id=self.kwargs["retrospective_id"]).order_by("created_at")
+	def get_queryset(self):
+		return Milestone.objects.filter(retrospective_id=self.kwargs["retrospective_id"]).order_by("created_at")
 
-    def perform_create(self, serializer):
-        retrospective = Retrospective.objects.get(id=self.kwargs["retrospective_id"])
-        if self.request.user != retrospective.facilitator:
-            raise PermissionDenied("Only the facilitator can create milestones.")
-        if retrospective.status != RetrospectiveStatus.SETUP:
-            raise PermissionDenied("Milestones can only be created in setup phase.")
-        serializer.save(author=self.request.user, retrospective=retrospective)
+	def perform_create(self, serializer):
+		retrospective = Retrospective.objects.get(id=self.kwargs["retrospective_id"])
+		if getattr(self.request.user, "is_guest", False):
+			raise PermissionDenied("Guest sessions cannot create milestones.")
+		if self.request.user != retrospective.facilitator:
+			raise PermissionDenied("Only the facilitator can create milestones.")
+		if retrospective.status != RetrospectiveStatus.SETUP:
+			raise PermissionDenied("Milestones can only be created in setup phase.")
+		serializer.save(author=self.request.user, retrospective=retrospective)
+
 
 class MilestoneDetailView(generics.RetrieveUpdateDestroyAPIView):
-    serializer_class = MilestoneSerializer
-    permission_classes = [permissions.IsAuthenticated]
-    lookup_url_kwarg = "milestone_id"
+	serializer_class = MilestoneSerializer
+	permission_classes = [permissions.IsAuthenticated]
+	lookup_url_kwarg = "milestone_id"
 
-    def get_queryset(self):
-        return Milestone.objects.filter(retrospective_id=self.kwargs["retrospective_id"]).order_by("created_at")
+	def get_queryset(self):
+		return Milestone.objects.filter(retrospective_id=self.kwargs["retrospective_id"]).order_by("created_at")
 
-    def perform_update(self, serializer):
-        milestone = self.get_object()
-        retrospective = milestone.retrospective
-        if self.request.user != retrospective.facilitator:
-            raise PermissionDenied("Only the facilitator can edit milestones.")
-        if retrospective.status != RetrospectiveStatus.SETUP:
-            raise PermissionDenied("Milestones can only be edited in setup phase.")
-        serializer.save()
+	def perform_update(self, serializer):
+		milestone = self.get_object()
+		retrospective = milestone.retrospective
+		if getattr(self.request.user, "is_guest", False):
+			raise PermissionDenied("Guest sessions cannot edit milestones.")
+		if self.request.user != retrospective.facilitator:
+			raise PermissionDenied("Only the facilitator can edit milestones.")
+		if retrospective.status != RetrospectiveStatus.SETUP:
+			raise PermissionDenied("Milestones can only be edited in setup phase.")
+		serializer.save()
 
-    def perform_destroy(self, instance):
-        retrospective = instance.retrospective
-        if self.request.user != retrospective.facilitator:
-            raise PermissionDenied("Only the facilitator can delete milestones.")
-        if retrospective.status != RetrospectiveStatus.SETUP:
-            raise PermissionDenied("Milestones can only be deleted in setup phase.")
-        instance.delete()
+	def perform_destroy(self, instance):
+		retrospective = instance.retrospective
+		if getattr(self.request.user, "is_guest", False):
+			raise PermissionDenied("Guest sessions cannot delete milestones.")
+		if self.request.user != retrospective.facilitator:
+			raise PermissionDenied("Only the facilitator can delete milestones.")
+		if retrospective.status != RetrospectiveStatus.SETUP:
+			raise PermissionDenied("Milestones can only be deleted in setup phase.")
+		instance.delete()
+
+
+class InviteResolveView(APIView):
+	permission_classes = [AllowAny]
+
+	def get_retrospective(self, token):
+		return Retrospective.objects.select_related("facilitator").get(invite_token=token)
+
+	def get(self, request, token):
+		retrospective = self.get_retrospective(token)
+		serializer = InviteResolveSerializer(retrospective, context={"now": timezone.now()})
+		return Response(serializer.data, status=status.HTTP_200_OK)
+
+
+class InviteJoinView(APIView):
+	permission_classes = [AllowAny]
+
+	def get_retrospective(self, token):
+		return Retrospective.objects.select_related("facilitator").get(invite_token=token)
+
+	def get_or_create_join_user(self, request, serializer):
+		if request.user.is_authenticated:
+			user = request.user
+			if getattr(user, "is_guest", False):
+				updated_fields = []
+				if user.name != serializer.validated_data["name"]:
+					user.name = serializer.validated_data["name"]
+					updated_fields.append("name")
+				public_email = serializer.validated_data.get("email", "")
+				if user.public_email != public_email:
+					user.public_email = public_email
+					updated_fields.append("public_email")
+				if updated_fields:
+					user.save(update_fields=updated_fields)
+			return user
+
+		identity = build_guest_identity(
+			name=serializer.validated_data["name"],
+			public_email=serializer.validated_data.get("email", ""),
+		)
+		user = User.objects.create_user(**identity)
+		user.set_unusable_password()
+		user.save(update_fields=["password"])
+		return user
+
+	def post(self, request, token):
+		retrospective = self.get_retrospective(token)
+		ensure_invite_open(retrospective)
+		serializer = GuestInviteJoinSerializer(data=request.data)
+		serializer.is_valid(raise_exception=True)
+
+		user = self.get_or_create_join_user(request, serializer)
+		participant, created = Participant.objects.get_or_create(
+			retrospective=retrospective,
+			user=user,
+			defaults={"votes_remaining": retrospective.max_votes_per_user},
+		)
+		if not created and participant.votes_remaining <= 0:
+			participant.votes_remaining = retrospective.max_votes_per_user
+			participant.save(update_fields=["votes_remaining"])
+
+		if created:
+			AccessLog.objects.create(
+				retrospective=retrospective,
+				action=AccessLogAction.PARTICIPANT_JOINED,
+				triggered_by=None if getattr(user, "is_guest", False) else user,
+				participant=user,
+			)
+
+		refresh = RefreshToken.for_user(user)
+		return Response(
+			{
+				"user": UserSerializer(user).data,
+				"access": str(refresh.access_token),
+				"refresh": str(refresh),
+				"retrospective_id": str(retrospective.id),
+				"participant_id": str(participant.id),
+			},
+			status=status.HTTP_200_OK,
+		)
 
 
 class RetrospectiveHistoryView(RetrospectiveAccessMixin, generics.ListAPIView):

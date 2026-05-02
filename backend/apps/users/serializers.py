@@ -6,10 +6,14 @@ User = get_user_model()
 
 
 class UserSerializer(serializers.ModelSerializer):
+    email = serializers.SerializerMethodField()
     class Meta:
         model = User
-        fields = ("id", "name", "email", "avatar_url", "oauth_provider", "created_at")
+        fields = ("id", "name", "email", "avatar_url", "oauth_provider", "created_at", "is_guest")
         read_only_fields = fields
+
+    def get_email(self, obj):
+        return obj.display_email
 
 
 class RegisterSerializer(serializers.ModelSerializer):
@@ -39,3 +43,14 @@ class RegisterSerializer(serializers.ModelSerializer):
 class LoginSerializer(serializers.Serializer):
     email = serializers.EmailField()
     password = serializers.CharField(write_only=True)
+
+
+class GuestInviteJoinSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=255)
+    email = serializers.EmailField(required=False, allow_blank=True)
+
+    def validate_name(self, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise serializers.ValidationError("This field is required.")
+        return value

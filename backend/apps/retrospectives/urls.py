@@ -2,6 +2,8 @@ from django.urls import include, path
 
 from apps.retrospectives.views import (
     ClosedRetrospectiveDetailView,
+    InviteJoinView,
+    InviteResolveView,
     InviteStatusView,
     MilestoneDetailView,
     MilestoneListCreateView,
@@ -17,6 +19,8 @@ from apps.retrospectives.views import (
 )
 
 urlpatterns = [
+    path("invites/<uuid:token>/", InviteResolveView.as_view(), name="invite-resolve"),
+    path("invites/<uuid:token>/join/", InviteJoinView.as_view(), name="invite-join"),
     path("retrospectives/", RetrospectiveListCreateView.as_view(), name="retrospective-list-create"),
     path("retrospectives/<uuid:pk>/", RetrospectiveDetailView.as_view(), name="retrospective-detail"),
     path("retrospectives/history/", RetrospectiveHistoryView.as_view(), name="retrospective-history"),

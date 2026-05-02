@@ -35,9 +35,11 @@ class User(AbstractBaseUser, PermissionsMixin):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	name = models.CharField(max_length=255)
 	email = models.EmailField(unique=True)
+	public_email = models.EmailField(blank=True)
 	oauth_provider = models.CharField(max_length=50, blank=True)
 	oauth_id = models.CharField(max_length=255, blank=True)
 	avatar_url = models.URLField(blank=True)
+	is_guest = models.BooleanField(default=False)
 	is_active = models.BooleanField(default=True)
 	is_staff = models.BooleanField(default=False)
 	created_at = models.DateTimeField(auto_now_add=True)
@@ -49,6 +51,12 @@ class User(AbstractBaseUser, PermissionsMixin):
 
 	class Meta:
 		ordering = ["email"]
+
+	@property
+	def display_email(self) -> str:
+		if self.is_guest:
+			return self.public_email
+		return self.email
 
 	def __str__(self) -> str:
 		return self.email

@@ -3,6 +3,9 @@ export default defineNuxtConfig({
   ssr: false, // SPA only
   compatibilityDate: "2025-07-15",
   devtools: { enabled: true },
+  experimental: {
+    appManifest: false,
+  },
   components: [
     {
       path: "~/components/layout",

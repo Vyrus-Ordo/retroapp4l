@@ -1,12 +1,13 @@
 <script setup lang="ts">
 const { authStore } = useAuth()
 const retroStore = useRetroStore()
+const isGuestSession = computed(() => authStore.isGuestSession)
 
 const recentRetros = computed(() => retroStore.retrospectives.slice(0, 6))
 const userFirstName = computed(() => authStore.user?.name?.split(' ')[0] || 'Usuário')
 
 onMounted(async () => {
-  if (authStore.isAuthenticated) {
+  if (authStore.isAuthenticated && !authStore.isGuestSession) {
     try {
       await retroStore.fetchDashboard()
     } catch {
@@ -26,11 +27,11 @@ onMounted(async () => {
         </div>
         <div class="flex flex-col gap-3 sm:flex-row">
           <NuxtLink class="button-secondary" to="/join">Entrar via link</NuxtLink>
-          <NuxtLink class="button-primary" to="/retro/create">Nova retrospectiva</NuxtLink>
+          <NuxtLink v-if="!isGuestSession" class="button-primary" to="/retro/create">Nova retrospectiva</NuxtLink>
         </div>
       </div>
 
-      <div v-if="authStore.isAuthenticated && recentRetros.length" class="mt-6">
+      <div v-if="authStore.isAuthenticated && !isGuestSession && recentRetros.length" class="mt-6">
         <h2 class="text-base font-semibold text-gray-900 mb-2">Retro em andamento</h2>
         <div class="flex flex-col gap-3">
           <NuxtLink
@@ -51,7 +52,7 @@ onMounted(async () => {
         </div>
       </div>
 
-      <div class="mt-8">
+      <div v-if="!isGuestSession" class="mt-8">
         <h2 class="text-base font-semibold text-gray-900 mb-2">Histórico</h2>
         <div class="overflow-x-auto">
           <table class="min-w-full text-sm">

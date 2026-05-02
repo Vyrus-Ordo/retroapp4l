@@ -21,6 +21,7 @@ export interface User {
   avatar_url: string | null
   oauth_provider: string | null
   created_at: string
+  is_guest: boolean
 }
 
 export interface Participant {
@@ -206,4 +207,17 @@ export interface AuthResponse {
   user: User
   access: string
   refresh: string
+  retrospective_id?: string
+  participant_id?: string
+}
+
+export interface InviteResolveResponse {
+  id: string
+  title: string
+  sprint_name: string | null
+  team_key: string
+  status: RetroPhase
+  facilitator_name: string
+  invite_status: "active" | "blocked" | "temporarily_open"
+  entry_expires_at: string | null
 }

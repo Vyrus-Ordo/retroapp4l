@@ -1,5 +1,9 @@
 <script setup lang="ts">
-// Header simplificado, sem props ou lógica
+const authStore = useAuthStore()
+authStore.init()
+
+const isGuestSession = computed(() => authStore.isGuestSession)
+const isAuthenticatedUser = computed(() => authStore.isAuthenticated && !authStore.isGuestSession)
 </script>
 
 <template>
@@ -10,8 +14,9 @@
       </NuxtLink>
       <nav class="flex items-center gap-4 text-sm text-gray-600">
         <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/">Início</NuxtLink>
-        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/retro/create">Nova retro</NuxtLink>
-        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/history">Histórico</NuxtLink>
+        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/join">Entrar via link</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded px-2 py-1 hover:bg-gray-50" to="/retro/create">Nova retro</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded px-2 py-1 hover:bg-gray-50" to="/history">Histórico</NuxtLink>
       </nav>
     </div>
   </header>

@@ -1,6 +1,7 @@
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
+from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.retrospectives.models import Participant, Retrospective, RetrospectiveStatus
 
@@ -60,5 +61,78 @@ class RetrospectiveApiTests(APITestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
 		self.assertEqual(response.data["suggestions"], ["alpha", "beta"])
+
+	def test_invite_resolve_exposes_public_metadata(self):
+		retrospective = Retrospective.objects.create(
+			title="Sprint 7 Retro",
+			team_key="platform",
+			facilitator=self.user,
+			status=RetrospectiveStatus.LOBBY,
+			invite_token="5eb3f5a5-ffce-45a4-a4e1-e746263605e8",
+		)
+
+		response = self.client.get(f"/api/invites/{retrospective.invite_token}/")
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(response.data["id"], str(retrospective.id))
+		self.assertEqual(response.data["invite_status"], "active")
+
+	def test_invite_join_creates_guest_user_and_participant(self):
+		retrospective = Retrospective.objects.create(
+			title="Sprint 8 Retro",
+			team_key="platform",
+			facilitator=self.user,
+			status=RetrospectiveStatus.LOBBY,
+			invite_token="2f4c6f8c-5518-4526-b4d3-83e8bc57c3eb",
+		)
+
+		self.client.force_authenticate(user=None)
+		response = self.client.post(
+			f"/api/invites/{retrospective.invite_token}/join/",
+			{"name": "Convidada", "email": "convidada@example.com"},
+			format="json",
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		guest = User.objects.get(id=response.data["user"]["id"])
+		self.assertTrue(guest.is_guest)
+		self.assertEqual(guest.public_email, "convidada@example.com")
+		self.assertTrue(
+			Participant.objects.filter(retrospective=retrospective, user=guest).exists()
+		)
+
+	def test_invite_join_reuses_authenticated_guest_identity(self):
+		retrospective = Retrospective.objects.create(
+			title="Sprint 9 Retro",
+			team_key="platform",
+			facilitator=self.user,
+			status=RetrospectiveStatus.LOBBY,
+			invite_token="64bd4b74-2cc7-431b-91d7-6da9ccb3b0b8",
+		)
+		guest = User.objects.create_user(
+			name="Visitante Antigo",
+			email="guest+existing@guest.retroapp4l.local",
+			public_email="old@example.com",
+			is_guest=True,
+		)
+		guest.set_unusable_password()
+		guest.save(update_fields=["password"])
+		refresh = RefreshToken.for_user(guest)
+		self.client.force_authenticate(user=None)
+		self.client.credentials(HTTP_AUTHORIZATION=f"Bearer {refresh.access_token}")
+
+		response = self.client.post(
+			f"/api/invites/{retrospective.invite_token}/join/",
+			{"name": "Visitante Novo", "email": "novo@example.com"},
+			format="json",
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		guest.refresh_from_db()
+		self.assertEqual(guest.name, "Visitante Novo")
+		self.assertEqual(guest.public_email, "novo@example.com")
+		self.assertTrue(
+			Participant.objects.filter(retrospective=retrospective, user=guest).exists()
+		)
 
 # Create your tests here.

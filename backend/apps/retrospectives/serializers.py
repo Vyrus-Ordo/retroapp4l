@@ -7,12 +7,49 @@ from apps.retrospectives.models import Milestone, Participant, Retrospective
 
 class ParticipantSerializer(serializers.ModelSerializer):
     user_name = serializers.CharField(source="user.name", read_only=True)
-    user_email = serializers.EmailField(source="user.email", read_only=True)
+    user_email = serializers.SerializerMethodField()
 
     class Meta:
         model = Participant
         fields = ("id", "user", "user_name", "user_email", "votes_remaining", "joined_at")
         read_only_fields = fields
+
+    def get_user_email(self, obj):
+        return obj.user.display_email
+
+
+class InviteResolveSerializer(serializers.ModelSerializer):
+    facilitator_name = serializers.CharField(source="facilitator.name", read_only=True)
+    invite_status = serializers.SerializerMethodField()
+    entry_expires_at = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Retrospective
+        fields = (
+            "id",
+            "title",
+            "sprint_name",
+            "team_key",
+            "status",
+            "facilitator_name",
+            "invite_status",
+            "entry_expires_at",
+        )
+        read_only_fields = fields
+
+    def get_invite_status(self, obj):
+        now = self.context["now"]
+        if obj.status == "lobby" and obj.invite_token:
+            return "active"
+        if obj.invite_temporarily_open_until and obj.invite_temporarily_open_until > now:
+            return "temporarily_open"
+        return "blocked"
+
+    def get_entry_expires_at(self, obj):
+        now = self.context["now"]
+        if obj.invite_temporarily_open_until and obj.invite_temporarily_open_until > now:
+            return obj.invite_temporarily_open_until
+        return None
 
 
 class MilestoneSerializer(serializers.ModelSerializer):

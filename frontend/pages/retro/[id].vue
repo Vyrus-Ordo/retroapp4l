@@ -3,6 +3,7 @@ import type { ActionItem, Card, CardColumn, RetroPhase } from '~/utils/types'
 
 import ActionItemForm from '~/components/forms/ActionItemForm.vue'
 import CardComposer from '~/components/forms/CardComposer.vue'
+import ParticipantPanel from '~/components/participants/ParticipantPanel.vue'
 import SetupView from '~/components/retro/phases/SetupView.vue'
 import LobbyView from '~/components/retro/phases/LobbyView.vue'
 import CheckView from '~/components/retro/phases/CheckView.vue'
@@ -34,6 +35,7 @@ const editingCard = ref<Card | null>(null)
 const editingAction = ref<ActionItem | null>(null)
 const pageError = ref('')
 const requestUrl = useRequestURL()
+const allowEntryLoading = ref(false)
 
 const current = computed(() => retroStore.current)
 const activePhase = computed(() => retroStore.activePhase)
@@ -83,8 +85,17 @@ async function copyInviteLink() {
 }
 
 async function handleAllowEntry() {
-  await api.post('/retrospectives/' + retrospectiveId.value + '/reopen-entry/', {})
-  toastStore.success('Entry temporarily opened.')
+  allowEntryLoading.value = true
+  try {
+    const response = await api.post<{ status: string; expires_at: string | null }>('/retrospectives/' + retrospectiveId.value + '/reopen-entry/', {})
+    participantStore.setInviteStatus(
+      response.status as 'active' | 'blocked' | 'temporarily_open',
+      response.expires_at,
+    )
+    toastStore.success('Entry temporarily opened.')
+  } finally {
+    allowEntryLoading.value = false
+  }
 }
 
 function openCreateCard(column: CardColumn) {
@@ -156,28 +167,43 @@ onMounted(async () => {
     :current-phase="activePhase"
     :is-facilitator="isFacilitator"
   >
-    <component
-      :is="phaseComponent"
-      :current="current"
-      :active-phase="activePhase"
-      :is-facilitator="isFacilitator"
-      :participants="participantStore.participants"
-      :retro-store="retroStore"
-      :participant-store="participantStore"
-      :timer-store="timerStore"
-      :discussion-queue="discussionQueue"
-      :invite-link="inviteLink"
-      :connection-state="connectionState"
-      :page-error="pageError"
-      @advance-phase="advancePhase"
-      @close-session="closeSession"
-      @copy-invite-link="copyInviteLink"
-      @allow-entry="handleAllowEntry"
-      @open-card-modal="openCreateCard"
-      @edit-card="openEditCard"
-      @delete-card="removeCard"
-      @vote="handleVote"
-    />
+    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr),340px]">
+      <component
+        :is="phaseComponent"
+        :current="current"
+        :active-phase="activePhase"
+        :is-facilitator="isFacilitator"
+        :participants="participantStore.participants"
+        :retro-store="retroStore"
+        :participant-store="participantStore"
+        :timer-store="timerStore"
+        :discussion-queue="discussionQueue"
+        :invite-link="inviteLink"
+        :connection-state="connectionState"
+        :page-error="pageError"
+        @advance-phase="advancePhase"
+        @close-session="closeSession"
+        @copy-invite-link="copyInviteLink"
+        @allow-entry="handleAllowEntry"
+        @open-card-modal="openCreateCard"
+        @edit-card="openEditCard"
+        @delete-card="removeCard"
+        @vote="handleVote"
+      />
+
+      <div v-if="current && activePhase !== 'closed'" class="panel p-6 lg:p-7">
+        <ParticipantPanel
+          :participants="participantStore.participants"
+          :online-ids="participantStore.onlineIds"
+          :access-log="participantStore.accessLog"
+          :invite-status="participantStore.inviteStatus"
+          :invite-expires-at="participantStore.inviteExpiresAt"
+          :facilitator="isFacilitator"
+          :allow-entry-loading="allowEntryLoading"
+          @allow-entry="handleAllowEntry"
+        />
+      </div>
+    </div>
     <CardComposer
       v-model="cardModalOpen"
       :initial-card="editingCard"

@@ -22,6 +22,7 @@ export const useAuthStore = defineStore("auth", {
   }),
   getters: {
     isAuthenticated: (state) => Boolean(state.access),
+    isGuestSession: (state) => Boolean(state.access && state.user?.is_guest),
   },
   actions: {
     init() {
@@ -51,6 +52,13 @@ export const useAuthStore = defineStore("auth", {
         }),
       )
     },
+    applySession(payload: AuthResponse) {
+      this.user = payload.user
+      this.access = payload.access
+      this.refresh = payload.refresh
+      this.persist()
+      return payload
+    },
     clear() {
       this.user = null
       this.access = ""
@@ -63,20 +71,12 @@ export const useAuthStore = defineStore("auth", {
     async login(payload: { email: string; password: string }) {
       const api = useApiClient()
       const response = await api.post<AuthResponse, typeof payload>("/auth/login/", payload, false)
-      this.user = response.user
-      this.access = response.access
-      this.refresh = response.refresh
-      this.persist()
-      return response
+      return this.applySession(response)
     },
     async register(payload: { name: string; email: string; password: string }) {
       const api = useApiClient()
       const response = await api.post<AuthResponse, typeof payload>("/auth/register/", payload, false)
-      this.user = response.user
-      this.access = response.access
-      this.refresh = response.refresh
-      this.persist()
-      return response
+      return this.applySession(response)
     },
     async logout() {
       const api = useApiClient()

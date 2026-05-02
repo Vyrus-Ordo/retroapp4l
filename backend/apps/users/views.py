@@ -40,6 +40,8 @@ class LoginView(APIView):
 		)
 		if user is None:
 			raise serializers.ValidationError({"detail": "Invalid credentials."})
+		if user.is_guest:
+			raise serializers.ValidationError({"detail": "Guest sessions must be started from an invite link."})
 
 		refresh = RefreshToken.for_user(user)
 		return Response(
