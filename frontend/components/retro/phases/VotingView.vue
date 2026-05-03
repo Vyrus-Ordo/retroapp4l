@@ -58,6 +58,8 @@ function handleVote(card: Card) {
       :selected-ids="[]"
       :current-user-id="currentUserId"
       :voted-card-ids="votedCardIds"
+      :votes-remaining="votesRemaining"
+      :allow-self-vote="current?.allow_self_vote ?? false"
       phase="voting"
       @vote="handleVote"
     />

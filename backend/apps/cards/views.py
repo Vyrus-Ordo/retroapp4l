@@ -186,7 +186,7 @@ class CardVoteView(RetrospectiveAccessMixin, APIView):
 
         if card.column not in {CardColumn.LOATHED, CardColumn.LONGED}:
             raise PermissionDenied("Only cards in loathed or longed columns can be voted on.")
-        if card.author_id == request.user.id:
+        if not retrospective.allow_self_vote and card.author_id == request.user.id:
             raise PermissionDenied("Users cannot vote on their own cards.")
         if participant.votes_remaining <= 0:
             raise PermissionDenied("No votes remaining for this participant.")

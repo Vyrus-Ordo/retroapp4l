@@ -71,6 +71,7 @@ class RetrospectiveCreateSerializer(serializers.ModelSerializer):
             "description",
             "team_key",
             "max_votes_per_user",
+            "allow_self_vote",
             "skip_check_phase",
         )
         read_only_fields = ("id",)
@@ -117,6 +118,7 @@ class RetrospectiveDetailSerializer(serializers.ModelSerializer):
             "invite_token",
             "invite_revoked_at",
             "max_votes_per_user",
+            "allow_self_vote",
             "skip_check_phase",
             "focus_card_id",
             "timer_started_at",

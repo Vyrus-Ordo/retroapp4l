@@ -44,6 +44,7 @@ class Retrospective(models.Model):
 	invite_token = models.UUIDField(unique=True, blank=True, null=True)
 	invite_revoked_at = models.DateTimeField(blank=True, null=True)
 	max_votes_per_user = models.PositiveSmallIntegerField(default=3)
+	allow_self_vote = models.BooleanField(default=False)
 	skip_check_phase = models.BooleanField(default=False)
 	focus_card = models.ForeignKey(
 		"cards.Card",

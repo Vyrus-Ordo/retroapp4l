@@ -10,6 +10,7 @@ const form = reactive({
   description: "",
   team_key: "",
   max_votes_per_user: 3,
+  allow_self_vote: false,
   skip_check_phase: false,
   include_milestones: true,
 })
@@ -85,6 +86,10 @@ async function submit() {
               </div>
               <input v-model.number="form.max_votes_per_user" class="field-input" max="10" min="1" type="number" placeholder="Votos por pessoa">
             </div>
+            <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700">
+              <input v-model="form.allow_self_vote" class="h-4 w-4 rounded border-gray-300 text-brand-500" type="checkbox">
+              Permitir votar no próprio card
+            </label>
             <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700">
               <input v-model="form.skip_check_phase" class="h-4 w-4 rounded border-gray-300 text-brand-500" type="checkbox">
               Pular fase de check de ações

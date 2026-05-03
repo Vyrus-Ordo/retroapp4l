@@ -7,10 +7,12 @@ withDefaults(
     selectedIds: string[]
     currentUserId?: string
     votedCardIds?: string[]
+    votesRemaining?: number
+    allowSelfVote?: boolean
     phase: string
     groupedChildren?: Record<string, Card[]>
   }>(),
-  { votedCardIds: () => [], groupedChildren: () => ({}) },
+  { votedCardIds: () => [], groupedChildren: () => ({}), votesRemaining: undefined, allowSelfVote: false },
 )
 
 defineEmits<{
@@ -33,12 +35,15 @@ defineEmits<{
           :can-delete="card.author === currentUserId && phase === 'board'"
           :can-edit="card.author === currentUserId && phase === 'board'"
           :can-vote="phase === 'voting' && ['loathed', 'longed'].includes(card.column)"
+          :show-vote-badge="['voting', 'grouping'].includes(phase) && ['loathed', 'longed'].includes(card.column)"
           :card="card"
           :grouped-cards="groupedChildren[card.id] || []"
           :selected="selectedIds.includes(card.id)"
           :show-grouping="phase === 'grouping'"
           :vote-active="votedCardIds.includes(card.id)"
-          :vote-disabled="card.author === currentUserId"
+          :is-own-card="card.author === currentUserId"
+          :allow-self-vote="allowSelfVote"
+          :votes-remaining="votesRemaining"
           @delete="$emit('deleteCard', card)"
           @edit="$emit('editCard', card)"
           @toggle-select="$emit('toggleSelect', card.id)"

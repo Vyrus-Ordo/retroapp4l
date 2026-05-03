@@ -11,7 +11,10 @@ const props = withDefaults(
     canVote?: boolean
     selected?: boolean
     showGrouping?: boolean
-    voteDisabled?: boolean
+    showVoteBadge?: boolean
+    isOwnCard?: boolean
+    allowSelfVote?: boolean
+    votesRemaining?: number
     voteActive?: boolean
     groupedCards?: Card[]
   }>(),
@@ -21,7 +24,10 @@ const props = withDefaults(
     canVote: false,
     selected: false,
     showGrouping: false,
-    voteDisabled: false,
+    showVoteBadge: false,
+    isOwnCard: false,
+    allowSelfVote: false,
+    votesRemaining: undefined,
     voteActive: false,
     groupedCards: () => [],
   },
@@ -71,7 +77,7 @@ function emitVote() {
         <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{{ card.column }}</p>
         <p class="mt-1 text-sm text-slate-500">{{ cardAuthor }}</p>
       </div>
-      <VoteBadge :active="voteActive" :count="card.vote_count" />
+      <VoteBadge v-if="showVoteBadge" :active="voteActive" :count="card.vote_count" />
     </div>
 
     <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-800">{{ cardContent }}</p>
@@ -106,10 +112,13 @@ function emitVote() {
         Delete
       </button>
 
+      <span v-if="canVote && isOwnCard && !allowSelfVote" class="text-xs text-slate-400 italic">Your card</span>
+
       <button
-        v-if="canVote"
+        v-if="canVote && (!isOwnCard || allowSelfVote)"
         :class="voteActive ? 'text-brand-600' : 'text-slate-600 hover:text-brand-600'"
-        :disabled="voteDisabled"
+        :disabled="votesRemaining !== undefined && votesRemaining <= 0"
+        :title="votesRemaining !== undefined && votesRemaining <= 0 ? 'No votes remaining' : undefined"
         class="disabled:cursor-not-allowed disabled:text-slate-300"
         type="button"
         @click.stop="emitVote"

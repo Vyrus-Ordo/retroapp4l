@@ -89,6 +89,7 @@ export const useRetroStore = defineStore("retro", {
       description: string
       team_key: string
       max_votes_per_user: number
+      allow_self_vote: boolean
       skip_check_phase: boolean
       milestones: Array<{ category: MilestoneCategory; description: string }>
     }) {
@@ -101,6 +102,7 @@ export const useRetroStore = defineStore("retro", {
           description: payload.description,
           team_key: payload.team_key,
           max_votes_per_user: payload.max_votes_per_user,
+          allow_self_vote: payload.allow_self_vote,
           skip_check_phase: payload.skip_check_phase,
         },
       )
@@ -232,13 +234,35 @@ export const useRetroStore = defineStore("retro", {
     },
     async castVote(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
-      await api.post(`/retrospectives/${retrospectiveId}/cards/${cardId}/vote/`)
-      await this.fetchSession(retrospectiveId)
+      const response = await api.post<{ card_id: string; voter_id: string; votes_remaining: number; vote_id: string }>(
+        `/retrospectives/${retrospectiveId}/cards/${cardId}/vote/`,
+      )
+      if (!this.votes.find((v) => v.card === response.card_id && v.voter === response.voter_id)) {
+        this.votes = [...this.votes, { id: response.vote_id, card: response.card_id, voter: response.voter_id, created_at: new Date().toISOString() }]
+      }
+      if (this.current) {
+        this.current = {
+          ...this.current,
+          participants: this.current.participants.map((p) =>
+            p.user === response.voter_id ? { ...p, votes_remaining: response.votes_remaining } : p,
+          ),
+        }
+      }
     },
     async revokeVote(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
-      await api.delete(`/retrospectives/${retrospectiveId}/cards/${cardId}/vote/`)
-      await this.fetchSession(retrospectiveId)
+      const response = await api.delete<{ card_id: string; voter_id: string; votes_remaining: number }>(
+        `/retrospectives/${retrospectiveId}/cards/${cardId}/vote/`,
+      )
+      this.votes = this.votes.filter((v) => !(v.card === response.card_id && v.voter === response.voter_id))
+      if (this.current) {
+        this.current = {
+          ...this.current,
+          participants: this.current.participants.map((p) =>
+            p.user === response.voter_id ? { ...p, votes_remaining: response.votes_remaining } : p,
+          ),
+        }
+      }
     },
     async saveActionItem(
       retrospectiveId: string,
@@ -330,15 +354,42 @@ export const useRetroStore = defineStore("retro", {
 
       if (type === "vote.cast") {
         const targetCardId = String(event.card_id || (event.vote as Vote | undefined)?.card || "")
+        const voterId = String(event.voter_id || (event.vote as Vote | undefined)?.voter || "")
         this.cards = this.cards.map((card) =>
           card.id === targetCardId ? { ...card, vote_count: card.vote_count + 1 } : card,
         )
+        if (voterId && targetCardId && !this.votes.find((v) => v.card === targetCardId && v.voter === voterId)) {
+          this.votes = [...this.votes, { id: String((event.vote as Vote | undefined)?.id || ""), card: targetCardId, voter: voterId, created_at: new Date().toISOString() }]
+        }
+        const wsVotesRemaining = typeof event.votes_remaining === "number" ? event.votes_remaining : null
+        if (wsVotesRemaining !== null && this.current) {
+          this.current = {
+            ...this.current,
+            participants: this.current.participants.map((p) =>
+              p.user === voterId ? { ...p, votes_remaining: wsVotesRemaining } : p,
+            ),
+          }
+        }
       }
 
       if (type === "vote.revoked") {
+        const targetCardId = String(event.card_id || "")
+        const voterId = String(event.voter_id || "")
         this.cards = this.cards.map((card) =>
-          card.id === event.card_id ? { ...card, vote_count: Math.max(0, card.vote_count - 1) } : card,
+          card.id === targetCardId ? { ...card, vote_count: Math.max(0, card.vote_count - 1) } : card,
         )
+        if (voterId && targetCardId) {
+          this.votes = this.votes.filter((v) => !(v.card === targetCardId && v.voter === voterId))
+        }
+        const wsVotesRemaining = typeof event.votes_remaining === "number" ? event.votes_remaining : null
+        if (wsVotesRemaining !== null && this.current) {
+          this.current = {
+            ...this.current,
+            participants: this.current.participants.map((p) =>
+              p.user === voterId ? { ...p, votes_remaining: wsVotesRemaining } : p,
+            ),
+          }
+        }
       }
 
       if (type === "action.check_updated") {

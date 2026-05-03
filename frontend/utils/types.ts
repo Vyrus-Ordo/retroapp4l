@@ -65,6 +65,7 @@ export interface RetrospectiveDetail {
   invite_token: string | null
   invite_revoked_at: string | null
   max_votes_per_user: number
+  allow_self_vote: boolean
   skip_check_phase: boolean
   focus_card_id: string | null
   timer_started_at: string | null
