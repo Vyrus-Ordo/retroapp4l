@@ -13,6 +13,7 @@ const props = withDefaults(
     showGrouping?: boolean
     voteDisabled?: boolean
     voteActive?: boolean
+    groupedCards?: Card[]
   }>(),
   {
     canEdit: false,
@@ -22,6 +23,7 @@ const props = withDefaults(
     showGrouping: false,
     voteDisabled: false,
     voteActive: false,
+    groupedCards: () => [],
   },
 )
 
@@ -73,6 +75,17 @@ function emitVote() {
     </div>
 
     <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-800">{{ cardContent }}</p>
+
+    <div v-if="groupedCards.length > 0" class="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
+      <p class="text-xs font-medium text-slate-400">{{ groupedCards.length }} card{{ groupedCards.length > 1 ? 's' : '' }} agrupado{{ groupedCards.length > 1 ? 's' : '' }}</p>
+      <div
+        v-for="child in groupedCards"
+        :key="child.id"
+        class="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600"
+      >
+        {{ child.content }}
+      </div>
+    </div>
 
     <div v-if="showGrouping || canEdit || canDelete || canVote" class="mt-4 flex flex-wrap items-center gap-3 text-xs font-medium">
       <button

@@ -45,6 +45,7 @@ async function groupSelected() {
 
     <BoardGrid
       :columns="retroStore.cardsByColumn"
+      :grouped-children="retroStore.groupedChildrenByParentId"
       :selected-ids="isFacilitator ? retroStore.selectedCardIds : []"
       :voted-card-ids="[]"
       phase="grouping"

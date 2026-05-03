@@ -8,8 +8,9 @@ withDefaults(
     currentUserId?: string
     votedCardIds?: string[]
     phase: string
+    groupedChildren?: Record<string, Card[]>
   }>(),
-  { votedCardIds: () => [] },
+  { votedCardIds: () => [], groupedChildren: () => ({}) },
 )
 
 defineEmits<{
@@ -33,6 +34,7 @@ defineEmits<{
           :can-edit="card.author === currentUserId && phase === 'board'"
           :can-vote="phase === 'voting' && ['loathed', 'longed'].includes(card.column)"
           :card="card"
+          :grouped-cards="groupedChildren[card.id] || []"
           :selected="selectedIds.includes(card.id)"
           :show-grouping="phase === 'grouping'"
           :vote-active="votedCardIds.includes(card.id)"

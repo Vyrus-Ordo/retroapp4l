@@ -61,11 +61,21 @@ export const useRetroStore = defineStore("retro", {
     isFacilitator: (state) => (userId?: string) => state.current?.facilitator === userId,
     cardsByColumn: (state) => {
       return {
-        loved: state.cards.filter((card) => card.column === "loved"),
-        loathed: state.cards.filter((card) => card.column === "loathed"),
-        longed: state.cards.filter((card) => card.column === "longed"),
-        learned: state.cards.filter((card) => card.column === "learned"),
+        loved: state.cards.filter((card) => card.column === "loved" && !card.group),
+        loathed: state.cards.filter((card) => card.column === "loathed" && !card.group),
+        longed: state.cards.filter((card) => card.column === "longed" && !card.group),
+        learned: state.cards.filter((card) => card.column === "learned" && !card.group),
       }
+    },
+    groupedChildrenByParentId: (state) => {
+      const map: Record<string, Card[]> = {}
+      for (const card of state.cards) {
+        if (card.group) {
+          if (!map[card.group]) map[card.group] = []
+          map[card.group].push(card)
+        }
+      }
+      return map
     },
   },
   actions: {
@@ -187,6 +197,15 @@ export const useRetroStore = defineStore("retro", {
         this.selectedCardIds = this.selectedCardIds.filter((candidate) => candidate !== cardId)
         return
       }
+      if (this.selectedCardIds.length > 0) {
+        const card = this.cards.find((c) => c.id === cardId)
+        const firstSelected = this.cards.find((c) => c.id === this.selectedCardIds[0])
+        if (card && firstSelected && card.column !== firstSelected.column) {
+          const toastStore = useToastStore()
+          toastStore.error("Cards must be from the same column to be grouped.")
+          return
+        }
+      }
       this.selectedCardIds.push(cardId)
     },
     clearSelection() {
@@ -197,9 +216,14 @@ export const useRetroStore = defineStore("retro", {
         return
       }
       const api = useApiClient()
-      await api.post(`/retrospectives/${retrospectiveId}/cards/group/`, { card_ids: this.selectedCardIds })
-      this.cards = await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)
-      this.selectedCardIds = []
+      const toastStore = useToastStore()
+      try {
+        await api.post(`/retrospectives/${retrospectiveId}/cards/group/`, { card_ids: this.selectedCardIds })
+        this.cards = await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)
+        this.selectedCardIds = []
+      } catch (error) {
+        toastStore.error(error instanceof Error ? error.message : "Failed to group cards.")
+      }
     },
     async ungroupCard(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
