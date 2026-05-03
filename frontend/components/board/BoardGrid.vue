@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import type { Card, CardColumn } from "~/utils/types"
 
-defineProps<{
-  columns: Record<CardColumn, Card[]>
-  selectedIds: string[]
-  currentUserId?: string
-  phase: string
-}>()
+withDefaults(
+  defineProps<{
+    columns: Record<CardColumn, Card[]>
+    selectedIds: string[]
+    currentUserId?: string
+    votedCardIds?: string[]
+    phase: string
+  }>(),
+  { votedCardIds: () => [] },
+)
 
 defineEmits<{
   createCard: [column: CardColumn]
@@ -25,12 +29,13 @@ defineEmits<{
         <RetroCard
           v-for="card in columns[column as CardColumn]"
           :key="card.id"
-          :can-delete="card.author === currentUserId && !['discussion', 'actions', 'closed'].includes(phase)"
-          :can-edit="card.author === currentUserId && !['discussion', 'actions', 'closed'].includes(phase)"
+          :can-delete="card.author === currentUserId && phase === 'board'"
+          :can-edit="card.author === currentUserId && phase === 'board'"
           :can-vote="phase === 'voting' && ['loathed', 'longed'].includes(card.column)"
           :card="card"
           :selected="selectedIds.includes(card.id)"
           :show-grouping="phase === 'grouping'"
+          :vote-active="votedCardIds.includes(card.id)"
           :vote-disabled="card.author === currentUserId"
           @delete="$emit('deleteCard', card)"
           @edit="$emit('editCard', card)"
@@ -38,7 +43,7 @@ defineEmits<{
           @vote="$emit('vote', card)"
         />
 
-        <button class="button-secondary mt-auto" type="button" @click="$emit('createCard', column as CardColumn)">
+        <button v-if="phase === 'board'" class="button-secondary mt-auto" type="button" @click="$emit('createCard', column as CardColumn)">
           Add card
         </button>
       </div>
