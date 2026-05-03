@@ -198,12 +198,13 @@ export const useRetroStore = defineStore("retro", {
       }
       const api = useApiClient()
       await api.post(`/retrospectives/${retrospectiveId}/cards/group/`, { card_ids: this.selectedCardIds })
-      await this.fetchSession(retrospectiveId)
+      this.cards = await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)
+      this.selectedCardIds = []
     },
     async ungroupCard(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
       await api.post(`/retrospectives/${retrospectiveId}/cards/${cardId}/ungroup/`)
-      await this.fetchSession(retrospectiveId)
+      this.cards = await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)
     },
     async castVote(retrospectiveId: string, cardId: string) {
       const api = useApiClient()

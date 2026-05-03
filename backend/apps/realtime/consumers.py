@@ -3,6 +3,24 @@ from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
 @database_sync_to_async
+def persist_phase_advance(retrospective_id, user_id, target_phase):
+    from apps.retrospectives.models import Retrospective, RetrospectiveStatus
+
+    valid_statuses = {v for v in RetrospectiveStatus.values}
+    if target_phase not in valid_statuses:
+        return False
+    try:
+        retro = Retrospective.objects.get(id=retrospective_id)
+        if str(retro.facilitator_id) != str(user_id):
+            return False
+        retro.status = target_phase
+        retro.save(update_fields=["status"])
+        return True
+    except Retrospective.DoesNotExist:
+        return False
+
+
+@database_sync_to_async
 def get_connection_context(retrospective_id, user_id):
     from apps.retrospectives.models import Participant, Retrospective, RetrospectiveStatus
 
@@ -85,20 +103,26 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
     async def receive_json(self, content, **kwargs):
         event_type = content.get("type")
         if event_type == "phase.advance":
-            await self.channel_layer.group_send(
-                self.group_name,
-                {
-                    "type": "phase.changed",
-                    "phase": content.get("phase"),
-                    "timer_duration_seconds": content.get("timer_duration_seconds", 0)
-                }
-            )
+            target_phase = content.get("phase")
+            user = self.scope.get("user")
+            persisted = await persist_phase_advance(self.retrospective_id, user.id, target_phase)
+            if persisted:
+                await self.channel_layer.group_send(
+                    self.group_name,
+                    {
+                        "type": "phase.changed",
+                        "phase": target_phase,
+                        "timer_duration_seconds": content.get("timer_duration_seconds", 0)
+                    }
+                )
         elif event_type == "milestone.presentation.start":
             # Facilitator starts presentation phase
             from apps.retrospectives.models import Milestone
             milestones = await database_sync_to_async(lambda: list(Milestone.objects.filter(retrospective_id=self.retrospective_id).order_by("created_at")))()
             if not milestones:
                 # No milestones, skip phase
+                user = self.scope.get("user")
+                await persist_phase_advance(self.retrospective_id, user.id, "check")
                 await self.channel_layer.group_send(
                     self.group_name,
                     {"type": "phase.changed", "phase": "check", "timer_duration_seconds": 0}
@@ -133,6 +157,8 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
                 )
         elif event_type == "milestone.presentation.end":
             # Facilitator ends presentation phase
+            user = self.scope.get("user")
+            await persist_phase_advance(self.retrospective_id, user.id, "check")
             await self.channel_layer.group_send(
                 self.group_name,
                 {"type": "phase.changed", "phase": "check", "timer_duration_seconds": 0}
