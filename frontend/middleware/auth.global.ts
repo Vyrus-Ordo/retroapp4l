@@ -12,7 +12,9 @@ export default defineNuxtRouteMiddleware((to) => {
   }
 
   if (isGuestSession) {
-    const guestAllowed = to.path.startsWith("/retro/") && to.path !== "/retro/create"
+    const guestAllowed =
+      to.path === "/" ||
+      (to.path.startsWith("/retro/") && to.path !== "/retro/create")
     if (!publicPaths.includes(to.path) && !isInvitePath && !guestAllowed) {
       return navigateTo("/join")
     }

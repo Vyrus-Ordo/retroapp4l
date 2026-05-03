@@ -7,10 +7,12 @@ export default defineNuxtConfig({
     appManifest: false,
   },
   components: [
-    {
-      path: "~/components/layout",
-      pathPrefix: false,
-    },
+    { path: "~/components/layout", pathPrefix: false },
+    { path: "~/components/retro", pathPrefix: false, ignore: ["FocusCard.vue", "board/**"] },
+    { path: "~/components/board", pathPrefix: false },
+    { path: "~/components/participants", pathPrefix: false },
+    { path: "~/components/forms", pathPrefix: false },
+    { path: "~/components", pathPrefix: false, pattern: "*.vue" },
   ],
   modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt"],
   css: ["~/assets/css/tokens.css", "~/assets/css/tailwind.css"],
