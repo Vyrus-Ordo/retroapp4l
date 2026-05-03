@@ -9,10 +9,13 @@ const props = defineProps<{
 
 <template>
   <div class="flex min-h-screen flex-col">
-    <component
-      :is="props.mode === 'retro' ? 'RetroHeader' : 'AppHeader'"
-      v-bind="props.mode === 'retro' ? { phases: props.phases, currentPhase: props.currentPhase, isFacilitator: props.isFacilitator } : {}"
+    <RetroHeader
+      v-if="props.mode === 'retro'"
+      :phases="props.phases"
+      :currentPhase="props.currentPhase"
+      :isFacilitator="props.isFacilitator"
     />
+    <Header v-else />
     <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-6 lg:px-8 lg:py-8">
       <main class="min-w-0 flex-1">
         <slot />

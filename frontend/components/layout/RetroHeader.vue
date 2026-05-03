@@ -1,7 +1,7 @@
 <template>
-  <header class="border-b border-gray-100 bg-white">
-    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-3 lg:px-8">
-      <NuxtLink class="text-lg font-bold tracking-tight text-brand-700" to="/">
+  <header class="border-b border-slate-100 bg-white">
+    <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
+      <NuxtLink class="shrink-0 text-sm font-semibold text-slate-900 hover:text-brand-600" to="/">
         RetroApp 4L
       </NuxtLink>
       <PhaseStepper
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import PhaseStepper from './PhaseStepper.vue'
+import SettingsModal from './SettingsModal.vue'
 
 const props = defineProps<{
   phases: string[]
