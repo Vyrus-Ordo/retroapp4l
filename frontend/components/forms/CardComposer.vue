@@ -16,10 +16,10 @@ const content = ref(props.initialCard?.content || "")
 const column = ref<CardColumn>(props.initialCard?.column || props.initialColumn || "loved")
 
 watch(
-  () => props.initialCard,
-  (card) => {
+  [() => props.initialCard, () => props.initialColumn],
+  ([card, col]) => {
     content.value = card?.content || ""
-    column.value = card?.column || props.initialColumn || "loved"
+    column.value = card?.column || col || "loved"
   },
   { immediate: true },
 )
@@ -43,7 +43,7 @@ function handleSubmit() {
     <div class="w-full max-w-xl rounded-xl bg-white p-6 shadow-lg">
       <h2 class="text-lg font-semibold text-slate-900">{{ initialCard ? 'Edit card' : 'Add card' }}</h2>
       <div class="mt-4 space-y-4">
-        <select v-model="column" class="field-input">
+        <select v-model="column" class="field-input disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!initialCard && !!initialColumn">
           <option value="loved">Liked</option>
           <option value="loathed">Loathed</option>
           <option value="longed">Longed for</option>
