@@ -142,3 +142,30 @@ class PresenceViewTests(APITestCase):
         Participant.objects.create(retrospective=self.retro, user=p2, votes_remaining=3)
         response = self.client.get(self.url)
         self.assertEqual(len(response.data["participants"]), 2)
+
+
+class ClosedSessionAccessTests(APITestCase):
+    def setUp(self):
+        self.facilitator = User.objects.create_user(
+            name="Facilitator",
+            email="fac4@example.com",
+            password="secret123",
+        )
+        self.participant = User.objects.create_user(
+            name="Participant",
+            email="par4@example.com",
+            password="secret123",
+        )
+        self.retro = _make_retro(self.facilitator, status_=RetrospectiveStatus.CLOSED)
+        Participant.objects.create(retrospective=self.retro, user=self.participant, votes_remaining=3)
+        self.client.force_authenticate(self.participant)
+
+    def test_live_session_detail_is_blocked_after_close(self):
+        response = self.client.get(f"/api/retrospectives/{self.retro.id}/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data["detail"], "This retrospective is closed. Use the history endpoint instead.")
+
+    def test_presence_is_blocked_after_close(self):
+        response = self.client.get(f"/api/retrospectives/{self.retro.id}/presence/")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.data["detail"], "This retrospective is closed. Use the history endpoint instead.")

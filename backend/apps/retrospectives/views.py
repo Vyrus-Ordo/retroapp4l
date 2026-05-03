@@ -92,6 +92,10 @@ class RetrospectiveAccessMixin:
 	def get_retrospective(self):
 		return self.get_accessible_queryset(self.request.user).get(id=self.kwargs["retrospective_id"])
 
+	def ensure_session_open(self, retrospective):
+		if retrospective.status == RetrospectiveStatus.CLOSED:
+			raise PermissionDenied("This retrospective is closed. Use the history endpoint instead.")
+
 	def ensure_facilitator(self, retrospective):
 		if retrospective.facilitator != self.request.user:
 			raise PermissionDenied("Only the facilitator can perform this action.")
@@ -149,7 +153,7 @@ class RetrospectiveListCreateView(generics.ListCreateAPIView):
 		)
 
 
-class RetrospectiveDetailView(generics.RetrieveAPIView):
+class RetrospectiveDetailView(RetrospectiveAccessMixin, generics.RetrieveAPIView):
 	permission_classes = [IsAuthenticated]
 	serializer_class = RetrospectiveDetailSerializer
 
@@ -164,6 +168,7 @@ class RetrospectiveDetailView(generics.RetrieveAPIView):
 
 	def get_object(self):
 		retrospective = super().get_object()
+		self.ensure_session_open(retrospective)
 		ensure_invite_token(retrospective)
 		return retrospective
 
@@ -551,6 +556,7 @@ class PresenceView(RetrospectiveAccessMixin, APIView):
 
 	def get(self, request, retrospective_id):
 		retrospective = self.get_retrospective()
+		self.ensure_session_open(retrospective)
 		participants = (
 			Participant.objects.filter(retrospective=retrospective)
 			.select_related("user")

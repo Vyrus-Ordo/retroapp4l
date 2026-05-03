@@ -12,7 +12,13 @@ from apps.retrospectives.models import Participant, Retrospective, Retrospective
 
 class RetrospectiveAccessMixin:
     def get_retrospective(self):
-        return Retrospective.objects.get(id=self.kwargs["retrospective_id"])
+        retrospective = Retrospective.objects.get(id=self.kwargs["retrospective_id"])
+        self.ensure_session_open(retrospective)
+        return retrospective
+
+    def ensure_session_open(self, retrospective):
+        if retrospective.status == RetrospectiveStatus.CLOSED:
+            raise PermissionDenied("This retrospective is closed. Use the history endpoint instead.")
 
     def get_cards_queryset(self):
         retrospective = self.get_retrospective()

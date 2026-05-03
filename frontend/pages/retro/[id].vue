@@ -68,6 +68,18 @@ const phaseComponent = computed(() => {
   }
 })
 
+watch(
+  () => activePhase.value,
+  async (phase) => {
+    if (phase !== 'closed' || !current.value?.id) {
+      return
+    }
+
+    websocketEnabled.value = false
+    await navigateTo(`/history/${current.value.id}`)
+  },
+)
+
 async function advancePhase() {
   const next = getNextPhase(activePhase.value as RetroPhase, current.value.skip_check_phase)
   send({ type: 'phase.advance', phase: next })
@@ -156,6 +168,10 @@ onMounted(async () => {
   } catch (error) {
     websocketEnabled.value = false
     pageError.value = error instanceof Error ? error.message : 'Unable to load session.'
+    if (pageError.value === 'This retrospective is closed. Use the history endpoint instead.') {
+      await navigateTo(`/history/${retrospectiveId.value}`)
+      return
+    }
   }
 })
 </script>

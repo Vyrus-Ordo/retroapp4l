@@ -19,6 +19,13 @@ def create_user():
 def create_retro(user):
     return Retrospective.objects.create(title="Sprint 3", team_key="ws-team", facilitator=user, status=RetrospectiveStatus.PRESENTATION)
 
+
+@database_sync_to_async
+def close_retro(retro):
+    retro.status = RetrospectiveStatus.CLOSED
+    retro.save(update_fields=["status"])
+    return retro
+
 @database_sync_to_async
 def create_participant(retro, user):
     return Participant.objects.create(retrospective=retro, user=user, votes_remaining=3)
@@ -241,6 +248,27 @@ async def test_participant_join_is_broadcast_to_other_connected_clients():
 
     await facilitator_communicator.disconnect()
     await joining_communicator.disconnect()
+
+
+@pytest.mark.django_db(transaction=True)
+@pytest.mark.asyncio
+async def test_closed_retro_rejects_participant_websocket_connection():
+    facilitator = await create_named_user("Facilitator", "facilitator-closed@example.com")
+    participant = await create_named_user("Participant", "participant-closed@example.com")
+    retro = await create_retro(facilitator)
+    await create_participant(retro, facilitator)
+    await create_participant(retro, participant)
+    await close_retro(retro)
+
+    participant_token = str(AccessToken.for_user(participant))
+    communicator = WebsocketCommunicator(
+        application,
+        f"/ws/retrospectives/{retro.id}/?token={participant_token}",
+    )
+
+    connected, _ = await communicator.connect()
+
+    assert not connected
 
 
 @pytest.mark.django_db(transaction=True)

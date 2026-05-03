@@ -2,6 +2,27 @@ from channels.db import database_sync_to_async
 from channels.generic.websocket import AsyncJsonWebsocketConsumer
 
 
+@database_sync_to_async
+def get_connection_context(retrospective_id, user_id):
+    from apps.retrospectives.models import Participant, Retrospective, RetrospectiveStatus
+
+    try:
+        retrospective = Retrospective.objects.only("facilitator_id", "status").get(id=retrospective_id)
+    except Retrospective.DoesNotExist:
+        return None
+
+    has_access = retrospective.facilitator_id == user_id or Participant.objects.filter(
+        retrospective_id=retrospective_id,
+        user_id=user_id,
+    ).exists()
+
+    return {
+        "has_access": has_access,
+        "is_closed": retrospective.status == RetrospectiveStatus.CLOSED,
+        "phase": retrospective.status,
+    }
+
+
 class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
     async def connect(self):
         url_route = self.scope.get("url_route") or {}
@@ -17,11 +38,18 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
         if not user or not user.is_authenticated:
             await self.close(code=4001)
             return
+        connection_context = await get_connection_context(self.retrospective_id, user.id)
+        if connection_context is None:
+            await self.close(code=4004)
+            return
+        if not connection_context["has_access"] or connection_context["is_closed"]:
+            await self.close(code=4003)
+            return
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
         await self.send_json({
             "type": "session.snapshot",
-            "phase": "lobby",
+            "phase": connection_context["phase"],
             "timer": None,
             "cards": [],
             "votes": [],
