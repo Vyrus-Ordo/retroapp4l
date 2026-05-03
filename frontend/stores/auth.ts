@@ -78,6 +78,24 @@ export const useAuthStore = defineStore("auth", {
       const response = await api.post<AuthResponse, typeof payload>("/auth/register/", payload, false)
       return this.applySession(response)
     },
+    async refreshToken() {
+      if (!this.refresh) {
+        return false
+      }
+      try {
+        const config = useRuntimeConfig()
+        const response = await $fetch<{ access: string }>("/auth/refresh/", {
+          baseURL: config.public.apiBase,
+          method: "POST",
+          body: { refresh: this.refresh },
+        })
+        this.access = response.access
+        this.persist()
+        return true
+      } catch {
+        return false
+      }
+    },
     async logout() {
       const api = useApiClient()
       if (this.refresh) {

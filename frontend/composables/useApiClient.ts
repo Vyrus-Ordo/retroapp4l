@@ -55,6 +55,20 @@ export function useApiClient() {
       })
     } catch (error) {
       if (options.auth !== false && isUnauthorizedApiError(error)) {
+        const refreshed = await authStore.refreshToken()
+        if (refreshed) {
+          try {
+            return await $fetch<ResponseType>(path, {
+              baseURL: config.public.apiBase,
+              method: options.method || "GET",
+              body: options.body,
+              headers: { ...headers, Authorization: `Bearer ${authStore.access}` },
+            })
+          } catch (retryError) {
+            authStore.clear()
+            throw new Error("Session expired. Please sign in again.")
+          }
+        }
         authStore.clear()
         throw new Error("Session expired. Please sign in again.")
       }
