@@ -4,6 +4,7 @@ import type { ActionItem, Card, CardColumn, RetroPhase } from '~/utils/types'
 import ActionItemForm from '~/components/forms/ActionItemForm.vue'
 import CardComposer from '~/components/forms/CardComposer.vue'
 import ParticipantPanel from '~/components/participants/ParticipantPanel.vue'
+import TimerDisplay from '~/components/retro/TimerDisplay.vue'
 import SetupView from '~/components/retro/phases/SetupView.vue'
 import LobbyView from '~/components/retro/phases/LobbyView.vue'
 import CheckView from '~/components/retro/phases/CheckView.vue'
@@ -15,6 +16,8 @@ import DiscussionView from '~/components/retro/phases/DiscussionView.vue'
 import ActionsView from '~/components/retro/phases/ActionsView.vue'
 import ClosedView from '~/components/retro/phases/ClosedView.vue'
 
+const TIMED_PHASES: RetroPhase[] = ['presentation', 'check', 'board', 'grouping', 'voting', 'discussion', 'actions']
+
 const route = useRoute()
 const retrospectiveId = computed(() => String(route.params.id))
 const { authStore } = useAuth()
@@ -23,7 +26,7 @@ const participantStore = useParticipantStore()
 const timerStore = useTimerStore()
 const toastStore = useToastStore()
 const { getNextPhase, orderedPhases } = usePhase()
-const { start } = useTimer()
+const { toneClass, start } = useTimer()
 const websocketEnabled = ref(false)
 const { connectionState, send } = useWebSocket(retrospectiveId, websocketEnabled)
 const api = useApiClient()
@@ -41,6 +44,7 @@ const current = computed(() => retroStore.current)
 const activePhase = computed(() => retroStore.activePhase)
 const currentUserId = computed(() => authStore.user?.id)
 const isFacilitator = computed(() => retroStore.isFacilitator(currentUserId.value))
+const isTimedPhase = computed(() => TIMED_PHASES.includes(activePhase.value as RetroPhase))
 const currentUserVotes = computed(() =>
   retroStore.votes.filter((vote) => vote.voter === currentUserId.value).map((vote) => vote.card),
 )
@@ -83,6 +87,14 @@ watch(
 async function advancePhase() {
   const next = getNextPhase(activePhase.value as RetroPhase, current.value.skip_check_phase)
   send({ type: 'phase.advance', phase: next })
+}
+
+function sendTimerPause() {
+  send({ type: 'timer.pause' })
+}
+
+function sendTimerResume() {
+  send({ type: 'timer.resume' })
 }
 
 async function closeSession() {
@@ -162,6 +174,7 @@ function openEditAction(action: ActionItem) {
 onMounted(async () => {
   try {
     await retroStore.fetchSession(retrospectiveId.value)
+    timerStore.hydrate(retroStore.current)
     websocketEnabled.value = true
     participantStore.hydrate(retroStore.current?.participants ?? [])
     try {
@@ -192,6 +205,17 @@ onMounted(async () => {
     :current-phase="activePhase"
     :skip-check-phase="current?.skip_check_phase"
   >
+    <template #timer>
+      <TimerDisplay
+        v-if="isTimedPhase && timerStore.secondsRemaining > 0"
+        :label="timerStore.formatted"
+        :tone-class="toneClass"
+        :paused="timerStore.paused"
+        :facilitator="isFacilitator"
+        @pause="sendTimerPause"
+        @resume="sendTimerResume"
+      />
+    </template>
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr),340px]">
       <component
         :is="phaseComponent"

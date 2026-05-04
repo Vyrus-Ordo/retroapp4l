@@ -19,7 +19,7 @@ defineEmits<{
     <span :class="toneClass" class="text-xl font-semibold transition-colors duration-150">{{ label }}</span>
     <button
       v-if="facilitator && !paused"
-      class="text-primary-500 hover:text-primary-700 transition-colors duration-150"
+      class="text-brand-500 hover:text-brand-700 transition-colors duration-150"
       type="button"
       @click="$emit('pause')"
     >
@@ -27,7 +27,7 @@ defineEmits<{
     </button>
     <button
       v-if="facilitator && paused"
-      class="text-primary-500 hover:text-primary-700 transition-colors duration-150"
+      class="text-brand-500 hover:text-brand-700 transition-colors duration-150"
       type="button"
       @click="$emit('resume')"
     >

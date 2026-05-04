@@ -43,6 +43,90 @@ def get_participant_id(retrospective_id, user_id):
     ).values_list("id", flat=True).first()
 
 
+TIMED_PHASES = {"presentation", "check", "board", "grouping", "voting", "discussion", "actions"}
+
+DEFAULT_PHASE_DURATIONS = {
+    "presentation": 600,
+    "check": 300,
+    "board": 900,
+    "grouping": 300,
+    "voting": 180,
+    "discussion": 900,
+    "actions": 600,
+}
+
+
+@database_sync_to_async
+def start_phase_timer(retrospective_id, phase):
+    """Start timer for a timed phase. Returns duration in seconds, or 0 if not timed."""
+    from django.utils import timezone
+
+    from apps.retrospectives.models import Retrospective
+
+    if phase not in TIMED_PHASES:
+        return 0
+    try:
+        retro = Retrospective.objects.get(id=retrospective_id)
+        duration = (retro.phase_durations or {}).get(phase) or DEFAULT_PHASE_DURATIONS.get(phase, 0)
+        if duration <= 0:
+            return 0
+        retro.timer_started_at = timezone.now()
+        retro.timer_paused_at = None
+        retro.timer_duration_seconds = duration
+        retro.save(update_fields=["timer_started_at", "timer_paused_at", "timer_duration_seconds"])
+        return duration
+    except Retrospective.DoesNotExist:
+        return 0
+
+
+@database_sync_to_async
+def pause_timer(retrospective_id, user_id):
+    """Pause the timer. Returns seconds_remaining if authorised, else None."""
+    from django.utils import timezone
+
+    from apps.retrospectives.models import Retrospective
+
+    try:
+        retro = Retrospective.objects.get(id=retrospective_id)
+        if str(retro.facilitator_id) != str(user_id):
+            return None
+        if not retro.timer_started_at or retro.timer_paused_at:
+            return None
+        elapsed = max(0, int((timezone.now() - retro.timer_started_at).total_seconds()))
+        remaining = max(0, (retro.timer_duration_seconds or 0) - elapsed)
+        retro.timer_paused_at = timezone.now()
+        retro.save(update_fields=["timer_paused_at"])
+        return remaining
+    except Retrospective.DoesNotExist:
+        return None
+
+
+@database_sync_to_async
+def resume_timer(retrospective_id, user_id):
+    """Resume the timer. Returns seconds_remaining if authorised, else None."""
+    from django.utils import timezone
+
+    from apps.retrospectives.models import Retrospective
+
+    try:
+        retro = Retrospective.objects.get(id=retrospective_id)
+        if str(retro.facilitator_id) != str(user_id):
+            return None
+        if not retro.timer_paused_at or not retro.timer_started_at:
+            return None
+        elapsed_before_pause = max(0, int((retro.timer_paused_at - retro.timer_started_at).total_seconds()))
+        remaining = max(0, (retro.timer_duration_seconds or 0) - elapsed_before_pause)
+        # Reset started_at so elapsed resumes from correct point
+        retro.timer_started_at = timezone.now() - (
+            timezone.timedelta(seconds=(retro.timer_duration_seconds or 0) - remaining)
+        )
+        retro.timer_paused_at = None
+        retro.save(update_fields=["timer_started_at", "timer_paused_at"])
+        return remaining
+    except Retrospective.DoesNotExist:
+        return None
+
+
 @database_sync_to_async
 def get_connection_context(retrospective_id, user_id):
     from apps.retrospectives.models import Participant, Retrospective, RetrospectiveStatus
@@ -133,12 +217,16 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
             user = self.scope.get("user")
             persisted = await persist_phase_advance(self.retrospective_id, user.id, target_phase)
             if persisted:
+                from apps.realtime.tasks import timer_sync_task
+                duration = await start_phase_timer(self.retrospective_id, target_phase)
+                if duration > 0:
+                    timer_sync_task.apply_async(args=[str(self.retrospective_id)], countdown=5)
                 await self.channel_layer.group_send(
                     self.group_name,
                     {
                         "type": "phase.changed",
                         "phase": target_phase,
-                        "timer_duration_seconds": content.get("timer_duration_seconds", 0)
+                        "timer_duration_seconds": duration,
                     }
                 )
         elif event_type == "milestone.presentation.start":
@@ -189,31 +277,30 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
                 self.group_name,
                 {"type": "phase.changed", "phase": "check", "timer_duration_seconds": 0}
             )
-        elif event_type == "timer.paused":
-
-            await self.channel_layer.group_send(
-                self.group_name,
-                {
-                    "type": "timer.paused",
-                    "seconds_remaining": content.get("seconds_remaining", 0)
-                }
-            )
-        elif event_type == "timer.resumed":
-            await self.channel_layer.group_send(
-                self.group_name,
-                {
-                    "type": "timer.resumed",
-                    "seconds_remaining": content.get("seconds_remaining", 0)
-                }
-            )
-        elif event_type == "timer.sync":
-            await self.channel_layer.group_send(
-                self.group_name,
-                {
-                    "type": "timer.sync",
-                    "seconds_remaining": content.get("seconds_remaining", 0)
-                }
-            )
+        elif event_type == "timer.pause":
+            user = self.scope.get("user")
+            remaining = await pause_timer(self.retrospective_id, user.id)
+            if remaining is not None:
+                await self.channel_layer.group_send(
+                    self.group_name,
+                    {
+                        "type": "timer.paused",
+                        "seconds_remaining": remaining,
+                    }
+                )
+        elif event_type == "timer.resume":
+            user = self.scope.get("user")
+            remaining = await resume_timer(self.retrospective_id, user.id)
+            if remaining is not None:
+                from apps.realtime.tasks import timer_sync_task
+                timer_sync_task.apply_async(args=[str(self.retrospective_id)], countdown=5)
+                await self.channel_layer.group_send(
+                    self.group_name,
+                    {
+                        "type": "timer.resumed",
+                        "seconds_remaining": remaining,
+                    }
+                )
         elif event_type == "participant.joined":
             await self.channel_layer.group_send(
                 self.group_name,
@@ -275,6 +362,9 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
 
     async def timer_sync(self, event):
         await self.send_json({"type": "timer.sync", "seconds_remaining": event["seconds_remaining"]})
+
+    async def timer_expired(self, event):
+        await self.send_json({"type": "timer.expired", "phase": event["phase"]})
 
     async def participant_joined(self, event):
         if event.get("exclude_channel_name") == self.channel_name:

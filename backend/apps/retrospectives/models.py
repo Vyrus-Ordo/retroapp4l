@@ -57,6 +57,7 @@ class Retrospective(models.Model):
 	timer_started_at = models.DateTimeField(blank=True, null=True)
 	timer_paused_at = models.DateTimeField(blank=True, null=True)
 	timer_duration_seconds = models.PositiveIntegerField(blank=True, null=True)
+	phase_durations = models.JSONField(default=dict, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 	closed_at = models.DateTimeField(blank=True, null=True)
 

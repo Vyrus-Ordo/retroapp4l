@@ -73,6 +73,7 @@ class RetrospectiveCreateSerializer(serializers.ModelSerializer):
             "max_votes_per_user",
             "allow_self_vote",
             "skip_check_phase",
+            "phase_durations",
         )
         read_only_fields = ("id",)
         extra_kwargs = {
@@ -124,6 +125,7 @@ class RetrospectiveDetailSerializer(serializers.ModelSerializer):
             "timer_started_at",
             "timer_paused_at",
             "timer_duration_seconds",
+            "phase_durations",
             "created_at",
             "closed_at",
             "participants",

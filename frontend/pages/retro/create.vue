@@ -4,6 +4,28 @@ import MilestoneCard from "~/components/retro/MilestoneCard.vue"
 
 const retroStore = useRetroStore()
 
+const TIMED_PHASE_LABELS: Record<string, string> = {
+  presentation: "Marcos",
+  check: "Check de ações",
+  board: "Board 4L",
+  grouping: "Agrupamento",
+  voting: "Votação",
+  discussion: "Discussão",
+  actions: "Ações",
+}
+
+const DEFAULT_DURATIONS_MINUTES: Record<string, number> = {
+  presentation: 10,
+  check: 5,
+  board: 15,
+  grouping: 5,
+  voting: 3,
+  discussion: 15,
+  actions: 10,
+}
+
+const phaseDurationsMinutes = reactive<Record<string, number>>({ ...DEFAULT_DURATIONS_MINUTES })
+
 const form = reactive({
   title: "",
   sprint_name: "",
@@ -50,8 +72,13 @@ async function submit() {
   }
   pending.value = true
   try {
+    const phase_durations: Record<string, number> = {}
+    for (const [phase, minutes] of Object.entries(phaseDurationsMinutes)) {
+      phase_durations[phase] = Math.max(0, Math.round(Number(minutes) * 60))
+    }
     const retrospectiveId = await retroStore.createRetrospective({
       ...form,
+      phase_durations,
       milestones: form.include_milestones ? milestones.value : [],
     })
     await navigateTo(`/retro/${retrospectiveId}`)
@@ -104,8 +131,28 @@ async function submit() {
           </form>
         </div>
 
-        <!-- Card 2 -->
+        <!-- Card 2: Duração das fases -->
         <div class="panel p-6 lg:p-8 flex flex-col gap-4">
+          <h2 class="text-lg font-semibold text-gray-900">Duração das fases</h2>
+          <p class="text-sm text-gray-500">Define o tempo padrão do cronômetro para cada fase (em minutos). O facilitador pode pausar a qualquer momento.</p>
+          <div class="grid grid-cols-2 gap-x-6 gap-y-3">
+            <template v-for="(label, phase) in TIMED_PHASE_LABELS" :key="phase">
+              <label v-if="phase !== 'check' || !form.skip_check_phase" class="flex items-center justify-between gap-2 text-sm text-gray-700">
+                <span>{{ label }}</span>
+                <input
+                  v-model.number="phaseDurationsMinutes[phase]"
+                  class="field-input w-20 text-center"
+                  type="number"
+                  min="1"
+                  max="120"
+                >
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <!-- Card 3: Marcos -->
+        <div class="panel p-6 lg:p-8 flex flex-col gap-4 lg:col-span-2">
           <label class="inline-flex items-center gap-2 mb-2">
             <input v-model="form.include_milestones" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-brand-500">
             Incluir fase de marcos

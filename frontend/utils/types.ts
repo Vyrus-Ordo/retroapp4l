@@ -71,6 +71,7 @@ export interface RetrospectiveDetail {
   timer_started_at: string | null
   timer_paused_at: string | null
   timer_duration_seconds: number | null
+  phase_durations: Record<string, number>
   created_at: string
   closed_at: string | null
   participants: Participant[]

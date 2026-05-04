@@ -51,6 +51,8 @@ export function useWebSocket(
       if (phaseLabels[phase]) {
         toastStore.info(`Phase advanced: ${phaseLabels[phase]}`)
       }
+      const duration = Number(payload.timer_duration_seconds || 0)
+      timerStore.resume(duration)
     }
 
     if (payload.type === "card.created") {
@@ -89,6 +91,12 @@ export function useWebSocket(
       if (Number(payload.seconds_remaining || 0) === 0) {
         await playTimerExpiredAlert()
       }
+    }
+
+    if (payload.type === "timer.expired") {
+      timerStore.setRemaining(0)
+      await playTimerExpiredAlert()
+      toastStore.info("Timer expirou!")
     }
   }
 

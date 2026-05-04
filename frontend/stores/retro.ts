@@ -91,6 +91,7 @@ export const useRetroStore = defineStore("retro", {
       max_votes_per_user: number
       allow_self_vote: boolean
       skip_check_phase: boolean
+      phase_durations: Record<string, number>
       milestones: Array<{ category: MilestoneCategory; description: string }>
     }) {
       const api = useApiClient()
@@ -104,6 +105,7 @@ export const useRetroStore = defineStore("retro", {
           max_votes_per_user: payload.max_votes_per_user,
           allow_self_vote: payload.allow_self_vote,
           skip_check_phase: payload.skip_check_phase,
+          phase_durations: payload.phase_durations,
         },
       )
 
