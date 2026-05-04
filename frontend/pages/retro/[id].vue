@@ -189,9 +189,8 @@ onMounted(async () => {
 <template>
   <AppShell
     mode="retro"
-    :phases="orderedPhases"
     :current-phase="activePhase"
-    :is-facilitator="isFacilitator"
+    :skip-check-phase="current?.skip_check_phase"
   >
     <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr),340px]">
       <component

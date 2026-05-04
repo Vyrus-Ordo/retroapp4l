@@ -21,6 +21,10 @@ const emit = defineEmits<{
   }]
 }>()
 
+const sourceCards = computed(() =>
+  props.cards.filter((c) => c.column === "loathed" || c.column === "longed"),
+)
+
 const form = reactive({
   description: props.initialAction?.description || "",
   assignee_id: props.initialAction?.participant_id || "",
@@ -73,7 +77,7 @@ function submit() {
         </select>
         <select v-model="form.card_id" class="field-input">
           <option value="">No source card</option>
-          <option v-for="card in cards" :key="card.id" :value="card.id">{{ card.content }}</option>
+          <option v-for="card in sourceCards" :key="card.id" :value="card.id">[{{ card.column }}] {{ card.content }}</option>
         </select>
         <input v-model="form.due_date" class="field-input" type="date">
         <select v-model="form.status" class="field-input">

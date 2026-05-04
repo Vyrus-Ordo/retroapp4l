@@ -90,12 +90,14 @@ class ActionItemDetailView(ActionAccessMixin, generics.RetrieveUpdateDestroyAPIV
 	def perform_update(self, serializer):
 		retrospective = self.get_retrospective_instance()
 		self.ensure_participant(retrospective, self.request.user)
+		self.ensure_facilitator(retrospective, self.request.user)
 		self.ensure_actions_phase(retrospective)
 		serializer.save()
 
 	def perform_destroy(self, instance):
 		retrospective = self.get_retrospective_instance()
 		self.ensure_participant(retrospective, self.request.user)
+		self.ensure_facilitator(retrospective, self.request.user)
 		self.ensure_actions_phase(retrospective)
 		instance.delete()
 

@@ -4,15 +4,13 @@
       <NuxtLink class="shrink-0 text-sm font-semibold text-slate-900 hover:text-brand-600" to="/">
         RetroApp 4L
       </NuxtLink>
-      <PhaseStepper
-        :phases="phases"
+      <PhaseCarousel
         :current-phase="currentPhase"
-        :is-facilitator="isFacilitator"
-        @select="onPhaseSelect"
+        :skip-check-phase="skipCheckPhase"
       />
       <div class="flex items-center gap-3">
         <slot name="timer" />
-        <button class="icon-btn" @click="openSettings" title="Configurações">
+        <button class="icon-btn" title="Settings" @click="openSettings">
           <span class="mdi mdi-cog-outline text-xl" />
         </button>
       </div>
@@ -23,22 +21,18 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import PhaseStepper from './PhaseStepper.vue'
+import type { RetroPhase } from '~/utils/types'
+import PhaseCarousel from './PhaseCarousel.vue'
 import SettingsModal from './SettingsModal.vue'
 
 const props = defineProps<{
-  phases: string[]
-  currentPhase: string
-  isFacilitator?: boolean
+  currentPhase: RetroPhase
+  skipCheckPhase?: boolean
 }>()
 
 const showSettings = ref(false)
 function openSettings() {
   showSettings.value = true
-}
-function onPhaseSelect(phase: string) {
-  // Emite evento para shell retro
-  // $emit('phase-select', phase)
 }
 </script>
 

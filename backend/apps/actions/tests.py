@@ -25,7 +25,7 @@ class ActionItemApiTests(APITestCase):
 		self.card = Card.objects.create(retrospective=self.retrospective, author=self.facilitator, column="loathed", content="Foco")
 		self.client.force_authenticate(self.facilitator)
 
-	def test_participant_can_create_action_item(self):
+	def test_facilitator_can_create_action_item(self):
 		url = f"/api/retrospectives/{self.retrospective.id}/action-items/"
 
 		response = self.client.post(
@@ -62,7 +62,47 @@ class ActionItemApiTests(APITestCase):
 
 		self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
 
-	def test_participant_can_update_and_delete_action_item(self):
+	def test_participant_cannot_create_action_item(self):
+		self.client.force_authenticate(self.participant_user)
+		url = f"/api/retrospectives/{self.retrospective.id}/action-items/"
+
+		response = self.client.post(
+			url,
+			{
+				"description": "Participante não deve criar.",
+				"assignee_id": str(self.assignee_participant.id),
+			},
+			format="json",
+		)
+
+		self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+	def test_participant_cannot_update_or_delete_action_item(self):
+		action_item = ActionItem.objects.create(
+			retrospective=self.retrospective,
+			description="Acompanhar rollback.",
+			assignee=self.participant_user,
+			card=self.card,
+		)
+		url = f"/api/retrospectives/{self.retrospective.id}/action-items/{action_item.id}/"
+		self.client.force_authenticate(self.participant_user)
+
+		response = self.client.patch(
+			url,
+			{
+				"description": "Acompanhar rollback e documentar.",
+				"assignee_id": str(self.facilitator_participant.id),
+				"status": ActionItemStatus.IN_PROGRESS,
+			},
+			format="json",
+		)
+		self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
+		response = self.client.delete(url)
+		self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+		self.assertTrue(ActionItem.objects.filter(id=action_item.id).exists())
+
+	def test_facilitator_can_update_and_delete_action_item(self):
 		action_item = ActionItem.objects.create(
 			retrospective=self.retrospective,
 			description="Acompanhar rollback.",

@@ -125,6 +125,7 @@ async function confirmCloseSession() {
             </span>
 
             <button
+              v-if="isFacilitator"
               class="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
               title="Edit"
               type="button"
@@ -133,6 +134,7 @@ async function confirmCloseSession() {
               <PencilSquareIcon class="h-4 w-4" />
             </button>
             <button
+              v-if="isFacilitator"
               class="rounded p-1 text-slate-400 hover:bg-danger-50 hover:text-danger-600 transition"
               title="Delete"
               type="button"
