@@ -21,6 +21,29 @@ def persist_phase_advance(retrospective_id, user_id, target_phase):
 
 
 @database_sync_to_async
+def get_session_action_items(retrospective_id):
+    from apps.actions.models import ActionItem
+    from apps.actions.serializers import ActionItemSerializer
+
+    items = ActionItem.objects.filter(retrospective_id=retrospective_id).select_related("assignee", "retrospective", "card")
+    data = ActionItemSerializer(items, many=True).data
+    return [
+        {k: (str(v) if v is not None and not isinstance(v, (str, bool, int, float, list, dict)) else v) for k, v in item.items()}
+        for item in data
+    ]
+
+
+@database_sync_to_async
+def get_participant_id(retrospective_id, user_id):
+    from apps.retrospectives.models import Participant
+
+    return Participant.objects.filter(
+        retrospective_id=retrospective_id,
+        user_id=user_id,
+    ).values_list("id", flat=True).first()
+
+
+@database_sync_to_async
 def get_connection_context(retrospective_id, user_id):
     from apps.retrospectives.models import Participant, Retrospective, RetrospectiveStatus
 
@@ -65,6 +88,7 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
             return
         await self.channel_layer.group_add(self.group_name, self.channel_name)
         await self.accept()
+        action_items = await get_session_action_items(self.retrospective_id)
         await self.send_json({
             "type": "session.snapshot",
             "phase": connection_context["phase"],
@@ -73,13 +97,15 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
             "votes": [],
             "milestones": [],
             "participants": [],
-            "action_items": []
+            "action_items": action_items
         })
+        participant_id = await get_participant_id(self.retrospective_id, user.id)
         await self.channel_layer.group_send(
             self.group_name,
             {
                 "type": "participant.joined",
                 "user_id": str(user.id),
+                "participant_id": str(participant_id) if participant_id else None,
                 "name": user.name,
                 "avatar_url": user.avatar_url,
                 "exclude_channel_name": self.channel_name,
@@ -194,6 +220,7 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
                 {
                     "type": "participant.joined",
                     "user_id": content.get("user_id"),
+                    "participant_id": content.get("participant_id"),
                     "name": content.get("name"),
                     "avatar_url": content.get("avatar_url")
                 }
@@ -204,6 +231,7 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
                 {
                     "type": "participant.joined_late",
                     "user_id": content.get("user_id"),
+                    "participant_id": content.get("participant_id"),
                     "name": content.get("name"),
                     "avatar_url": content.get("avatar_url")
                 }
@@ -251,10 +279,10 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
     async def participant_joined(self, event):
         if event.get("exclude_channel_name") == self.channel_name:
             return
-        await self.send_json({"type": "participant.joined", "user_id": event["user_id"], "name": event["name"], "avatar_url": event["avatar_url"]})
+        await self.send_json({"type": "participant.joined", "user_id": event["user_id"], "participant_id": event.get("participant_id"), "name": event["name"], "avatar_url": event["avatar_url"]})
 
     async def participant_joined_late(self, event):
-        await self.send_json({"type": "participant.joined_late", "user_id": event["user_id"], "name": event["name"], "avatar_url": event["avatar_url"]})
+        await self.send_json({"type": "participant.joined_late", "user_id": event["user_id"], "participant_id": event.get("participant_id"), "name": event["name"], "avatar_url": event["avatar_url"]})
 
     async def participant_left(self, event):
         await self.send_json({"type": "participant.left", "user_id": event["user_id"]})
@@ -318,6 +346,15 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
                 "votes_remaining": event["votes_remaining"],
             }
         )
+
+    async def action_created(self, event):
+        await self.send_json({"type": "action.created", "action": event["action"]})
+
+    async def action_updated(self, event):
+        await self.send_json({"type": "action.updated", "action": event["action"]})
+
+    async def action_deleted(self, event):
+        await self.send_json({"type": "action.deleted", "action_id": event["action_id"]})
 
     async def action_check_updated(self, event):
         await self.send_json(

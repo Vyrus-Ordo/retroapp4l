@@ -323,6 +323,10 @@ export const useRetroStore = defineStore("retro", {
     applySocketEvent(event: Record<string, unknown>) {
       const type = String(event.type || "")
 
+      if (type === "session.snapshot" && Array.isArray(event.action_items) && event.action_items.length > 0) {
+        this.actionItems = event.action_items as ActionItem[]
+      }
+
       if (type === "phase.changed" && this.current) {
         this.current = { ...this.current, status: event.phase as RetroPhase }
         this.previewPhase = null
@@ -390,6 +394,18 @@ export const useRetroStore = defineStore("retro", {
             ),
           }
         }
+      }
+
+      if (type === "action.created" && event.action) {
+        this.actionItems = upsertById(this.actionItems, event.action as ActionItem)
+      }
+
+      if (type === "action.updated" && event.action) {
+        this.actionItems = upsertById(this.actionItems, event.action as ActionItem)
+      }
+
+      if (type === "action.deleted") {
+        this.actionItems = this.actionItems.filter((item) => item.id !== event.action_id)
       }
 
       if (type === "action.check_updated") {

@@ -149,6 +149,16 @@ async function submitAction(payload: ActionItem) {
   editingAction.value = null
 }
 
+function openCreateAction() {
+  editingAction.value = null
+  actionModalOpen.value = true
+}
+
+function openEditAction(action: ActionItem) {
+  editingAction.value = action
+  actionModalOpen.value = true
+}
+
 onMounted(async () => {
   try {
     await retroStore.fetchSession(retrospectiveId.value)
@@ -205,6 +215,8 @@ onMounted(async () => {
         @edit-card="openEditCard"
         @delete-card="removeCard"
         @vote="handleVote"
+        @open-action-modal="openCreateAction"
+        @edit-action="openEditAction"
       />
 
       <div v-if="current && activePhase !== 'closed'" class="panel p-6 lg:p-7">

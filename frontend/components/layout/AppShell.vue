@@ -15,7 +15,7 @@ const props = defineProps<{
       :currentPhase="props.currentPhase"
       :isFacilitator="props.isFacilitator"
     />
-    <Header v-else />
+    <AppHeader v-else />
     <div class="mx-auto flex w-full max-w-7xl flex-1 flex-col gap-6 px-6 py-6 lg:px-8 lg:py-8">
       <main class="min-w-0 flex-1">
         <slot />

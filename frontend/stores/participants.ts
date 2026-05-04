@@ -31,13 +31,13 @@ export const useParticipantStore = defineStore("participants", {
     pushLog(message: string) {
       this.accessLog = [message, ...this.accessLog].slice(0, 20)
     },
-    markJoined(payload: { user_id: string; name: string }) {
+    markJoined(payload: { user_id: string; participant_id?: string | null; name: string }) {
       const existingParticipant = this.participants.find((participant) => participant.user === payload.user_id)
       if (!existingParticipant) {
         this.participants = [
           ...this.participants,
           {
-            id: payload.user_id,
+            id: payload.participant_id ?? payload.user_id,
             user: payload.user_id,
             user_name: payload.name,
             user_email: "",

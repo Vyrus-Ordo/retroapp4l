@@ -62,7 +62,7 @@ export function useWebSocket(
     }
 
     if (payload.type === "participant.joined" || payload.type === "participant.joined_late") {
-      participantStore.markJoined({ user_id: String(payload.user_id), name: String(payload.name) })
+      participantStore.markJoined({ user_id: String(payload.user_id), participant_id: payload.participant_id ? String(payload.participant_id) : null, name: String(payload.name) })
     }
 
     if (payload.type === "participant.left") {

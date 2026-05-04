@@ -55,7 +55,7 @@ function submit() {
     card_id: form.card_id || null,
     due_date: form.due_date || null,
     status: form.status,
-    external_tracker_url: form.external_tracker_url || null,
+    external_tracker_url: form.external_tracker_url || "",
   })
   close()
 }

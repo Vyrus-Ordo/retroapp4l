@@ -26,6 +26,10 @@ class ActionAccessMixin:
 		if retrospective.status != RetrospectiveStatus.ACTIONS:
 			raise PermissionDenied("Action items can only be modified during the actions phase.")
 
+	def ensure_facilitator(self, retrospective, user):
+		if retrospective.facilitator != user:
+			raise PermissionDenied("Only the facilitator can perform this action.")
+
 	def get_previous_closed_retrospective(self, retrospective):
 		return (
 			Retrospective.objects.filter(team_key=retrospective.team_key, status=RetrospectiveStatus.CLOSED)
@@ -58,6 +62,7 @@ class ActionItemListCreateView(ActionAccessMixin, generics.ListCreateAPIView):
 	def perform_create(self, serializer):
 		retrospective = self.get_retrospective_instance()
 		self.ensure_participant(retrospective, self.request.user)
+		self.ensure_facilitator(retrospective, self.request.user)
 		self.ensure_actions_phase(retrospective)
 		serializer.save(retrospective=retrospective)
 
