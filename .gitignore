@@ -1,6 +1,9 @@
 # Local configuration files
 secrets/
 
+# Production environment files
+backend/.env.prod
+
 # Created by https://www.toptal.com/developers/gitignore/api/node,django,python,redis,nextjs,nuxtjs
 # Edit at https://www.toptal.com/developers/gitignore?templates=node,django,python,redis,nextjs,nuxtjs
 

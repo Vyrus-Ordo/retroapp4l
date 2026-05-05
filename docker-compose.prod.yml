@@ -1,0 +1,89 @@
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.prod
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - staticfiles:/app/staticfiles
+    networks:
+      - internal
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    restart: unless-stopped
+    env_file:
+      - ./backend/.env.prod
+    depends_on:
+      - db
+      - redis
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    environment:
+      NUXT_PUBLIC_API_BASE: https://retroapp4l.privo.app.br/api
+      NUXT_PUBLIC_WS_BASE: wss://retroapp4l.privo.app.br/ws
+      HOST: 0.0.0.0
+      PORT: "3000"
+    depends_on:
+      - backend
+    networks:
+      - internal
+
+  nginx:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+      - frontend
+    volumes:
+      - staticfiles:/var/www/staticfiles:ro
+      - /etc/letsencrypt:/etc/letsencrypt:ro
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+  redis_data:
+  staticfiles:
+
+networks:
+  internal:
+    driver: bridge
