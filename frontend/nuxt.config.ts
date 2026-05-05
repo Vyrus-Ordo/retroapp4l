@@ -14,7 +14,10 @@ export default defineNuxtConfig({
     { path: "~/components/forms", pathPrefix: false },
     { path: "~/components", pathPrefix: false, pattern: "*.vue" },
   ],
-  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt"],
+  modules: ["@nuxtjs/tailwindcss", "@pinia/nuxt", "@nuxtjs/turnstile"],
+  turnstile: {
+    siteKey: process.env.NUXT_PUBLIC_TURNSTILE_SITE_KEY || "1x00000000000000000000AA",
+  },
   css: ["~/assets/css/tokens.css", "~/assets/css/tailwind.css"],
   app: {
     head: {

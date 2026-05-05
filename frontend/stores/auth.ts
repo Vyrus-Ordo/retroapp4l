@@ -73,7 +73,7 @@ export const useAuthStore = defineStore("auth", {
       const response = await api.post<AuthResponse, typeof payload>("/auth/login/", payload, false)
       return this.applySession(response)
     },
-    async register(payload: { name: string; email: string; password: string }) {
+    async register(payload: { name: string; email: string; password: string; cf_turnstile_response?: string }) {
       const api = useApiClient()
       const response = await api.post<AuthResponse, typeof payload>("/auth/register/", payload, false)
       return this.applySession(response)

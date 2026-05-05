@@ -7,12 +7,21 @@ from rest_framework_simplejwt.exceptions import TokenError
 from rest_framework_simplejwt.tokens import RefreshToken
 
 from apps.users.serializers import LoginSerializer, RegisterSerializer, UserSerializer
+from apps.users.turnstile import verify_turnstile
 
 
 class RegisterView(APIView):
 	permission_classes = [AllowAny]
 
 	def post(self, request):
+		cf_token = request.data.get("cf_turnstile_response", "")
+		ip = (
+			request.META.get("HTTP_X_FORWARDED_FOR", "").split(",")[0].strip()
+			or request.META.get("REMOTE_ADDR")
+		)
+		if not verify_turnstile(cf_token, ip):
+			raise serializers.ValidationError({"cf_turnstile_response": "Invalid captcha."})
+
 		serializer = RegisterSerializer(data=request.data)
 		serializer.is_valid(raise_exception=True)
 		user = serializer.save()

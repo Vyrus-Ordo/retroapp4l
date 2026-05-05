@@ -8,6 +8,7 @@ const toastStore = useToastStore()
 const form = reactive({ name: "", email: "", password: "" })
 const errorMessage = ref("")
 const pending = ref(false)
+const turnstileToken = ref("")
 
 async function submit() {
   errorMessage.value = ""
@@ -26,7 +27,7 @@ async function submit() {
 
   pending.value = true
   try {
-    await authStore.register(form)
+    await authStore.register({ ...form, cf_turnstile_response: turnstileToken.value })
     toastStore.success("Account created successfully.")
     await navigateTo("/")
   } catch (error) {
@@ -58,8 +59,9 @@ async function submit() {
           <label class="text-sm font-medium text-gray-700" for="password">Password</label>
           <input id="password" v-model="form.password" class="field-input" placeholder="Password" type="password" autocomplete="new-password">
         </div>
+        <NuxtTurnstile v-model="turnstileToken" />
         <p v-if="errorMessage" role="alert" class="text-sm text-danger-500">{{ errorMessage }}</p>
-        <button :disabled="pending" class="button-primary w-full" type="submit">
+        <button :disabled="pending || !turnstileToken" class="button-primary w-full" type="submit">
           <UserPlusIcon class="mr-2 h-5 w-5" />
           {{ pending ? 'Creating account...' : 'Create account' }}
         </button>

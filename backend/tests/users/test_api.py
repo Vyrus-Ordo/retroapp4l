@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth import get_user_model
 from django.test import override_settings
 from rest_framework import status
@@ -64,3 +66,51 @@ class AuthApiTests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+
+
+class TurnstileRegistrationTests(APITestCase):
+    """Registration endpoint Turnstile protection."""
+
+    def test_register_bypasses_turnstile_when_secret_key_is_empty(self):
+        """Empty CLOUDFLARE_TURNSTILE_SECRET_KEY skips verification (dev/test)."""
+        with self.settings(CLOUDFLARE_TURNSTILE_SECRET_KEY=""):
+            response = self.client.post(
+                "/api/auth/register/",
+                {"name": "Bot", "email": "bot@example.com", "password": "supersecret123"},
+                format="json",
+            )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
+    @override_settings(CLOUDFLARE_TURNSTILE_SECRET_KEY="test-secret")
+    @patch("apps.users.views.verify_turnstile", return_value=False)
+    def test_register_rejects_invalid_turnstile_token(self, _mock):
+        """Returns 400 when Turnstile verification fails."""
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "name": "Bot",
+                "email": "bot2@example.com",
+                "password": "supersecret123",
+                "cf_turnstile_response": "bad-token",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn("cf_turnstile_response", response.data)
+
+    @override_settings(CLOUDFLARE_TURNSTILE_SECRET_KEY="test-secret")
+    @patch("apps.users.views.verify_turnstile", return_value=True)
+    def test_register_succeeds_with_valid_turnstile_token(self, _mock):
+        """Returns 201 when Turnstile verification passes."""
+        response = self.client.post(
+            "/api/auth/register/",
+            {
+                "name": "Human",
+                "email": "human@example.com",
+                "password": "supersecret123",
+                "cf_turnstile_response": "valid-token",
+            },
+            format="json",
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIn("access", response.data)
