@@ -3,6 +3,12 @@ const authStore = useAuthStore()
 authStore.init()
 
 const route = useRoute()
+const router = useRouter()
+
+async function handleLogout() {
+  await authStore.logout()
+  router.push('/auth/login')
+}
 
 const initials = computed(() => {
   const name = authStore.user?.name ?? ''
@@ -35,8 +41,16 @@ const pageTitle = computed(() => {
         <span class="mx-2 text-slate-300">›</span>
         <span>{{ pageTitle }}</span>
       </p>
-      <div v-if="authStore.user" class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
-        {{ initials }}
+      <div v-if="authStore.user" class="flex items-center gap-3">
+        <div class="inline-flex h-9 w-9 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
+          {{ initials }}
+        </div>
+        <button
+          class="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+          @click="handleLogout"
+        >
+          Sair
+        </button>
       </div>
     </div>
   </header>
