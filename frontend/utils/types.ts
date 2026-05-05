@@ -80,25 +80,25 @@ export interface RetrospectiveDetail {
 
 export const COLUMN_META = {
   loved: {
-    label: 'Gostei',
+    label: 'Liked',
     color: 'success',
     bg: 'success-50',
     icon: 'emoticon-happy-outline',
   },
   loathed: {
-    label: 'Não gostei',
+    label: 'Loathed',
     color: 'warning',
     bg: 'warning-50',
     icon: 'emoticon-sad-outline',
   },
   longed: {
-    label: 'Senti falta',
+    label: 'Longed for',
     color: 'brand',
     bg: 'brand-50',
     icon: 'star-outline',
   },
   learned: {
-    label: 'Aprendi',
+    label: 'Learned',
     color: 'gray',
     bg: 'gray-50',
     icon: 'book-open-variant',
@@ -106,24 +106,24 @@ export const COLUMN_META = {
 } as const
 
 export const MILESTONE_DISPLAY_META = {
-  achievement: { label: 'Conquista', icon: 'trophy-outline', color: 'success' },
-  challenge: { label: 'Desafio', icon: 'alert-outline', color: 'warning' },
-  change: { label: 'Mudança', icon: 'swap-horizontal', color: 'brand' },
-  recognition: { label: 'Reconhecimento', icon: 'account-star-outline', color: 'success' },
-  other: { label: 'Outro', icon: 'dots-horizontal', color: 'gray' },
+  achievement: { label: 'Achievement', icon: 'trophy-outline', color: 'success' },
+  challenge: { label: 'Challenge', icon: 'alert-outline', color: 'warning' },
+  change: { label: 'Change', icon: 'swap-horizontal', color: 'brand' },
+  recognition: { label: 'Recognition', icon: 'account-star-outline', color: 'success' },
+  other: { label: 'Other', icon: 'dots-horizontal', color: 'gray' },
 } as const
 
 export const PHASE_META = {
-  setup: { label: 'Configuração', icon: 'cog-outline' },
+  setup: { label: 'Setup', icon: 'cog-outline' },
   lobby: { label: 'Lobby', icon: 'door-open' },
-  check: { label: 'Check de ações', icon: 'clipboard-check-outline' },
-  presentation: { label: 'Marcos', icon: 'flag-outline' },
+  check: { label: 'Action check', icon: 'clipboard-check-outline' },
+  presentation: { label: 'Milestones', icon: 'flag-outline' },
   board: { label: 'Board 4L', icon: 'view-column-outline' },
-  grouping: { label: 'Agrupamento', icon: 'call-merge' },
-  voting: { label: 'Votação', icon: 'circle-small' },
-  discussion: { label: 'Discussão', icon: 'comment-multiple-outline' },
-  actions: { label: 'Ações', icon: 'checkbox-marked-circle-outline' },
-  closed: { label: 'Encerrada', icon: 'lock-outline' },
+  grouping: { label: 'Grouping', icon: 'call-merge' },
+  voting: { label: 'Voting', icon: 'circle-small' },
+  discussion: { label: 'Discussion', icon: 'comment-multiple-outline' },
+  actions: { label: 'Actions', icon: 'checkbox-marked-circle-outline' },
+  closed: { label: 'Closed', icon: 'lock-outline' },
 } as const
 
 export interface Card {

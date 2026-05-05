@@ -21,14 +21,14 @@ const initials = computed(() => {
 const pageTitle = computed(() => {
   const path = route.path
   if (path === '/') return 'Dashboard'
-  if (path === '/history') return 'Histórico'
-  if (path.startsWith('/history/')) return 'Detalhes'
-  if (path === '/retro/create') return 'Nova Retro'
-  if (path.startsWith('/retro/invite/')) return 'Convite'
-  if (path.startsWith('/retro/')) return 'Sessão'
-  if (path === '/join') return 'Entrar via link'
+  if (path === '/history') return 'History'
+  if (path.startsWith('/history/')) return 'Details'
+  if (path === '/retro/create') return 'New Retro'
+  if (path.startsWith('/retro/invite/')) return 'Invite'
+  if (path.startsWith('/retro/')) return 'Session'
+  if (path === '/join') return 'Join via link'
   if (path === '/auth/login') return 'Login'
-  if (path === '/auth/register') return 'Cadastro'
+  if (path === '/auth/register') return 'Register'
   return 'RetroApp 4L'
 })
 </script>
@@ -49,7 +49,7 @@ const pageTitle = computed(() => {
           class="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
           @click="handleLogout"
         >
-          Sair
+          Sign out
         </button>
       </div>
     </div>

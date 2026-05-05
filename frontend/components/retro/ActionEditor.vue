@@ -1,14 +1,14 @@
 <template>
   <form class="action-editor flex flex-col gap-3 bg-white rounded-lg border border-gray-200 p-4 shadow-sm" @submit.prevent="$emit('save', { ...form })">
-    <input v-model="form.title" required class="input-primary" placeholder="Título da ação" />
-    <textarea v-model="form.description" class="input-primary" placeholder="Descrição (opcional)" rows="2" />
+    <input v-model="form.title" required class="input-primary" placeholder="Action title" />
+    <textarea v-model="form.description" class="input-primary" placeholder="Description (optional)" rows="2" />
     <div class="flex gap-2">
-      <input v-model="form.responsible" class="input-primary flex-1" placeholder="Responsável" />
+      <input v-model="form.responsible" class="input-primary flex-1" placeholder="Responsible" />
       <input v-model="form.dueDate" type="date" class="input-primary w-36" />
     </div>
     <div class="flex gap-2 justify-end mt-2">
-      <button type="button" class="button-tertiary" @click="$emit('cancel')">Cancelar</button>
-      <button type="submit" class="button-primary">Salvar</button>
+      <button type="button" class="button-tertiary" @click="$emit('cancel')">Cancel</button>
+      <button type="submit" class="button-primary">Save</button>
     </div>
   </form>
 </template>

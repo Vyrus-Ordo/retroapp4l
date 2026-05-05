@@ -28,10 +28,10 @@ async function handleLogout() {
         RetroApp 4L
       </NuxtLink>
       <nav class="flex items-center gap-4 text-sm text-gray-600">
-        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/">Início</NuxtLink>
-        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/join">Entrar via link</NuxtLink>
-        <NuxtLink v-if="isAuthenticatedUser" class="rounded px-2 py-1 hover:bg-gray-50" to="/retro/create">Nova retro</NuxtLink>
-        <NuxtLink v-if="isAuthenticatedUser" class="rounded px-2 py-1 hover:bg-gray-50" to="/history">Histórico</NuxtLink>
+        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/">Home</NuxtLink>
+        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/join">Join via link</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded px-2 py-1 hover:bg-gray-50" to="/retro/create">New retro</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded px-2 py-1 hover:bg-gray-50" to="/history">History</NuxtLink>
         <template v-if="isAuthenticatedUser">
           <div class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
             {{ initials }}
@@ -40,7 +40,7 @@ async function handleLogout() {
             class="rounded px-2 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
             @click="handleLogout"
           >
-            Sair
+            Sign out
           </button>
         </template>
       </nav>
