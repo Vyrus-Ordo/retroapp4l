@@ -49,6 +49,8 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        NUXT_PUBLIC_TURNSTILE_SITE_KEY: ${NUXT_PUBLIC_TURNSTILE_SITE_KEY}
     restart: unless-stopped
     environment:
       NUXT_PUBLIC_API_BASE: https://retroapp4l.privo.app.br/api
