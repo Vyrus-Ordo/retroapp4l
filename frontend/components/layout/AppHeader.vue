@@ -22,25 +22,32 @@ async function handleLogout() {
 </script>
 
 <template>
-  <header class="border-b border-gray-100 bg-white">
+  <header class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-      <NuxtLink class="text-lg font-bold tracking-tight text-brand-700" to="/">
+      <!-- LEFT: logo -->
+      <NuxtLink
+        class="font-bold tracking-tight text-brand-600"
+        style="font-family: 'Inter', sans-serif; font-size: 1.25rem; font-weight: 700"
+        to="/"
+      >
         RetroApp 4L
       </NuxtLink>
-      <nav class="flex items-center gap-4 text-sm text-gray-600">
-        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/">Home</NuxtLink>
-        <NuxtLink class="rounded px-2 py-1 hover:bg-gray-50" to="/join">Join via link</NuxtLink>
-        <NuxtLink v-if="isAuthenticatedUser" class="rounded px-2 py-1 hover:bg-gray-50" to="/retro/create">New retro</NuxtLink>
-        <NuxtLink v-if="isAuthenticatedUser" class="rounded px-2 py-1 hover:bg-gray-50" to="/history">History</NuxtLink>
+
+      <!-- RIGHT: navegação -->
+      <nav class="flex items-center gap-1 text-sm text-slate-600">
+        <NuxtLink class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/">Home</NuxtLink>
+        <NuxtLink class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/join">Entrar via link</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/retro/create">Nova retro</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/history">Histórico</NuxtLink>
         <template v-if="isAuthenticatedUser">
-          <div class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
+          <div class="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
             {{ initials }}
           </div>
           <button
-            class="rounded px-2 py-1 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition-colors"
+            class="rounded-md px-3 py-2 font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
             @click="handleLogout"
           >
-            Sign out
+            Sair
           </button>
         </template>
       </nav>
