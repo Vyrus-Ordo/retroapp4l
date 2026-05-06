@@ -26,7 +26,30 @@ O projeto é dividido nos seguintes serviços Docker:
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/install/)
 
-## Rodando com Docker
+
+## Deploy em Produção (Hostinger VPS KVM2)
+
+O deploy oficial do RetroApp4L é realizado em um VPS KVM2 da Hostinger, utilizando Docker e Docker Compose. O ambiente foi configurado para produção seguindo um passo a passo detalhado no arquivo [deploy.md](deploy.md).
+
+**Resumo do processo:**
+
+1. Instalação do Docker no VPS (Ubuntu)
+2. Instalação do Nginx e emissão de certificado SSL com Certbot
+3. Clonagem do repositório em `/opt/retroapp4l`
+4. Criação do arquivo `backend/.env.prod` com variáveis reais (DJANGO_SECRET_KEY, POSTGRES_PASSWORD, etc)
+5. Instalação do hook de renovação SSL
+6. Build e start dos containers com `docker compose -f docker-compose.prod.yml up -d --build`
+7. Verificação dos serviços e acesso via domínio configurado
+
+Veja o passo a passo completo e comandos em [deploy.md](deploy.md).
+
+> **Nota:** O projeto deixou de focar em custo zero/MVP em cloud gratuita e agora recomenda VPS dedicada para produção, devido a requisitos de estabilidade e controle. O código segue open source (MIT), mas o deploy oficial não é mais em tiers gratuitos.
+
+---
+
+## Rodando localmente com Docker (desenvolvimento)
+
+Se quiser rodar em ambiente local para desenvolvimento, siga os passos abaixo:
 
 ### 1. Clone o repositório
 
