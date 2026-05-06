@@ -36,9 +36,9 @@ async function handleLogout() {
       <!-- RIGHT: navegação -->
       <nav class="flex items-center gap-1 text-sm text-slate-600">
         <NuxtLink class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/">Home</NuxtLink>
-        <NuxtLink class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/join">Entrar via link</NuxtLink>
-        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/retro/create">Nova retro</NuxtLink>
-        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/history">Histórico</NuxtLink>
+        <NuxtLink class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/join">Join via link</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/retro/create">New retro</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/history">History</NuxtLink>
         <template v-if="isAuthenticatedUser">
           <div class="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
             {{ initials }}
@@ -47,7 +47,7 @@ async function handleLogout() {
             class="rounded-md px-3 py-2 font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
             @click="handleLogout"
           >
-            Sair
+            Logout
           </button>
         </template>
       </nav>

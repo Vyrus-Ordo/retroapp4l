@@ -14,7 +14,7 @@ const mobileMenuOpen = ref(false)
         RetroApp 4L
       </NuxtLink>
 
-      <!-- RIGHT: navegação (desktop) / hambúrguer (mobile) -->
+      <!-- RIGHT: navigation (desktop) / hamburger (mobile) -->
       <nav class="hidden items-center gap-1 md:flex">
         <NuxtLink
           to="/"
@@ -26,7 +26,7 @@ const mobileMenuOpen = ref(false)
           to="/join"
           class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
         >
-          Entrar via link
+          Join via link
         </NuxtLink>
         <NuxtLink
           to="/auth/login"
@@ -36,10 +36,10 @@ const mobileMenuOpen = ref(false)
         </NuxtLink>
       </nav>
 
-      <!-- Mobile: hambúrguer (direita) -->
+      <!-- Mobile: hamburger (right) -->
       <button
         class="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 md:hidden"
-        aria-label="Abrir menu de navegação"
+        aria-label="Open navigation menu"
         @click="mobileMenuOpen = !mobileMenuOpen"
       >
         <!-- bars-3 -->
@@ -69,7 +69,7 @@ const mobileMenuOpen = ref(false)
       </button>
     </div>
 
-    <!-- Menu mobile colapsável -->
+    <!-- Collapsible mobile menu -->
     <Transition
       enter-active-class="transition duration-150 ease-out"
       enter-from-class="-translate-y-2 opacity-0"
@@ -92,7 +92,7 @@ const mobileMenuOpen = ref(false)
             class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
             @click="mobileMenuOpen = false"
           >
-            Entrar via link
+            Join via link
           </NuxtLink>
           <NuxtLink
             to="/auth/login"
