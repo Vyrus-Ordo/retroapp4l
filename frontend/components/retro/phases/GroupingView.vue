@@ -28,18 +28,23 @@ async function groupSelected() {
           <template v-else>The facilitator is grouping similar cards.</template>
         </p>
       </div>
-      <div v-if="isFacilitator && selectionCount > 0" class="flex items-center gap-3">
-        <button class="button-secondary text-sm" type="button" @click="retroStore.clearSelection()">
-          Clear ({{ selectionCount }})
+      <div class="flex items-center gap-3">
+        <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" type="button" @click="emit('advance-phase')">
+          Next phase
         </button>
-        <button
-          :disabled="selectionCount < 2"
-          class="button-primary text-sm disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed"
-          type="button"
-          @click="groupSelected"
-        >
-          Group selected ({{ selectionCount }})
-        </button>
+        <template v-if="isFacilitator && selectionCount > 0">
+          <button class="button-secondary text-sm" type="button" @click="retroStore.clearSelection()">
+            Clear ({{ selectionCount }})
+          </button>
+          <button
+            :disabled="selectionCount < 2"
+            class="button-primary text-sm disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed"
+            type="button"
+            @click="groupSelected"
+          >
+            Group selected ({{ selectionCount }})
+          </button>
+        </template>
       </div>
     </div>
 
@@ -52,11 +57,6 @@ async function groupSelected() {
       @toggle-select="isFacilitator ? retroStore.toggleCardSelection($event) : undefined"
     />
 
-    <div v-if="isFacilitator" class="flex justify-end">
-      <button class="button-primary" type="button" @click="emit('advance-phase')">
-        Next phase
-      </button>
-    </div>
   </div>
 </template>
 

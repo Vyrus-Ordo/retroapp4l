@@ -44,6 +44,9 @@ function handleVote(card: Card) {
         <p class="mt-1 text-sm text-slate-500">Vote on the most important cards in Loathed and Longed For columns.</p>
       </div>
       <div class="flex items-center gap-4">
+        <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" type="button" @click="emit('advance-phase')">
+          Next phase
+        </button>
         <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">
           {{ votesRemaining }} vote<span v-if="votesRemaining !== 1">s</span> left
         </span>
@@ -64,11 +67,6 @@ function handleVote(card: Card) {
       @vote="handleVote"
     />
 
-    <div v-if="isFacilitator" class="flex justify-end">
-      <button class="button-primary" type="button" @click="emit('advance-phase')">
-        Next phase
-      </button>
-    </div>
   </div>
 </template>
 

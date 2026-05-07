@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ViewfinderCircleIcon } from "@heroicons/vue/24/outline"
 
-import type { Card, DiscussionFocusPayload } from "~/utils/types"
+import type { Card, DiscussionFocusPayload, ActionItem } from "~/utils/types"
 
 import FocusCard from "~/components/board/FocusCard.vue"
 
@@ -15,12 +15,15 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   "advance-phase": []
+  "open-action-modal": [defaultCardId?: string]
 }>()
 
 const route = useRoute()
 const retrospectiveId = computed(() => String(route.params.id))
 
 const focus = computed<DiscussionFocusPayload | null>(() => props.retroStore.discussionFocus)
+
+const actionItems = computed<ActionItem[]>(() => props.retroStore.actionItems)
 
 const sortedCards = computed<Card[]>(() => props.discussionQueue)
 
@@ -49,13 +52,18 @@ async function handleNextCard() {
           <template v-else>Your facilitator controls which card is in focus.</template>
         </p>
       </div>
-      <span
-        v-if="current?.timer_duration_seconds"
-        class="text-lg font-semibold tabular-nums"
-        :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'"
-      >
-        {{ timerStore.formatted }}
-      </span>
+      <div class="flex items-center gap-4">
+        <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" type="button" @click="emit('advance-phase')">
+          Next phase
+        </button>
+        <span
+          v-if="current?.timer_duration_seconds"
+          class="text-lg font-semibold tabular-nums"
+          :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'"
+        >
+          {{ timerStore.formatted }}
+        </span>
+      </div>
     </div>
 
     <div class="grid gap-6 lg:grid-cols-[1fr,300px]">
@@ -101,20 +109,40 @@ async function handleNextCard() {
         </article>
       </div>
 
-      <!-- Focus panel -->
-      <FocusCard
-        :focus="focus"
-        :queue="queueAfterFocus"
-        :facilitator="isFacilitator"
-        @next="handleNextCard"
-      />
+      <div class="flex flex-col gap-6">
+        <!-- Focus panel -->
+        <FocusCard
+          :focus="focus"
+          :queue="queueAfterFocus"
+          :facilitator="isFacilitator"
+          @next="handleNextCard"
+          @new-action="emit('open-action-modal', focus?.card_id)"
+        />
+
+        <!-- Action items list (Live Minutes) -->
+        <div class="space-y-4 rounded-xl bg-slate-50 p-6 border border-slate-100">
+          <div>
+            <h2 class="text-lg font-semibold text-slate-900">Session Minutes</h2>
+            <p class="text-sm text-slate-500">Action items created during this discussion.</p>
+          </div>
+
+          <div v-if="actionItems.length === 0" class="text-sm text-slate-400 py-2">
+            No action items recorded yet.
+          </div>
+
+          <div class="space-y-2">
+            <div v-for="action in actionItems" :key="action.id" class="rounded-lg bg-white p-3 border border-slate-200 shadow-sm text-sm">
+              <p class="font-medium text-slate-900">{{ action.description }}</p>
+              <div class="mt-1 flex flex-col gap-1 text-xs text-slate-500">
+                <span v-if="action.assignee_name">Assignee: {{ action.assignee_name }}</span>
+                <span v-if="action.due_date">Due: {{ action.due_date }}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- Advance phase -->
-    <div v-if="isFacilitator" class="flex justify-end">
-      <button class="button-primary" type="button" @click="emit('advance-phase')">
-        Next phase
-      </button>
-    </div>
+
   </div>
 </template>

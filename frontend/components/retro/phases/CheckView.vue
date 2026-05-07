@@ -1,7 +1,14 @@
 <template>
   <div class="panel p-8 flex flex-col gap-6 min-h-[50vh]">
-    <h1 class="text-xl font-bold text-gray-900 mb-2">Previous action check</h1>
-    <p class="text-gray-600">Review pending actions from the last closed retro for this team.</p>
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <h1 class="text-xl font-bold text-gray-900 mb-2">Previous action check</h1>
+        <p class="text-gray-600">Review pending actions from the last closed retro for this team.</p>
+      </div>
+      <div class="flex items-center gap-4">
+        <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" @click="$emit('advance-phase')">Next phase</button>
+      </div>
+    </div>
     <div class="mt-4 space-y-3">
       <div v-for="action in retroStore.previousActions.action_items" :key="action.id" class="rounded-lg border border-gray-100 bg-gray-50 p-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-2">
         <div>
@@ -18,9 +25,7 @@
         No previous actions found.
       </div>
     </div>
-    <div class="flex justify-end mt-4">
-      <button v-if="isFacilitator" class="button-primary" @click="$emit('advance-phase')">Next phase</button>
-    </div>
+
   </div>
 </template>
 

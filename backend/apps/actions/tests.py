@@ -18,7 +18,7 @@ class ActionItemApiTests(APITestCase):
 			title="Sprint 5",
 			team_key="platform-team",
 			facilitator=self.facilitator,
-			status=RetrospectiveStatus.ACTIONS,
+			status=RetrospectiveStatus.DISCUSSION,
 		)
 		self.facilitator_participant = Participant.objects.create(retrospective=self.retrospective, user=self.facilitator, votes_remaining=3)
 		self.assignee_participant = Participant.objects.create(retrospective=self.retrospective, user=self.participant_user, votes_remaining=3)
@@ -46,8 +46,8 @@ class ActionItemApiTests(APITestCase):
 		self.assertEqual(action_item.card, self.card)
 		self.assertEqual(action_item.status, ActionItemStatus.NOT_STARTED)
 
-	def test_action_item_requires_actions_phase_for_create(self):
-		self.retrospective.status = RetrospectiveStatus.DISCUSSION
+	def test_action_item_requires_discussion_phase_for_create(self):
+		self.retrospective.status = RetrospectiveStatus.ACTIONS
 		self.retrospective.save(update_fields=["status"])
 		url = f"/api/retrospectives/{self.retrospective.id}/action-items/"
 

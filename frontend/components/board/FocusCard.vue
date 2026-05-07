@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightCircleIcon, ViewfinderCircleIcon } from "@heroicons/vue/24/outline"
+import { ArrowRightCircleIcon, ViewfinderCircleIcon, PlusIcon } from "@heroicons/vue/24/outline"
 
 import type { Card, DiscussionFocusPayload } from "~/utils/types"
 
@@ -11,6 +11,7 @@ defineProps<{
 
 defineEmits<{
   next: []
+  "new-action": []
 }>()
 </script>
 
@@ -33,10 +34,16 @@ defineEmits<{
       <ul class="mt-3 space-y-2 text-sm text-slate-600">
         <li v-for="card in queue.slice(0, 3)" :key="card.id">{{ card.column }} — {{ card.content }} ({{ card.vote_count }})</li>
       </ul>
-      <button v-if="facilitator" class="button-primary mt-4" type="button" @click="$emit('next')">
-        <ArrowRightCircleIcon class="mr-2 h-5 w-5" />
-        Next card
-      </button>
+      <div v-if="facilitator" class="mt-4 flex flex-wrap gap-3">
+        <button class="button-primary" type="button" @click="$emit('next')">
+          <ArrowRightCircleIcon class="mr-2 h-5 w-5" />
+          Next card
+        </button>
+        <button class="button-secondary" type="button" @click="$emit('new-action')">
+          <PlusIcon class="mr-2 h-5 w-5" />
+          New action item
+        </button>
+      </div>
     </div>
   </section>
 </template>

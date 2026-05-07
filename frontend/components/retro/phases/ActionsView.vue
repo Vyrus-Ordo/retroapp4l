@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import {
-  PlusIcon,
   PencilSquareIcon,
   TrashIcon,
   CheckCircleIcon,
@@ -78,18 +77,23 @@ async function confirmCloseSession() {
     <!-- Header -->
     <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-xl font-bold text-slate-900">Actions</h1>
+        <h1 class="text-xl font-bold text-slate-900">Actions Review</h1>
         <p class="mt-1 text-sm text-slate-500">
-          Record action items with description, assignee, and due date.
+          Review and confirm the action items created during the discussion.
         </p>
       </div>
-      <span
-        v-if="current?.timer_duration_seconds"
-        class="text-lg font-semibold tabular-nums"
-        :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'"
-      >
-        {{ timerStore.formatted }}
-      </span>
+      <div class="flex items-center gap-4">
+        <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" type="button" @click="handleCloseClick">
+          Close retrospective
+        </button>
+        <span
+          v-if="current?.timer_duration_seconds"
+          class="text-lg font-semibold tabular-nums"
+          :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'"
+        >
+          {{ timerStore.formatted }}
+        </span>
+      </div>
     </div>
 
     <!-- Action items list -->
@@ -154,20 +158,9 @@ async function confirmCloseSession() {
       </div>
     </div>
 
-    <!-- Add action button -->
-    <div v-if="isFacilitator">
-      <button class="button-secondary flex items-center gap-2" type="button" @click="emit('open-action-modal')">
-        <PlusIcon class="h-4 w-4" />
-        New action item
-      </button>
-    </div>
 
-    <!-- Close session -->
-    <div v-if="isFacilitator" class="flex justify-end border-t border-slate-100 pt-4">
-      <button class="button-primary" type="button" @click="handleCloseClick">
-        Close retrospective
-      </button>
-    </div>
+
+
 
     <!-- Confirmation dialog -->
     <div

@@ -6,6 +6,7 @@ const props = defineProps<{
   cards: Card[]
   modelValue: boolean
   initialAction?: ActionItem | null
+  defaultCardId?: string
 }>()
 
 const emit = defineEmits<{
@@ -28,21 +29,23 @@ const sourceCards = computed(() =>
 const form = reactive({
   description: props.initialAction?.description || "",
   assignee_id: props.initialAction?.participant_id || "",
-  card_id: props.initialAction?.card || "",
+  card_id: props.initialAction?.card || props.defaultCardId || "",
   due_date: props.initialAction?.due_date || "",
   status: props.initialAction?.status || "not_started",
   external_tracker_url: props.initialAction?.external_tracker_url || "",
 })
 
 watch(
-  () => props.initialAction,
-  (action) => {
-    form.description = action?.description || ""
-    form.assignee_id = action?.participant_id || ""
-    form.card_id = action?.card || ""
-    form.due_date = action?.due_date || ""
-    form.status = action?.status || "not_started"
-    form.external_tracker_url = action?.external_tracker_url || ""
+  () => props.modelValue,
+  (isOpen) => {
+    if (isOpen) {
+      form.description = props.initialAction?.description || ""
+      form.assignee_id = props.initialAction?.participant_id || ""
+      form.card_id = props.initialAction?.card || props.defaultCardId || ""
+      form.due_date = props.initialAction?.due_date || ""
+      form.status = props.initialAction?.status || "not_started"
+      form.external_tracker_url = props.initialAction?.external_tracker_url || ""
+    }
   },
   { immediate: true },
 )

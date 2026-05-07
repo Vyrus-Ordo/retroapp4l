@@ -22,9 +22,13 @@ class ActionAccessMixin:
 		if not Participant.objects.filter(retrospective=retrospective, user=user).exists():
 			raise PermissionDenied("Only participants can access action items in this retrospective.")
 
-	def ensure_actions_phase(self, retrospective):
-		if retrospective.status != RetrospectiveStatus.ACTIONS:
-			raise PermissionDenied("Action items can only be modified during the actions phase.")
+	def ensure_discussion_phase(self, retrospective):
+		if retrospective.status != RetrospectiveStatus.DISCUSSION:
+			raise PermissionDenied("Action items can only be created during the discussion phase.")
+
+	def ensure_discussion_or_actions_phase(self, retrospective):
+		if retrospective.status not in [RetrospectiveStatus.DISCUSSION, RetrospectiveStatus.ACTIONS]:
+			raise PermissionDenied("Action items can only be modified during the discussion or actions phase.")
 
 	def ensure_facilitator(self, retrospective, user):
 		if retrospective.facilitator != user:
@@ -63,7 +67,7 @@ class ActionItemListCreateView(ActionAccessMixin, generics.ListCreateAPIView):
 		retrospective = self.get_retrospective_instance()
 		self.ensure_participant(retrospective, self.request.user)
 		self.ensure_facilitator(retrospective, self.request.user)
-		self.ensure_actions_phase(retrospective)
+		self.ensure_discussion_phase(retrospective)
 		serializer.save(retrospective=retrospective)
 
 
@@ -91,14 +95,14 @@ class ActionItemDetailView(ActionAccessMixin, generics.RetrieveUpdateDestroyAPIV
 		retrospective = self.get_retrospective_instance()
 		self.ensure_participant(retrospective, self.request.user)
 		self.ensure_facilitator(retrospective, self.request.user)
-		self.ensure_actions_phase(retrospective)
+		self.ensure_discussion_or_actions_phase(retrospective)
 		serializer.save()
 
 	def perform_destroy(self, instance):
 		retrospective = self.get_retrospective_instance()
 		self.ensure_participant(retrospective, self.request.user)
 		self.ensure_facilitator(retrospective, self.request.user)
-		self.ensure_actions_phase(retrospective)
+		self.ensure_discussion_or_actions_phase(retrospective)
 		instance.delete()
 
 

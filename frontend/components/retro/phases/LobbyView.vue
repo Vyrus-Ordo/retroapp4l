@@ -1,8 +1,15 @@
 <template>
   <div class="flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between min-h-[60vh]">
     <div class="flex-1 panel p-8 flex flex-col gap-4">
-      <h1 class="text-xl font-bold text-gray-900 mb-2">Lobby</h1>
-      <p class="text-gray-600">Invite participants and wait for everyone to join before starting.</p>
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <h1 class="text-xl font-bold text-gray-900 mb-2">Lobby</h1>
+          <p class="text-gray-600">Invite participants and wait for everyone to join before starting.</p>
+        </div>
+        <div class="flex items-center gap-4">
+          <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" @click="$emit('advance-phase')">Start session</button>
+        </div>
+      </div>
       <div class="mt-4 flex flex-col gap-2">
         <div class="flex items-center gap-2">
           <span class="mdi mdi-link-variant text-brand-500 text-xl" />
@@ -16,9 +23,7 @@
           <span class="font-semibold">{{ participants.length }}</span>
         </div>
       </div>
-      <div class="mt-6">
-        <button v-if="isFacilitator" class="button-primary" @click="$emit('advance-phase')">Start session</button>
-      </div>
+
     </div>
     <div class="flex-1 panel p-8 flex flex-col gap-4">
       <h2 class="text-lg font-semibold text-gray-900">How it works</h2>

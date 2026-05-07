@@ -28,9 +28,14 @@ const currentUserId = computed(() => authStore.user?.id)
         <h1 class="text-xl font-bold text-slate-900">Board 4L</h1>
         <p class="mt-1 text-sm text-slate-500">Add cards to each column to share your perspective on this sprint.</p>
       </div>
-      <span v-if="current?.timer_duration_seconds" class="text-lg font-semibold tabular-nums" :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'">
-        {{ timerStore.formatted }}
-      </span>
+      <div class="flex items-center gap-4">
+        <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" type="button" @click="emit('advance-phase')">
+          Next phase
+        </button>
+        <span v-if="current?.timer_duration_seconds" class="text-lg font-semibold tabular-nums" :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'">
+          {{ timerStore.formatted }}
+        </span>
+      </div>
     </div>
 
     <BoardGrid
@@ -44,10 +49,5 @@ const currentUserId = computed(() => authStore.user?.id)
       @delete-card="emit('delete-card', $event.id)"
     />
 
-    <div v-if="isFacilitator" class="flex justify-end">
-      <button class="button-primary" type="button" @click="emit('advance-phase')">
-        Next phase
-      </button>
-    </div>
   </div>
 </template>

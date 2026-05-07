@@ -33,6 +33,7 @@ const api = useApiClient()
 
 const cardModalOpen = ref(false)
 const actionModalOpen = ref(false)
+const actionModalDefaultCard = ref<string>("")
 const draftColumn = ref<CardColumn>('loved')
 const editingCard = ref<Card | null>(null)
 const editingAction = ref<ActionItem | null>(null)
@@ -161,8 +162,9 @@ async function submitAction(payload: ActionItem) {
   editingAction.value = null
 }
 
-function openCreateAction() {
+function openCreateAction(defaultCard?: string) {
   editingAction.value = null
+  actionModalDefaultCard.value = defaultCard || ""
   actionModalOpen.value = true
 }
 
@@ -265,6 +267,7 @@ onMounted(async () => {
       v-model="actionModalOpen"
       :cards="retroStore.cards"
       :initial-action="editingAction"
+      :default-card-id="actionModalDefaultCard"
       :participants="participantStore.participants"
       @submit="submitAction"
     />
