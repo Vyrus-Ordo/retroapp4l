@@ -34,14 +34,14 @@ defineEmits<{
       <ul class="mt-3 space-y-2 text-sm text-slate-600">
         <li v-for="card in queue.slice(0, 3)" :key="card.id">{{ card.column }} — {{ card.content }} ({{ card.vote_count }})</li>
       </ul>
-      <div v-if="facilitator" class="mt-4 flex flex-wrap gap-3">
-        <button class="button-primary" type="button" @click="$emit('next')">
-          <ArrowRightCircleIcon class="mr-2 h-5 w-5" />
+      <div v-if="facilitator" class="mt-4 flex gap-2">
+        <button class="button-primary flex-1 px-2" type="button" @click="$emit('next')">
+          <ArrowRightCircleIcon class="mr-1.5 h-5 w-5 shrink-0" />
           Next card
         </button>
-        <button class="button-secondary" type="button" @click="$emit('new-action')">
-          <PlusIcon class="mr-2 h-5 w-5" />
-          New action item
+        <button class="button-secondary flex-1 px-2" type="button" @click="$emit('new-action')">
+          <PlusIcon class="mr-1.5 h-5 w-5 shrink-0" />
+          New action
         </button>
       </div>
     </div>

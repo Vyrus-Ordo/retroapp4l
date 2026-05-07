@@ -24,6 +24,13 @@ watch(
   { immediate: true },
 )
 
+const selectColorClass = computed(() => {
+  if (column.value === "loved") return "bg-success-600 text-white border-success-600 focus:border-success-600 focus:ring-success-600"
+  if (column.value === "loathed") return "bg-warning-500 text-white border-warning-500 focus:border-warning-500 focus:ring-warning-500"
+  if (column.value === "longed") return "bg-brand-500 text-white border-brand-500 focus:border-brand-500 focus:ring-brand-500"
+  return "bg-slate-600 text-white border-slate-600 focus:border-slate-600 focus:ring-slate-600"
+})
+
 function close() {
   emit("update:modelValue", false)
 }
@@ -43,11 +50,11 @@ function handleSubmit() {
     <div class="w-full max-w-xl rounded-xl bg-white p-6 shadow-lg">
       <h2 class="text-lg font-semibold text-slate-900">{{ initialCard ? 'Edit card' : 'Add card' }}</h2>
       <div class="mt-4 space-y-4">
-        <select v-model="column" class="field-input disabled:opacity-60 disabled:cursor-not-allowed" :disabled="!initialCard && !!initialColumn">
-          <option value="loved">Liked</option>
-          <option value="loathed">Loathed</option>
-          <option value="longed">Longed for</option>
-          <option value="learned">Learned</option>
+        <select v-model="column" class="field-input font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed" :class="selectColorClass" :disabled="!initialCard && !!initialColumn">
+          <option value="loved" class="bg-white text-slate-900 font-normal">Liked</option>
+          <option value="loathed" class="bg-white text-slate-900 font-normal">Loathed</option>
+          <option value="longed" class="bg-white text-slate-900 font-normal">Longed for</option>
+          <option value="learned" class="bg-white text-slate-900 font-normal">Learned</option>
         </select>
         <textarea v-model="content" class="field-input min-h-32" maxlength="500" placeholder="Write a concise card." />
       </div>
@@ -57,4 +64,4 @@ function handleSubmit() {
       </div>
     </div>
   </div>
-</template>
+</template>
