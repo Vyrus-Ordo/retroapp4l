@@ -1,13 +1,20 @@
 # RetroApp 4L — Documento de Requisitos do Produto (PRD)
 
-**Versão:** 8.0 — MVP (Open Source / Estado Real da Implementação)
+**Versão:** 9.0 — MVP (Open Source / Estado Real da Implementação)
 **Data:** Maio 2026
 **Status:** Versão de reconciliação — código é a fonte da verdade
 **Audiência:** Agente de IA (executor principal), Tech Lead (revisão / infra / deploy)
 **Licença:** MIT
 
+> **Changelog v9.0:**
+> - Seção 2.4 adicionada: Premissa de Perfil do Facilitador (Tech Lead / Scrum Master)
+> - US-12 atualizada: criação de action items permitida na fase `discussion` (exclusivo facilitador)
+> - US-12b adicionada: fase `actions` redefinida como leitura de ata — criação bloqueada, edição restrita ao facilitador
+> - RF-12 atualizado: criação de action items na `discussion` documentada
+> - RF-13 atualizado: bloqueio de criação na `actions`; edição restrita ao facilitador
+> - Fluxo da sessão (seção 5) atualizado: descrições de `discussion` e `actions` revisadas
+
 > **Changelog v8.0:**
->
 > - PRD reconciliado com o código-fonte real (código é a fonte da verdade)
 > - Modelo de dados atualizado: campos extras implementados documentados (`is_guest`, `public_email`, `allow_self_vote`, `focus_card`, `invite_temporarily_open_until`, `phase_durations`, `description`, `external_tracker_url`)
 > - Status de ActionItem corrigido: `not_started` (não `pending`) é o valor real implementado
@@ -100,10 +107,6 @@ O projeto é projetado para ser auto-hospedado, gratuito para rodar em escala de
 | Escrever documento de handoff da sprint | Gera rascunho | ✅ valida e assina |
 | Decisões de produto não previstas no PRD | — | ✅ |
 
-Aqui está o trecho ajustado para a seção 2:
-
----
-
 ### 2.4 Premissa de Perfil do Facilitador
 
 O RetroApp 4L pressupõe que o facilitador é um membro sênior do próprio time — tipicamente o Tech Lead ou Scrum Master — com autoridade técnica e contexto sobre as decisões tomadas durante a sprint.
@@ -122,19 +125,16 @@ Essa premissa é deliberada e afeta diretamente várias decisões de design do p
 ## 3. Perfis de Usuário
 
 ### Facilitador
-
 Membro do time responsável por criar e conduzir a sessão. Prepara os marcos antes da retro, controla o avanço entre fases, configura o cronômetro (com pausa e retomada), gerencia entrada de participantes e é o único com permissão de agrupar cards, definir o card em foco durante o debate e encerrar a sessão. Não pode ser usuário guest.
 
 **Necessidades principais:** controle total do fluxo, visibilidade do estado de todos os participantes, ferramentas ágeis para agrupamento, capacidade de intervir em qualquer fase sem travar a sessão.
 
 ### Participante
-
 Membro do time convidado via link. Pode criar, editar e excluir seus próprios cards, votar (apenas nas colunas designadas), participar do debate e registrar itens de ação. Não pode avançar fases, agrupar cards, gerenciar entrada de participantes ou encerrar a sessão.
 
 **Necessidades principais:** interface rápida para adicionar cards, clareza sobre em qual fase está e o que se espera dela naquele momento, visibilidade dos marcos e do card em foco durante o debate.
 
 ### Usuário Guest
-
 Participante que entrou via link de convite **sem** conta cadastrada previamente. Recebe JWT próprio após informar nome (e opcionalmente e-mail público) na tela `/retro/invite/:token`. É armazenado como `User` com `is_guest=true` e senha inutilizável. Pode participar de todas as fases como participante comum, mas não pode criar retrospectivas, acessar dashboard ou usar a rota `/retro/create`. Identidade guest é persistida no localStorage do frontend via `guestStore`.
 
 ---
@@ -147,7 +147,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero criar uma sessão de retrospectiva informando o nome da sprint e o identificador do time.
 
 **Critérios de aceite implementados:**
-
 - Campos obrigatórios: `title`, `team_key`.
 - Campos opcionais: `sprint_name`, `description`, `max_votes_per_user`, `allow_self_vote`, `skip_check_phase`, `phase_durations`.
 - Sessão inicia no estado `setup`.
@@ -161,7 +160,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero compartilhar um link de convite privado.
 
 **Critérios de aceite implementados:**
-
 - Link: `{origin}/retro/invite/{invite_token}`.
 - Endpoint público `GET /api/invites/{token}/` retorna metadados da sessão e status do convite.
 - Endpoint público `POST /api/invites/{token}/join/` cria ou reaproveita usuário guest e retorna `access`/`refresh` JWT.
@@ -174,7 +172,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero liberar temporariamente o acesso a participantes tardios.
 
 **Critérios de aceite implementados:**
-
 - Endpoint `POST /api/retrospectives/{id}/reopen-entry/` define `invite_temporarily_open_until = now + 2 minutos`.
 - Endpoint `GET /api/retrospectives/{id}/invite-status/` retorna status atual do convite.
 - Registra `link_reopened` no `AccessLog`.
@@ -187,7 +184,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero avançar as fases manualmente.
 
 **Critérios de aceite implementados:**
-
 - Evento WebSocket `phase.advance` enviado pelo facilitador, com `phase` sendo a fase destino.
 - Backend valida transição via `state_machine.py` (transições lineares, sem pulo).
 - Ao avançar, todos recebem `phase.changed` com `{phase, timer_duration_seconds}`.
@@ -202,7 +198,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero definir o número de votos por participante.
 
 **Critérios de aceite implementados:**
-
 - `max_votes_per_user` configurável na criação da sessão (padrão: 3).
 - `allow_self_vote` booleano configurável (padrão: `false` — autor não pode votar no próprio card).
 - Endpoint `PATCH /api/retrospectives/{id}/votes-config/` permite atualizar estas configurações.
@@ -214,7 +209,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero encerrar a sessão.
 
 **Critérios de aceite implementados:**
-
 - Endpoint `POST /api/retrospectives/{id}/close/` — exclusivo do facilitador, apenas na fase `actions`.
 - Sessão muda para `closed`; `closed_at` preenchido.
 - Registra `AccessLog.closed`.
@@ -226,7 +220,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero registrar marcos da sprint antes de iniciar.
 
 **Critérios de aceite implementados:**
-
 - CRUD via `GET/POST /api/retrospectives/{id}/milestones/` e `GET/PUT/PATCH/DELETE /api/retrospectives/{id}/milestones/{milestone_id}/`.
 - Criação/edição/exclusão restrita ao facilitador e à fase `setup`.
 - Categorias: `achievement`, `challenge`, `change`, `recognition`, `other`.
@@ -238,7 +231,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero apresentar os marcos no início da sessão.
 
 **Critérios de aceite implementados:**
-
 - Fase `presentation` com navegação de marcos via WebSocket.
 - Eventos do cliente: `milestone.presentation.start`, `milestone.presentation.next`, `milestone.presentation.prev`, `milestone.presentation.end`.
 - Servidor emite `milestone.presentation` com `{index, total, milestone_id}`.
@@ -251,7 +243,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como facilitador, quero agrupar cards similares.
 
 **Critérios de aceite implementados:**
-
 - `POST /api/retrospectives/{id}/cards/group/` com `{card_ids: [uuid, ...], group_card_id: uuid}`.
 - `POST /api/retrospectives/{id}/cards/{card_id}/ungroup/`.
 - Cards só agrupáveis com outros da mesma coluna.
@@ -261,14 +252,30 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 ---
 
 **US-12 — Conduzir debate focado (Facilitador)**
-> Como facilitador, quero conduzir uma discussão estruturada sobre os cards mais votados.
+> Como facilitador, quero conduzir uma discussão estruturada sobre os cards mais votados e registrar as decisões em tempo real.
 
 **Critérios de aceite implementados:**
-
 - `POST /api/retrospectives/{id}/focus-card/` com `{card_id: uuid}` — persiste `focus_card` no banco.
 - `POST /api/retrospectives/{id}/next-card/` avança para o próximo card na fila (ordenada por votos decrescente).
 - Broadcast WebSocket com payload do card em foco.
 - `focus_card_id` presente em `RetrospectiveDetail`.
+
+**Critérios de aceite a implementar:**
+- Facilitador pode criar action items durante a fase `discussion` (endpoint `POST /api/retrospectives/{id}/action-items/` liberado para fase `discussion`).
+- Criação de action items na `discussion` restrita ao facilitador — participantes recebem broadcast em tempo real mas não podem criar.
+- Action item criado na `discussion` pode ser vinculado ao `focus_card` atual via campo `card` (opcional).
+- Broadcast `action.created` emitido para todos ao criar item, permitindo que o time acompanhe a ata sendo construída.
+
+---
+
+**US-12b — Revisão de ata na fase de ações (Facilitador)**
+> Como facilitador, quero que a fase de ações seja uma leitura coletiva da ata, onde o time confirma e ajusta o que foi decidido no debate.
+
+**Critérios de aceite a implementar:**
+- Criação de novos action items **bloqueada** na fase `actions` para todos os perfis (facilitador e participantes).
+- Edição de action items na fase `actions` restrita ao facilitador: campos `description`, `assignee`, `due_date`, `card`.
+- Participantes têm acesso somente leitura na fase `actions`.
+- UI da fase `actions` exibe os itens criados durante a `discussion` de forma destacada, sinalizando que é uma revisão da ata.
 
 ---
 
@@ -278,7 +285,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como participante, quero ver as ações da retro anterior.
 
 **Critérios de aceite implementados:**
-
 - `GET /api/retrospectives/{id}/previous-actions/` retorna action items da última retro `closed` do mesmo `team_key`.
 - `PATCH /api/retrospectives/{id}/previous-actions/{action_id}/status/` atualiza `status` (`not_started`, `in_progress`, `done`).
 - Broadcast WebSocket `action.check_updated` ao atualizar status.
@@ -289,7 +295,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como participante, quero adicionar um card em qualquer coluna do board 4L.
 
 **Critérios de aceite implementados:**
-
 - `POST /api/retrospectives/{id}/cards/` com `{column, content}`.
 - `column` choices: `loved`, `loathed`, `longed`, `learned`. *(nota: internamente "loved", não "liked")*
 - Limite: 500 caracteres.
@@ -302,7 +307,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como participante, quero distribuir meus votos.
 
 **Critérios de aceite implementados:**
-
 - `POST /api/retrospectives/{id}/cards/{card_id}/vote/` — registra voto; `DELETE` revoga.
 - Restrição de colunas votáveis (`loathed` e `longed`) verificada server-side.
 - Máximo 1 voto por card por participante (constraint no banco).
@@ -316,7 +320,6 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 > Como participante, quero registrar um item de ação.
 
 **Critérios de aceite implementados:**
-
 - `POST /api/retrospectives/{id}/action-items/` com `{description, assignee, due_date, card}`.
 - `assignee` obrigatório (FK para User).
 - `due_date` opcional.
@@ -337,8 +340,8 @@ Participante que entrou via link de convite **sem** conta cadastrada previamente
 | Board 4L (`board`) | 15 min | Todos | Reflexão nas 4 colunas: loved, loathed, longed, learned. |
 | Agrupamento (`grouping`) | 5 min | **Facilitador** | Agrupa cards duplicados da mesma coluna. |
 | Votação (`voting`) | 3 min | Todos | Dot voting em `loathed` e `longed`. |
-| Debate (`discussion`) | 15 min | Todos (leitura) / Facilitador (controle de foco) | Cards ordenados por votos; facilitador define card em foco. |
-| Ações (`actions`) | 10 min | Todos | Registro de action items com responsável e prazo. |
+| Debate (`discussion`) | 15 min | Facilitador (controle de foco + criação de action items) / Todos (leitura e debate) | Cards ordenados por votos; facilitador define card em foco e registra decisões como action items em tempo real no papel de secretário. Participantes debatem mas não criam action items. |
+| Ações (`actions`) | 10 min | Facilitador (edição) / Todos (leitura) | Leitura coletiva da ata. Criação de novos action items bloqueada. Facilitador pode editar responsável e prazo. Participantes têm acesso somente leitura. |
 | Encerrado (`closed`) | — | Facilitador | Sessão no histórico. |
 
 **Transições válidas (implementadas em `state_machine.py`):**
@@ -437,7 +440,6 @@ retroapp4l/
 O RetroApp 4L usa **Tailwind CSS** como único sistema de estilos. Todas as decisões de design são expressas via classes utilitárias do Tailwind e uma configuração de tema customizada em `tailwind.config.ts`.
 
 **Princípios norteadores:**
-
 - Clareza acima de decoração. Todo elemento visual deve servir a um propósito funcional.
 - Consistência via tokens. Nunca usar valores hex arbitrários — sempre usar tokens do tema Tailwind.
 - Responsivo por padrão. Todos os layouts devem funcionar em desktop 1280px+ (primário) e tablet 768px (secundário).
@@ -493,7 +495,6 @@ colors: {
 ### 7.4 Ícones
 
 O projeto usa **duas** bibliotecas de ícones atualmente:
-
 - **@heroicons/vue** (`npm install @heroicons/vue`) — usado nos componentes novos (DiscussionView, FocusCard, etc.)
 - **Material Design Icons** (prefixo `mdi` via classe CSS) — usado em alguns componentes mais antigos (LobbyView, SetupView, etc.)
 
@@ -777,8 +778,8 @@ Autenticação: `apps/realtime/middleware.py` extrai JWT do query param `?token=
 | RF-09 | Board 4L | Cards em 4 colunas com broadcast em tempo real; CRUD por autor | ✅ Implementado |
 | RF-10 | Agrupamento | Agrupamento por seleção múltipla (facilitador) | ✅ Implementado |
 | RF-11 | Votação | Dot voting em `loathed`/`longed`; 1 voto/card/participante; contador de votos | ✅ Implementado |
-| RF-12 | Debate | Cards ordenados por votos; card em foco persistido; controle pelo facilitador | ✅ Implementado |
-| RF-13 | Ações | Action items com responsável, prazo, card de origem; check de ações anteriores | ✅ Implementado |
+| RF-12 | Debate | Cards ordenados por votos; card em foco persistido; controle pelo facilitador. **Facilitador pode criar action items durante a `discussion`; participantes somente leitura nessa operação.** | ⚠️ Parcial (criação na discussion a implementar) |
+| RF-13 | Ações | Action items com responsável, prazo, card de origem; check de ações anteriores. **Criação bloqueada na fase `actions`; edição restrita ao facilitador.** | ⚠️ Parcial (restrições de fase a implementar) |
 | RF-14 | Histórico | Dashboard de retros encerradas; detalhe com action items | ✅ Implementado |
 | RF-15 | Presença | Painel de participantes; online/offline via WebSocket | ✅ Implementado |
 | RF-16 | Som | Alerta sonoro via Web Audio API ao expirar o cronômetro | ✅ Implementado (`utils/sound.ts`) |
@@ -792,13 +793,11 @@ Autenticação: `apps/realtime/middleware.py` extrai JWT do query param `?token=
 ## 12. Requisitos Não Funcionais
 
 ### 12.1 Performance
-
 - Latência WebSocket: < 200ms em rede interna.
 - `timer.sync` emitido a cada 5s. Frontend interpola contagem localmente a cada 1s e corrige com `timer.sync`.
 - `session.snapshot` enviado em < 1s na conexão.
 
 ### 12.2 Segurança
-
 - JWT: access token 8h, refresh token 7d com blacklist (simplejwt `token_blacklist`).
 - WebSocket autenticado via JWT no query param `?token=` ou header `Authorization`.
 - Link de convite UUID v4; auto-bloqueado após lobby; reaberto apenas por 2 min via facilitador.
@@ -810,18 +809,15 @@ Autenticação: `apps/realtime/middleware.py` extrai JWT do query param `?token=
 - Senhas com PBKDF2 (padrão Django). Guests têm senha inutilizável.
 
 ### 12.3 Disponibilidade
-
 - MVP sem SLA formal.
 - Cold starts no Fly.io: 2–5s. Facilitadores devem "aquecer" antes da retro.
 
 ### 12.4 Escalabilidade
-
 - Django Channels + Redis Channel Layer suporta múltiplas instâncias horizontais.
 - Celery workers escalam independentemente.
 - Até 30 participantes simultâneos por sessão no MVP.
 
 ### 12.5 Qualidade de código
-
 - Linting: `ruff` para backend; `eslint` + `prettier` para frontend.
 - Backend: `python manage.py test` deve passar sem falhas.
 - WebSocket tests: `pytest tests/realtime/` com `USE_IN_MEMORY_CHANNEL_LAYER=true`.
@@ -859,13 +855,10 @@ Esta seção documenta **todos os passos** necessários para fazer o primeiro de
 
 1. Criar um projeto no Neon.
 2. Anotar a connection string no formato:
-
    ```
    postgresql://USER:PASSWORD@HOST/DBNAME?sslmode=require
    ```
-
 3. As variáveis de ambiente a configurar no backend:
-
    ```
    DB_ENGINE=postgres
    POSTGRES_DB=<DBNAME>
@@ -880,11 +873,9 @@ Esta seção documenta **todos os passos** necessários para fazer o primeiro de
 1. Criar um banco Redis no Upstash.
 2. Anotar a URL no formato `redis://:PASSWORD@HOST:PORT` ou `rediss://...` (TLS).
 3. Variável de ambiente:
-
    ```
    REDIS_URL=rediss://:PASSWORD@HOST:PORT
    ```
-
    > Esta variável é usada automaticamente para `CHANNEL_LAYERS` (WebSocket) e `CELERY_BROKER_URL` / `CELERY_RESULT_BACKEND`.
 
 ### 14.4 Backend — Fly.io
@@ -979,7 +970,6 @@ primary_region = "gru"
 O `Dockerfile.worker` já executa `celery -A config worker -B -l info`.
 
 Deploy do worker:
-
 ```bash
 fly deploy --config fly.worker.toml
 ```
@@ -1011,7 +1001,6 @@ npx vercel --prod
 ```
 
 Ou conectar o repositório GitHub na Vercel com:
-
 - **Root directory:** `frontend`
 - **Build command:** `npm run build`
 - **Output directory:** `.output`
@@ -1067,51 +1056,39 @@ python manage.py createsuperuser
 ## 15. Decisões Registradas e Trade-offs
 
 ### 15.1 JWT (simplejwt) como auth primária em vez de sessões
-
 `djangorestframework-simplejwt` escolhido por compatibilidade direta com SPA Nuxt (stateless) e por ser necessário para autenticar WebSocket via query param. `django-allauth` permanece instalado para suporte futuro a OAuth social, mas o fluxo principal é simplejwt.
 
 ### 15.2 Usuário guest como `User` com `is_guest=True`
-
 Implementar guests como usuário Django real permite reutilizar toda a infraestrutura de permissões, participações e action items sem refatoração do domínio. Trade-off: banco acumula usuários guest; limpeza periódica pode ser necessária em produção.
 
 ### 15.3 `allow_self_vote` configurável
-
 Adicionado como feature extra além do PRD original. Permite ao facilitador decidir se auto-votação é válida em seu contexto de time. Padrão `False` mantém comportamento original do PRD.
 
 ### 15.4 `focus_card` persistido no banco
-
 Alternativa ao armazenamento em memória. Garante que o card em foco sobrevive a reconexões e restarts do backend. Leve overhead de escrita a cada troca de foco.
 
 ### 15.5 `phase_durations` como JSONField
-
 Permite ao facilitador configurar durações diferentes por fase sem adicionar múltiplos campos ao modelo. Flexível para times com ritmos diferentes.
 
 ### 15.6 Worker Celery + Beat no mesmo processo
-
 `celery worker -B` simplifica a infra (uma VM em vez de duas) ao custo de menor resiliência do Beat em produção. Aceitável para MVP com times pequenos. Separar se o cronômetro se mostrar instável.
 
 ### 15.7 Nuxt 3.17.5 fixado
-
 Versão 3.21.x apresenta incompatibilidade no Windows com `#app-manifest` e `NUXT_VITE_NODE_OPTIONS.socketPath`. Fixado em 3.17.5 até resolução upstream do Nuxt.
 
 ### 15.8 `session.snapshot` parcial (débito técnico)
-
 O consumer atual envia `cards: []`, `votes: []`, `milestones: []`, `participants: []` vazios no snapshot. O frontend compensa com calls REST via `useApiClient` imediatamente após conectar. A resolução ideal é popular o snapshot completamente no consumer usando `database_sync_to_async`, mas o impacto em tempo de conexão deve ser medido antes.
 
 ### 15.9 Infraestrutura gratuita (Fly.io + Neon + Upstash + Vercel)
-
 Permite MVP operar com R$ 0,00 durante os 60 dias de avaliação. Cold starts mitigados com aquecimento manual. Limites de armazenamento folgados para o volume esperado (~100 KB/retro).
 
 ### 15.10 `team_key` como SlugField
-
 Mesma decisão do PRD v7: string simples permite agrupamento imediato sem entidade `Team`. `SlugField` garante formato válido (letras, números, hífens, underscores).
 
 ### 15.11 `description` no modelo Retrospective
-
 Campo `TextField(blank=True)` adicionado além do PRD original para permitir ao facilitador descrever o objetivo da retro. Não exibido em destaque na UI atual mas disponível na API.
 
 ### 15.12 `external_tracker_url` no ActionItem
-
 Campo stub `URLField(blank=True)` reservado para integração futura com Jira/Linear/GitHub Issues (fora do escopo do MVP). Não exposto na UI atual.
 
 ---
