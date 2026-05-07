@@ -8,7 +8,7 @@
 
 **RetroApp 4L** is not just another board with colorful sticky notes. It is an execution engine for engineering teams using the **4Ls framework (Liked, Learned, Lacked, Longed For)**. Designed for sobriety, speed, and above all, ensuring that last sprint's learnings actually turn into next sprint's actions.
 
-[**Explore the Demo**](https://retroapp4l.privo.app.br/) | [**Technical Specs (PRD)**](docs/RetroApp_4L_PRD_v8.md)
+[**Explore the Demo**](https://retroapp4l.privo.app.br/) | [**Technical Specs (PRD)**](docs/PRD.md)
 
 ---
 
