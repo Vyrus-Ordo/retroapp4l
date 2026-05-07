@@ -49,9 +49,9 @@ function statusLabel(status: ActionItem["status"]) {
 }
 
 function statusClass(status: ActionItem["status"]) {
-  if (status === "done") return "text-success-600 bg-success-50"
-  if (status === "in_progress") return "text-brand-600 bg-brand-50"
-  return "text-slate-500 bg-slate-100"
+  if (status === 'done') return 'text-[#22c55e] border border-[#22c55e]/25'
+  if (status === 'in_progress') return 'text-[#00f2ff] border border-[#00f2ff]/25'
+  return 'text-zinc-500 border border-white/10'
 }
 
 async function handleDelete(actionId: string) {
@@ -77,8 +77,8 @@ async function confirmCloseSession() {
     <!-- Header -->
     <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-xl font-bold text-slate-900">Actions Review</h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <h1 class="text-xl font-light text-white">Actions Review</h1>
+        <p class="mt-1 text-sm text-zinc-500">
           Review and confirm the action items created during the discussion.
         </p>
       </div>
@@ -89,7 +89,7 @@ async function confirmCloseSession() {
         <span
           v-if="current?.timer_duration_seconds"
           class="text-lg font-semibold tabular-nums"
-          :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'"
+          :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-[#00f2ff]'"
         >
           {{ timerStore.formatted }}
         </span>
@@ -101,20 +101,21 @@ async function confirmCloseSession() {
       <article
         v-for="action in actionItems"
         :key="action.id"
-        class="rounded-xl border border-slate-200 bg-white p-4 shadow-sm"
+        class="rounded-xl border border-white/10 p-4 backdrop-blur-sm"
+        style="background: rgba(255,255,255,0.04)"
       >
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0 flex-1">
-            <p class="text-sm font-medium leading-5 text-slate-900">
+            <p class="text-sm font-light leading-5 text-zinc-200">
               {{ action.description }}
             </p>
-            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-slate-500">
+            <div class="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
               <span v-if="action.assignee_name">
-                Assignee: <span class="font-medium text-slate-700">{{ action.assignee_name }}</span>
+                Assignee: <span class="font-light text-zinc-300">{{ action.assignee_name }}</span>
               </span>
               <span v-else class="text-danger-500">No assignee</span>
               <span v-if="action.due_date">
-                Due: <span class="font-medium text-slate-700">{{ action.due_date }}</span>
+                Due: <span class="font-light text-zinc-300">{{ action.due_date }}</span>
               </span>
             </div>
           </div>
@@ -130,7 +131,7 @@ async function confirmCloseSession() {
 
             <button
               v-if="isFacilitator"
-              class="rounded p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-700 transition"
+              class="rounded p-1 text-zinc-600 hover:text-[#00f2ff] transition"
               title="Edit"
               type="button"
               @click="emit('edit-action', action)"
@@ -139,7 +140,7 @@ async function confirmCloseSession() {
             </button>
             <button
               v-if="isFacilitator"
-              class="rounded p-1 text-slate-400 hover:bg-danger-50 hover:text-danger-600 transition"
+              class="rounded p-1 text-zinc-600 hover:text-danger-500 transition"
               title="Delete"
               type="button"
               @click="handleDelete(action.id)"
@@ -152,7 +153,7 @@ async function confirmCloseSession() {
 
       <div
         v-if="actionItems.length === 0"
-        class="rounded-xl border border-dashed border-slate-200 bg-slate-50 p-8 text-center text-sm text-slate-400"
+        class="rounded-xl border border-dashed border-white/10 p-8 text-center text-sm text-zinc-600"
       >
         No action items yet. Add the first one.
       </div>
@@ -165,11 +166,11 @@ async function confirmCloseSession() {
     <!-- Confirmation dialog -->
     <div
       v-if="confirmClose"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4"
     >
-      <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
-        <h2 class="text-lg font-semibold text-slate-900">Close retrospective?</h2>
-        <p class="mt-2 text-sm text-slate-600">
+      <div class="w-full max-w-md rounded-xl border border-[#00f2ff]/15 p-6" style="background: rgba(10,10,10,0.95)">
+        <h2 class="text-lg font-light text-white">Close retrospective?</h2>
+        <p class="mt-2 text-sm text-zinc-500">
           This will permanently close the session and save it to history. This cannot be undone.
         </p>
         <p v-if="hasUnassigned" class="mt-2 rounded-lg bg-warning-50 px-3 py-2 text-sm text-warning-700">

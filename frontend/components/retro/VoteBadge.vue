@@ -6,7 +6,7 @@ defineProps<{
 </script>
 
 <template>
-  <span :class="['vote-badge', active ? 'bg-primary-50 border border-primary-200 text-primary-700' : 'bg-gray-50 border border-gray-200 text-gray-500', 'rounded px-2 py-0.5 text-xs font-semibold']">
+  <span :class="['vote-badge', active ? 'border border-[#00f2ff]/30 text-[#00f2ff]' : 'border border-white/10 text-zinc-600', 'rounded px-2 py-0.5 text-xs font-light']">
     {{ count }} voto<span v-if="count !== 1">s</span>
   </span>
 </template>

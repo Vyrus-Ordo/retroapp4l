@@ -22,29 +22,29 @@ async function handleLogout() {
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+  <header class="sticky top-0 z-50 border-b border-[#00f2ff]/10 bg-[#050505]/85 backdrop-blur-md">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
       <!-- LEFT: logo -->
       <NuxtLink
-        class="font-bold tracking-tight text-brand-600"
-        style="font-family: 'Inter', sans-serif; font-size: 1.25rem; font-weight: 700"
+        class="font-light tracking-[0.15em] text-[#00f2ff] uppercase"
+        style="font-family: 'JetBrains Mono', monospace; font-size: 1rem;"
         to="/"
       >
         RetroApp 4L
       </NuxtLink>
 
       <!-- RIGHT: navegação -->
-      <nav class="flex items-center gap-1 text-sm text-slate-600">
-        <NuxtLink class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/">Home</NuxtLink>
-        <NuxtLink class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/join">Join via link</NuxtLink>
-        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/retro/create">New retro</NuxtLink>
-        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-medium transition-colors hover:bg-slate-100 hover:text-slate-900" to="/history">History</NuxtLink>
+      <nav class="flex items-center gap-1 text-sm text-zinc-400">
+        <NuxtLink class="rounded-md px-3 py-2 font-light transition-colors hover:text-white" to="/">Home</NuxtLink>
+        <NuxtLink class="rounded-md px-3 py-2 font-light transition-colors hover:text-white" to="/join">Join via link</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-light transition-colors hover:text-white" to="/retro/create">New retro</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-light transition-colors hover:text-white" to="/history">History</NuxtLink>
         <template v-if="isAuthenticatedUser">
-          <div class="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full bg-brand-100 text-sm font-semibold text-brand-700">
+          <div class="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#00f2ff]/30 text-xs font-semibold text-[#00f2ff]">
             {{ initials }}
           </div>
           <button
-            class="rounded-md px-3 py-2 font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+            class="rounded-md px-3 py-2 font-light text-zinc-400 transition-colors hover:text-white"
             @click="handleLogout"
           >
             Logout

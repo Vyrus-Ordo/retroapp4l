@@ -25,14 +25,14 @@ const currentUserId = computed(() => authStore.user?.id)
   <div class="flex flex-col gap-6">
     <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-xl font-bold text-slate-900">Board 4L</h1>
-        <p class="mt-1 text-sm text-slate-500">Add cards to each column to share your perspective on this sprint.</p>
+        <h1 class="text-xl font-light text-white">Board 4L</h1>
+        <p class="mt-1 text-sm text-zinc-500">Add cards to each column to share your perspective on this sprint.</p>
       </div>
       <div class="flex items-center gap-4">
         <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" type="button" @click="emit('advance-phase')">
           Next phase
         </button>
-        <span v-if="current?.timer_duration_seconds" class="text-lg font-semibold tabular-nums" :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'">
+        <span v-if="current?.timer_duration_seconds" class="text-lg font-light tabular-nums font-mono" :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-[#00f2ff]'">
           {{ timerStore.formatted }}
         </span>
       </div>

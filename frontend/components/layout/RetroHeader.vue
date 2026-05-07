@@ -1,7 +1,7 @@
 <template>
-  <header class="border-b border-slate-100 bg-white">
+  <header class="border-b border-[#00f2ff]/10 bg-[#050505]/90 backdrop-blur-md">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
-      <NuxtLink class="shrink-0 text-sm font-semibold text-slate-900 hover:text-brand-600" to="/">
+      <NuxtLink class="shrink-0 text-sm font-light tracking-[0.15em] uppercase text-[#00f2ff] hover:brightness-125" style="font-family: 'JetBrains Mono', monospace" to="/">
         RetroApp 4L
       </NuxtLink>
       <PhaseCarousel
@@ -10,7 +10,7 @@
       />
       <div class="flex items-center gap-3">
         <slot name="timer" />
-        <button class="icon-btn" title="Settings" @click="openSettings">
+        <button class="icon-btn text-zinc-400 hover:text-[#00f2ff]" title="Settings" @click="openSettings">
           <span class="mdi mdi-cog-outline text-xl" />
         </button>
       </div>
@@ -43,6 +43,10 @@ Slot timer permite inserir timer/controles.
 
 <style scoped>
 .icon-btn {
-  @apply rounded-full p-2 hover:bg-gray-50 transition;
+  @apply rounded-full p-2 transition;
+  background: transparent;
+}
+.icon-btn:hover {
+  background: rgba(0, 242, 255, 0.07);
 }
 </style>

@@ -40,17 +40,17 @@ function handleVote(card: Card) {
   <div class="flex flex-col gap-6">
     <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-xl font-bold text-slate-900">Voting</h1>
-        <p class="mt-1 text-sm text-slate-500">Vote on the most important cards in Loathed and Longed For columns.</p>
+        <h1 class="text-xl font-light text-white">Voting</h1>
+        <p class="mt-1 text-sm text-zinc-500">Vote on the most important cards in Loathed and Longed For columns.</p>
       </div>
       <div class="flex items-center gap-4">
         <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" type="button" @click="emit('advance-phase')">
           Next phase
         </button>
-        <span class="inline-flex items-center gap-1.5 rounded-full bg-brand-50 px-3 py-1 text-sm font-semibold text-brand-700">
+        <span class="inline-flex items-center gap-1.5 rounded-full border border-[#00f2ff]/25 px-3 py-1 text-sm font-light text-[#00f2ff]">
           {{ votesRemaining }} vote<span v-if="votesRemaining !== 1">s</span> left
         </span>
-        <span v-if="current?.timer_duration_seconds" class="text-lg font-semibold tabular-nums" :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'">
+        <span v-if="current?.timer_duration_seconds" class="text-lg font-light tabular-nums font-mono" :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-[#00f2ff]'">>
           {{ timerStore.formatted }}
         </span>
       </div>

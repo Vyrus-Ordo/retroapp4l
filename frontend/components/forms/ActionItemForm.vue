@@ -69,24 +69,24 @@ function submit() {
 </script>
 
 <template>
-  <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-    <div class="w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
-      <h2 class="text-lg font-semibold text-slate-900">{{ initialAction ? 'Edit action item' : 'Create action item' }}</h2>
+  <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+    <div class="w-full max-w-2xl rounded-xl border border-[#00f2ff]/15 p-6" style="background: rgba(10,10,10,0.95)">
+      <h2 class="text-lg font-light text-white">{{ initialAction ? 'Edit action item' : 'Create action item' }}</h2>
       <div class="mt-4 grid gap-4 md:grid-cols-2">
         <textarea v-model="form.description" class="field-input md:col-span-2 min-h-28" placeholder="Describe the action item." />
         <select v-model="form.assignee_id" class="field-input">
-          <option value="">Select assignee</option>
-          <option v-for="participant in participants" :key="participant.id" :value="participant.id">{{ participant.user_name }}</option>
+          <option class="bg-[#0d0d0d] text-zinc-200" value="">Select assignee</option>
+          <option v-for="participant in participants" :key="participant.id" :value="participant.id" class="bg-[#0d0d0d] text-zinc-200">{{ participant.user_name }}</option>
         </select>
         <select v-model="form.card_id" class="field-input">
-          <option value="">No source card</option>
-          <option v-for="card in sourceCards" :key="card.id" :value="card.id">[{{ card.column }}] {{ card.content }}</option>
+          <option class="bg-[#0d0d0d] text-zinc-200" value="">No source card</option>
+          <option v-for="card in sourceCards" :key="card.id" :value="card.id" class="bg-[#0d0d0d] text-zinc-200">[{{ card.column }}] {{ card.content }}</option>
         </select>
         <input v-model="form.due_date" class="field-input" type="date">
         <select v-model="form.status" class="field-input">
-          <option value="not_started">Not started</option>
-          <option value="in_progress">In progress</option>
-          <option value="done">Done</option>
+          <option class="bg-[#0d0d0d] text-zinc-200" value="not_started">Not started</option>
+          <option class="bg-[#0d0d0d] text-zinc-200" value="in_progress">In progress</option>
+          <option class="bg-[#0d0d0d] text-zinc-200" value="done">Done</option>
         </select>
         <input v-model="form.external_tracker_url" class="field-input md:col-span-2" placeholder="External tracker URL (optional)">
       </div>

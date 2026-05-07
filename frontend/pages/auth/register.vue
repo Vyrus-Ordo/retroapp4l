@@ -41,22 +41,22 @@ async function submit() {
 
 <template>
   <AppShell>
-    <section class="mx-auto max-w-xl panel p-6 lg:p-8">
-      <p class="text-xs font-semibold text-brand-500">Authentication</p>
-      <h1 class="mt-3 text-2xl font-semibold text-slate-900">Create your account</h1>
-      <p class="mt-2 text-sm text-slate-600">Local accounts use the same JWT flow as the backend API.</p>
+    <section class="mx-auto max-w-xl panel p-6 lg:p-8" style="background: rgba(255,255,255,0.04); border: 1px solid rgba(0,242,255,0.15);">
+      <p class="text-xs font-light uppercase tracking-widest text-[#00f2ff]/70">Authentication</p>
+      <h1 class="mt-3 text-2xl font-light text-white">Create your account</h1>
+      <p class="mt-2 text-sm text-zinc-500">Local accounts use the same JWT flow as the backend API.</p>
 
       <form class="mt-6 space-y-4" @submit.prevent="submit">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700" for="name">Name</label>
+          <label class="text-xs font-light uppercase tracking-wide text-zinc-500" for="name">Name</label>
           <input id="name" v-model="form.name" class="field-input" placeholder="Full name" type="text" autocomplete="name">
         </div>
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+          <label class="text-xs font-light uppercase tracking-wide text-zinc-500" for="email">Email</label>
           <input id="email" v-model="form.email" class="field-input" placeholder="Email" type="email" autocomplete="email">
         </div>
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700" for="password">Password</label>
+          <label class="text-xs font-light uppercase tracking-wide text-zinc-500" for="password">Password</label>
           <input id="password" v-model="form.password" class="field-input" placeholder="Password" type="password" autocomplete="new-password">
         </div>
         <NuxtTurnstile v-model="turnstileToken" />
@@ -67,9 +67,9 @@ async function submit() {
         </button>
       </form>
 
-      <p class="mt-6 text-sm text-slate-600">
+      <p class="mt-6 text-sm text-zinc-600">
         Already have an account?
-        <NuxtLink class="font-medium text-brand-500" to="/auth/login">Sign in</NuxtLink>
+        <NuxtLink class="font-light text-[#00f2ff]/70 hover:text-[#00f2ff]" to="/auth/login">Sign in</NuxtLink>
       </p>
     </section>
   </AppShell>

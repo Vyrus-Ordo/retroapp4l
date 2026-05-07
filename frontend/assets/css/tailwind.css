@@ -25,58 +25,76 @@
   input,
   select,
   textarea {
-    @apply focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black;
+    @apply focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00f2ff]/60;
     font-family: inherit;
   }
 }
 
 @layer components {
+  /* Ghost Button — borda ciano neon, sem preenchimento sólido */
   .button-primary {
-    @apply inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-150;
-    background: var(--ds-brand-500);
-    color: #fff;
-    box-shadow: none;
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-all duration-200;
+    background: transparent;
+    border: 1px solid var(--neon-cyan);
+    color: var(--neon-cyan);
   }
   .button-primary:hover {
-    background: var(--ds-brand-600);
+    background: rgba(0, 242, 255, 0.08);
+    box-shadow: var(--neon-glow);
   }
   .button-primary:active {
-    background: var(--ds-brand-700);
+    background: rgba(0, 242, 255, 0.15);
   }
   .button-primary:disabled {
-    background: var(--ds-gray-100);
+    border-color: var(--ds-gray-700);
     color: var(--ds-gray-300);
     cursor: not-allowed;
+    box-shadow: none;
   }
 
+  /* Secondary — sem borda, texto cinzento, hover branco */
   .button-secondary {
-    @apply inline-flex items-center justify-center rounded-lg border px-4 py-3 text-sm font-medium transition-colors duration-150;
-    border: 1px solid var(--border-default);
-    background: var(--bg-surface);
-    color: var(--fg-primary);
+    @apply inline-flex items-center justify-center rounded-lg px-4 py-3 text-sm font-medium transition-colors duration-150;
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.08);
+    color: var(--fg-secondary);
   }
   .button-secondary:hover {
-    background: var(--ds-gray-50);
+    background: rgba(255, 255, 255, 0.05);
+    color: #ffffff;
   }
   .button-secondary:disabled {
-    background: var(--ds-gray-100);
     color: var(--ds-gray-300);
     cursor: not-allowed;
   }
 
+  /* Panel — glassmorphism discreto */
   .panel {
-    @apply rounded-2xl shadow-sm;
+    @apply rounded-xl backdrop-blur-sm;
     border: 1px solid var(--border-default);
     background: var(--bg-surface);
   }
 
+  /* Field Input — fundo escuro translúcido */
   .field-input {
     @apply w-full rounded-lg px-4 py-3 text-sm;
     border: 1px solid var(--border-default);
-    background: var(--bg-surface);
+    background: rgba(255, 255, 255, 0.04);
     color: var(--fg-primary);
   }
   .field-input::placeholder {
     color: var(--fg-tertiary);
+  }
+  .field-input:focus {
+    outline: none;
+    border-color: rgba(0, 242, 255, 0.5);
+    box-shadow: 0 0 0 1px rgba(0, 242, 255, 0.15);
+  }
+  select.field-input {
+    color-scheme: dark;
+  }
+  select.field-input option {
+    background-color: #0d0d0d;
+    color: #e4e4e7;
   }
 }

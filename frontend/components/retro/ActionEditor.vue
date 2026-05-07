@@ -1,5 +1,5 @@
 <template>
-  <form class="action-editor flex flex-col gap-3 bg-white rounded-lg border border-gray-200 p-4 shadow-sm" @submit.prevent="$emit('save', { ...form })">
+  <form class="action-editor flex flex-col gap-3 rounded-lg border border-white/10 p-4" style="background: rgba(255,255,255,0.04)" @submit.prevent="$emit('save', { ...form })">
     <input v-model="form.title" required class="input-primary" placeholder="Action title" />
     <textarea v-model="form.description" class="input-primary" placeholder="Description (optional)" rows="2" />
     <div class="flex gap-2">
@@ -35,16 +35,16 @@ watchEffect(() => {
   min-width: 260px;
 }
 .input-primary {
-  border: 1px solid var(--ds-border);
+  border: 1px solid rgba(255,255,255,0.1);
   border-radius: 0.5rem;
   padding: 0.5rem 0.75rem;
   font-size: 1rem;
-  color: var(--ds-text);
-  background: var(--ds-bg);
+  color: #e4e4e7;
+  background: rgba(255,255,255,0.04);
 }
 .input-primary:focus {
   outline: none;
-  border-color: var(--ds-primary);
-  background: var(--ds-bg);
+  border-color: rgba(0,242,255,0.35);
+  background: rgba(255,255,255,0.04);
 }
 </style>

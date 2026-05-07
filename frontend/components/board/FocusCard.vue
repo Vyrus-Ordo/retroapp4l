@@ -17,21 +17,21 @@ defineEmits<{
 
 <template>
   <section class="panel p-6">
-    <div class="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wide text-brand-500">
+    <div class="inline-flex items-center gap-2 text-xs font-light uppercase tracking-[0.2em] text-[#00f2ff]/70">
       <ViewfinderCircleIcon class="h-5 w-5" />
       In focus
     </div>
 
     <div v-if="focus" class="mt-4 space-y-2">
-      <p class="text-sm font-medium text-slate-600">{{ focus.column }}</p>
-      <h3 class="text-lg font-semibold leading-6 text-slate-900">{{ focus.content }}</h3>
-      <p class="text-sm text-brand-500">{{ focus.vote_count }} votes</p>
+      <p class="text-xs font-light uppercase tracking-wide text-zinc-600">{{ focus.column }}</p>
+      <h3 class="text-lg font-light leading-6 text-white">{{ focus.content }}</h3>
+      <p class="text-sm text-[#00f2ff]/70">{{ focus.vote_count }} votes</p>
     </div>
-    <p v-else class="mt-4 text-sm text-slate-500">Pick a card to start discussion.</p>
+    <p v-else class="mt-4 text-sm text-zinc-600">Pick a card to start discussion.</p>
 
-    <div class="mt-6 border-t border-slate-100 pt-4">
-      <p class="text-sm font-medium text-slate-900">Up next</p>
-      <ul class="mt-3 space-y-2 text-sm text-slate-600">
+    <div class="mt-6 border-t border-white/8 pt-4">
+      <p class="text-sm font-light text-zinc-400">Up next</p>
+      <ul class="mt-3 space-y-2 text-sm text-zinc-600">
         <li v-for="card in queue.slice(0, 3)" :key="card.id">{{ card.column }} — {{ card.content }} ({{ card.vote_count }})</li>
       </ul>
       <div v-if="facilitator" class="mt-4 flex gap-2">

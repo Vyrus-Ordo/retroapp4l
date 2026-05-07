@@ -22,13 +22,27 @@ defineEmits<{
   toggleSelect: [cardId: string]
   vote: [card: Card]
 }>()
+const columnAccent: Record<string, string> = {
+  loved:   '#22c55e',
+  loathed: '#ef4444',
+  longed:  '#60a5fa',
+  learned: '#a1a1aa',
+}
 </script>
 
 <template>
   <div class="grid gap-4 xl:grid-cols-4">
-    <section v-for="column in ['loved', 'loathed', 'longed', 'learned']" :key="column" class="overflow-hidden rounded-lg border border-slate-100 bg-white">
+    <section
+      v-for="column in ['loved', 'loathed', 'longed', 'learned']"
+      :key="column"
+      class="overflow-hidden rounded-lg"
+      :style="{
+        background: 'rgba(255,255,255,0.03)',
+        border: `1px solid ${columnAccent[column]}26`,
+      }"
+    >
       <ColumnHeader :column="column as CardColumn" :count="columns[column as CardColumn].length" />
-      <div class="flex min-h-80 flex-col gap-4 bg-slate-50 p-4">
+      <div class="flex min-h-80 flex-col gap-4 p-4" style="background: rgba(0,0,0,0.2)">
         <RetroCard
           v-for="card in columns[column as CardColumn]"
           :key="card.id"

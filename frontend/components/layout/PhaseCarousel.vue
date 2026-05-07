@@ -54,7 +54,7 @@ function icon(phase: RetroPhase) {
         <span
           v-if="prevPhase"
           :key="prevPhase"
-          class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-400"
+          class="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1 text-xs font-light text-zinc-600"
         >
           <span v-if="icon(prevPhase)" class="mdi" :class="`mdi-${icon(prevPhase)}`" />
           <span>{{ label(prevPhase) }}</span>
@@ -63,14 +63,15 @@ function icon(phase: RetroPhase) {
     </div>
 
     <!-- Left arrow -->
-    <span class="text-slate-300 select-none">›</span>
+    <span class="text-zinc-700 select-none">›</span>
 
     <!-- Current phase -->
     <div class="flex w-36 items-center justify-center">
       <Transition name="scale" mode="out-in">
         <span
           :key="currentPhase"
-          class="inline-flex items-center gap-1.5 rounded-full bg-brand-500 px-4 py-1.5 text-xs font-semibold text-white shadow-sm"
+          class="inline-flex items-center gap-1.5 rounded-full border border-[#00f2ff]/40 px-4 py-1.5 text-xs font-medium text-[#00f2ff]"
+          style="box-shadow: 0 0 10px rgba(0,242,255,0.15)"
         >
           <span v-if="icon(currentPhase)" class="mdi" :class="`mdi-${icon(currentPhase)}`" />
           <span>{{ label(currentPhase) }}</span>
@@ -79,7 +80,7 @@ function icon(phase: RetroPhase) {
     </div>
 
     <!-- Right arrow -->
-    <span class="text-slate-300 select-none">›</span>
+    <span class="text-zinc-700 select-none">›</span>
 
     <!-- Next phase -->
     <div class="flex w-28 items-center justify-start">
@@ -87,7 +88,7 @@ function icon(phase: RetroPhase) {
         <span
           v-if="nextPhase"
           :key="nextPhase"
-          class="inline-flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-xs font-medium text-slate-400"
+          class="inline-flex items-center gap-1 rounded-full border border-white/10 px-3 py-1 text-xs font-light text-zinc-600"
         >
           <span v-if="icon(nextPhase)" class="mdi" :class="`mdi-${icon(nextPhase)}`" />
           <span>{{ label(nextPhase) }}</span>

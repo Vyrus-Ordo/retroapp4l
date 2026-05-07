@@ -3,13 +3,13 @@ const mobileMenuOpen = ref(false)
 </script>
 
 <template>
-  <header class="sticky top-0 z-50 border-b border-slate-200 bg-white/90 backdrop-blur-md">
+  <header class="sticky top-0 z-50 border-b border-[#00f2ff]/10 bg-[#050505]/85 backdrop-blur-md">
     <div class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8">
       <!-- LEFT: logo -->
       <NuxtLink
         to="/"
-        class="font-bold tracking-tight text-brand-600"
-        style="font-family: 'Inter', sans-serif; font-size: 1.25rem; font-weight: 700"
+        class="font-light tracking-[0.15em] uppercase text-[#00f2ff]"
+        style="font-family: 'JetBrains Mono', monospace; font-size: 1rem"
       >
         RetroApp 4L
       </NuxtLink>
@@ -18,19 +18,19 @@ const mobileMenuOpen = ref(false)
       <nav class="hidden items-center gap-1 md:flex">
         <NuxtLink
           to="/"
-          class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+          class="rounded-md px-3 py-2 text-sm font-light text-zinc-400 transition-colors hover:text-white"
         >
           Home
         </NuxtLink>
         <NuxtLink
           to="/join"
-          class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-100 hover:text-slate-900"
+          class="rounded-md px-3 py-2 text-sm font-light text-zinc-400 transition-colors hover:text-white"
         >
           Join via link
         </NuxtLink>
         <NuxtLink
           to="/auth/login"
-          class="ml-2 rounded-lg bg-brand-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand-600"
+          class="ml-2 inline-flex items-center justify-center rounded-lg border border-[#00f2ff] px-4 py-2 text-sm font-medium text-[#00f2ff] transition-all duration-200 hover:bg-[#00f2ff]/10 hover:shadow-glow focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-[#00f2ff]/60"
         >
           Login
         </NuxtLink>
@@ -38,7 +38,7 @@ const mobileMenuOpen = ref(false)
 
       <!-- Mobile: hamburger (right) -->
       <button
-        class="rounded-md p-2 text-slate-500 transition-colors hover:bg-slate-100 md:hidden"
+        class="rounded-md p-2 text-zinc-400 transition-colors hover:text-white md:hidden"
         aria-label="Open navigation menu"
         @click="mobileMenuOpen = !mobileMenuOpen"
       >
@@ -78,25 +78,25 @@ const mobileMenuOpen = ref(false)
       leave-from-class="translate-y-0 opacity-100"
       leave-to-class="-translate-y-2 opacity-0"
     >
-      <div v-if="mobileMenuOpen" class="border-t border-slate-200 bg-white md:hidden">
+      <div v-if="mobileMenuOpen" class="border-t border-[#00f2ff]/10 bg-[#050505] md:hidden">
         <nav class="flex flex-col gap-1 px-6 py-3">
           <NuxtLink
             to="/"
-            class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            class="rounded-md px-3 py-2 text-sm font-light text-zinc-400 hover:text-white"
             @click="mobileMenuOpen = false"
           >
             Home
           </NuxtLink>
           <NuxtLink
             to="/join"
-            class="rounded-md px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+            class="rounded-md px-3 py-2 text-sm font-light text-zinc-400 hover:text-white"
             @click="mobileMenuOpen = false"
           >
             Join via link
           </NuxtLink>
           <NuxtLink
             to="/auth/login"
-            class="rounded-lg bg-brand-600 px-3 py-2 text-sm font-semibold text-white hover:bg-brand-700"
+            class="inline-flex items-center justify-center rounded-lg border border-[#00f2ff] px-3 py-2 text-sm font-medium text-[#00f2ff] hover:bg-[#00f2ff]/10"
             @click="mobileMenuOpen = false"
           >
             Login

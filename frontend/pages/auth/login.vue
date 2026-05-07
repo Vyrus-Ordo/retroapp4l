@@ -46,19 +46,19 @@ async function submit() {
 
 <template>
   <AppShell>
-    <section class="mx-auto w-full max-w-md panel p-8" style="min-height: 420px; background: linear-gradient(135deg, #fff 60%, var(--ds-brand-50) 100%);">
-      <p class="text-xs font-semibold uppercase text-brand-700 tracking-widest">Sign in</p>
-      <h1 class="mt-3 text-2xl font-bold text-gray-900">Sign in to RetroApp</h1>
-      <p class="mt-2 text-sm text-gray-600">Sign in with your email and password. Google login is optional.</p>
+    <section class="mx-auto w-full max-w-md panel p-8" style="min-height: 420px; background: rgba(255,255,255,0.04); border: 1px solid rgba(0,242,255,0.15);">
+      <p class="text-xs font-light uppercase tracking-widest text-[#00f2ff]/70">Sign in</p>
+      <h1 class="mt-3 text-2xl font-light text-white">Sign in to RetroApp</h1>
+      <p class="mt-2 text-sm text-zinc-500">Sign in with your email and password. Google login is optional.</p>
 
       <form class="mt-8 space-y-4" @submit.prevent="submit">
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700" for="email">Email</label>
+          <label class="text-xs font-light uppercase tracking-wide text-zinc-500" for="email">Email</label>
           <input id="email" v-model="form.email" class="field-input" name="email" autocomplete="email" placeholder="you@company.com" type="email">
         </div>
 
         <div class="space-y-2">
-          <label class="text-sm font-medium text-gray-700" for="password">Password</label>
+          <label class="text-xs font-light uppercase tracking-wide text-zinc-500" for="password">Password</label>
           <input id="password" v-model="form.password" class="field-input" name="password" autocomplete="current-password" placeholder="Your password" type="password">
         </div>
 
@@ -70,10 +70,10 @@ async function submit() {
         </button>
       </form>
 
-      <div class="my-6 flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-gray-400">
-        <span class="h-px flex-1 bg-gray-200" />
+      <div class="my-6 flex items-center gap-3 text-xs uppercase tracking-[0.2em] text-zinc-700">
+        <span class="h-px flex-1 bg-white/8" />
         <span>or</span>
-        <span class="h-px flex-1 bg-gray-200" />
+        <span class="h-px flex-1 bg-white/8" />
       </div>
 
       <a :href="`${authHost}/accounts/google/login/`" class="button-secondary w-full gap-2" :aria-busy="pending">
@@ -81,9 +81,9 @@ async function submit() {
         Continue with Google
       </a>
 
-      <p class="mt-6 text-sm text-slate-600">
+      <p class="mt-6 text-sm text-zinc-600">
         Don't have an account?
-        <NuxtLink class="font-medium text-brand-500" to="/auth/register">Create account</NuxtLink>
+        <NuxtLink class="font-light text-[#00f2ff]/70 hover:text-[#00f2ff]" to="/auth/register">Create account</NuxtLink>
       </p>
     </section>
   </AppShell>

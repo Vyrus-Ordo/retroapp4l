@@ -25,10 +25,10 @@ watch(
 )
 
 const selectColorClass = computed(() => {
-  if (column.value === "loved") return "bg-success-600 text-white border-success-600 focus:border-success-600 focus:ring-success-600"
-  if (column.value === "loathed") return "bg-warning-500 text-white border-warning-500 focus:border-warning-500 focus:ring-warning-500"
-  if (column.value === "longed") return "bg-brand-500 text-white border-brand-500 focus:border-brand-500 focus:ring-brand-500"
-  return "bg-slate-600 text-white border-slate-600 focus:border-slate-600 focus:ring-slate-600"
+  if (column.value === 'loved') return 'border-[#22c55e]/50 text-[#22c55e]'
+  if (column.value === 'loathed') return 'border-[#ef4444]/50 text-[#ef4444]'
+  if (column.value === 'longed') return 'border-[#60a5fa]/50 text-[#60a5fa]'
+  return 'border-white/15 text-zinc-400'
 })
 
 function close() {
@@ -46,15 +46,15 @@ function handleSubmit() {
 </script>
 
 <template>
-  <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 px-4">
-    <div class="w-full max-w-xl rounded-xl bg-white p-6 shadow-lg">
-      <h2 class="text-lg font-semibold text-slate-900">{{ initialCard ? 'Edit card' : 'Add card' }}</h2>
+  <div v-if="modelValue" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm px-4">
+    <div class="w-full max-w-xl rounded-xl border border-[#00f2ff]/15 p-6" style="background: rgba(10,10,10,0.95)">
+      <h2 class="text-lg font-light text-white">{{ initialCard ? 'Edit card' : 'Add card' }}</h2>
       <div class="mt-4 space-y-4">
-        <select v-model="column" class="field-input font-medium transition-colors disabled:opacity-60 disabled:cursor-not-allowed" :class="selectColorClass" :disabled="!initialCard && !!initialColumn">
-          <option value="loved" class="bg-white text-slate-900 font-normal">Liked</option>
-          <option value="loathed" class="bg-white text-slate-900 font-normal">Loathed</option>
-          <option value="longed" class="bg-white text-slate-900 font-normal">Longed for</option>
-          <option value="learned" class="bg-white text-slate-900 font-normal">Learned</option>
+        <select v-model="column" class="field-input font-light transition-colors disabled:opacity-60 disabled:cursor-not-allowed" :class="selectColorClass" :disabled="!initialCard && !!initialColumn">
+          <option value="loved" class="bg-[#0a0a0a] text-zinc-200 font-normal">Liked</option>
+          <option value="loathed" class="bg-[#0a0a0a] text-zinc-200 font-normal">Loathed</option>
+          <option value="longed" class="bg-[#0a0a0a] text-zinc-200 font-normal">Longed for</option>
+          <option value="learned" class="bg-[#0a0a0a] text-zinc-200 font-normal">Learned</option>
         </select>
         <textarea v-model="content" class="field-input min-h-32" maxlength="500" placeholder="Write a concise card." />
       </div>
@@ -64,4 +64,4 @@ function handleSubmit() {
       </div>
     </div>
   </div>
-</template>
+</template>

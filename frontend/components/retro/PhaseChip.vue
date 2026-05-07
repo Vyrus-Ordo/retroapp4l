@@ -6,7 +6,7 @@ defineProps<{
 </script>
 
 <template>
-  <span class="phase-chip bg-primary-50 text-primary-700 text-xs font-semibold rounded px-2 py-1 inline-flex items-center gap-2 border border-primary-200">
+  <span class="phase-chip inline-flex items-center gap-2 rounded border border-[#00f2ff]/35 px-2 py-1 text-xs font-light text-[#00f2ff]">
     <span>{{ phase }}</span>
     <span v-if="timerText">{{ timerText }}</span>
   </span>

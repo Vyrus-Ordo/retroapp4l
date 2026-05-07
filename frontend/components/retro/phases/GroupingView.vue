@@ -22,8 +22,8 @@ async function groupSelected() {
   <div class="flex flex-col gap-6">
     <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-xl font-bold text-slate-900">Grouping</h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <h1 class="text-xl font-light text-white">Grouping</h1>
+        <p class="mt-1 text-sm text-zinc-500">
           <template v-if="isFacilitator">Select similar cards to group them together.</template>
           <template v-else>The facilitator is grouping similar cards.</template>
         </p>
@@ -38,7 +38,7 @@ async function groupSelected() {
           </button>
           <button
             :disabled="selectionCount < 2"
-            class="button-primary text-sm disabled:bg-slate-100 disabled:text-slate-300 disabled:cursor-not-allowed"
+            class="button-primary text-sm disabled:opacity-30 disabled:cursor-not-allowed"
             type="button"
             @click="groupSelected"
           >

@@ -96,8 +96,8 @@ async function submit() {
       <div class="grid gap-8 lg:grid-cols-2">
         <!-- Card 1 -->
         <div class="panel p-6 lg:p-8 flex flex-col gap-4">
-          <button class="mb-2 text-brand-500 hover:underline self-start" type="button" @click="$router.back()">← Back</button>
-          <h1 class="text-2xl font-bold text-gray-900">New retrospective</h1>
+          <button class="mb-2 text-[#00f2ff]/70 hover:text-[#00f2ff] text-sm self-start" type="button" @click="$router.back()">← Back</button>
+          <h1 class="text-2xl font-light text-white">New retrospective</h1>
           <form class="mt-4 flex flex-col gap-4" @submit.prevent="submit">
             <div class="grid grid-cols-2 gap-4">
               <input v-model="form.sprint_name" class="field-input" placeholder="Sprint">
@@ -113,12 +113,12 @@ async function submit() {
               </div>
               <input v-model.number="form.max_votes_per_user" class="field-input" max="10" min="1" type="number" placeholder="Votes per person">
             </div>
-            <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700">
-              <input v-model="form.allow_self_vote" class="h-4 w-4 rounded border-gray-300 text-brand-500" type="checkbox">
+            <label class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-4 py-3 text-sm text-zinc-400">
+              <input v-model="form.allow_self_vote" class="h-4 w-4 rounded border-white/20 accent-[#00f2ff]" type="checkbox">
               Allow self-voting
             </label>
-            <label class="inline-flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-3 text-sm text-gray-700">
-              <input v-model="form.skip_check_phase" class="h-4 w-4 rounded border-gray-300 text-brand-500" type="checkbox">
+            <label class="inline-flex items-center gap-2 rounded-lg border border-white/10 px-4 py-3 text-sm text-zinc-400">
+              <input v-model="form.skip_check_phase" class="h-4 w-4 rounded border-white/20 accent-[#00f2ff]" type="checkbox">
               Skip action check phase
             </label>
             <p v-if="errorMessage" class="text-sm text-danger-500">{{ errorMessage }}</p>
@@ -133,11 +133,11 @@ async function submit() {
 
         <!-- Card 2: Phase durations -->
         <div class="panel p-6 lg:p-8 flex flex-col gap-4">
-          <h2 class="text-lg font-semibold text-gray-900">Phase durations</h2>
-          <p class="text-sm text-gray-500">Sets the default timer for each phase (in minutes). The facilitator can pause at any time.</p>
+          <h2 class="text-lg font-light text-white">Phase durations</h2>
+          <p class="text-sm text-zinc-500">Sets the default timer for each phase (in minutes). The facilitator can pause at any time.</p>
           <div class="grid grid-cols-2 gap-x-6 gap-y-3">
             <template v-for="(label, phase) in TIMED_PHASE_LABELS" :key="phase">
-              <label v-if="phase !== 'check' || !form.skip_check_phase" class="flex items-center justify-between gap-2 text-sm text-gray-700">
+              <label v-if="phase !== 'check' || !form.skip_check_phase" class="flex items-center justify-between gap-2 text-sm text-zinc-400">
                 <span>{{ label }}</span>
                 <input
                   v-model.number="phaseDurationsMinutes[phase]"
@@ -154,21 +154,21 @@ async function submit() {
         <!-- Card 3: Marcos -->
         <div class="panel p-6 lg:p-8 flex flex-col gap-4 lg:col-span-2">
           <label class="inline-flex items-center gap-2 mb-2">
-            <input v-model="form.include_milestones" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-brand-500">
+            <input v-model="form.include_milestones" type="checkbox" class="h-4 w-4 rounded border-white/20 bg-transparent text-[#00f2ff] accent-[#00f2ff]">
             Include milestones phase
           </label>
           <div v-if="form.include_milestones">
             <div class="flex items-center gap-2 mb-2">
-              <span class="font-semibold text-gray-700">Add milestone</span>
-              <span class="rounded bg-brand-50 px-2 py-1 text-xs text-brand-700">{{ milestones.length }} milestones</span>
+              <span class="font-light text-zinc-400">Add milestone</span>
+              <span class="rounded border border-[#00f2ff]/20 px-2 py-1 text-xs text-[#00f2ff]/70">{{ milestones.length }} milestones</span>
             </div>
             <div class="grid gap-2 grid-cols-[140px,1fr,auto]">
               <select v-model="milestoneDraft.category" class="field-input">
-                <option value="achievement">Achievement</option>
-                <option value="challenge">Challenge</option>
-                <option value="change">Change</option>
-                <option value="recognition">Recognition</option>
-                <option value="other">Other</option>
+                <option class="bg-[#0d0d0d] text-zinc-200" value="achievement">Achievement</option>
+                <option class="bg-[#0d0d0d] text-zinc-200" value="challenge">Challenge</option>
+                <option class="bg-[#0d0d0d] text-zinc-200" value="change">Change</option>
+                <option class="bg-[#0d0d0d] text-zinc-200" value="recognition">Recognition</option>
+                <option class="bg-[#0d0d0d] text-zinc-200" value="other">Other</option>
               </select>
               <input v-model="milestoneDraft.description" class="field-input" placeholder="Describe the milestone">
               <button class="button-secondary" type="button" @click="addMilestone">Add</button>
@@ -186,7 +186,7 @@ async function submit() {
                   created_at: new Date().toISOString(),
                 }"
               />
-              <div v-if="!milestones.length" class="rounded-lg border border-dashed border-gray-200 bg-gray-50 p-6 text-sm text-gray-500">
+              <div v-if="!milestones.length" class="rounded-lg border border-dashed border-white/10 p-6 text-sm text-zinc-600">
                 No milestones added yet.
               </div>
             </div>

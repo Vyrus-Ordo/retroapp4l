@@ -1,8 +1,8 @@
 <template>
-  <div class="column-box flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm p-4 gap-3">
+  <div class="column-box flex flex-col rounded-xl border border-white/10 p-4 gap-3" style="background: rgba(255,255,255,0.03)">
     <div class="flex items-center gap-2 mb-2">
       <span :class="['mdi', column.icon, 'text-xl', 'text-' + column.color + '-500']" />
-      <h2 class="font-semibold text-base text-gray-900">{{ column.label }}</h2>
+      <h2 class="font-light text-base text-white">{{ column.label }}</h2>
     </div>
     <div class="flex-1 flex flex-col gap-2">
       <slot name="cards">
@@ -13,7 +13,7 @@
           @action="$emit('card-action', $event)"
         />
       </slot>
-      <div v-if="!cards.length" class="text-gray-400 text-sm text-center py-6">Nenhum card</div>
+      <div v-if="!cards.length" class="text-zinc-600 text-sm text-center py-6">Nenhum card</div>
     </div>
     <button
       v-if="canAdd"

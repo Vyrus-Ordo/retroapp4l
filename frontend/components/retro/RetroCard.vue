@@ -66,28 +66,30 @@ function emitVote() {
 <template>
   <article
     :class="[
-      'rounded-xl border bg-white p-4 shadow-sm transition',
-      selected ? 'border-brand-300 ring-2 ring-brand-100' : 'border-slate-200 hover:border-slate-300',
+      'rounded-xl border p-4 transition backdrop-blur-sm',
+      selected ? 'border-[#00f2ff]/50 ring-1 ring-[#00f2ff]/20' : 'border-white/10 hover:border-white/20',
       showGrouping ? 'cursor-pointer' : '',
     ]"
+    style="background: rgba(255,255,255,0.04)"
     @click="showGrouping ? toggleSelection() : undefined"
   >
     <div class="flex items-start justify-between gap-3">
       <div>
-        <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{{ card.column }}</p>
-        <p class="mt-1 text-sm text-slate-500">{{ cardAuthor }}</p>
+        <p class="text-xs font-light uppercase tracking-[0.2em] text-zinc-600">{{ card.column }}</p>
+        <p class="mt-1 text-xs text-zinc-500">{{ cardAuthor }}</p>
       </div>
       <VoteBadge v-if="showVoteBadge" :active="voteActive" :count="card.vote_count" />
     </div>
 
-    <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-slate-800">{{ cardContent }}</p>
+    <p class="mt-4 whitespace-pre-wrap text-sm leading-6 text-zinc-200">{{ cardContent }}</p>
 
-    <div v-if="groupedCards.length > 0" class="mt-3 space-y-1.5 border-t border-slate-100 pt-3">
-      <p class="text-xs font-medium text-slate-400">{{ groupedCards.length }} card{{ groupedCards.length > 1 ? 's' : '' }} agrupado{{ groupedCards.length > 1 ? 's' : '' }}</p>
+    <div v-if="groupedCards.length > 0" class="mt-3 space-y-1.5 border-t border-white/8 pt-3">
+      <p class="text-xs font-light text-zinc-600">{{ groupedCards.length }} card{{ groupedCards.length > 1 ? 's' : '' }} agrupado{{ groupedCards.length > 1 ? 's' : '' }}</p>
       <div
         v-for="child in groupedCards"
         :key="child.id"
-        class="rounded-lg bg-slate-50 px-3 py-2 text-xs text-slate-600"
+        class="rounded-lg px-3 py-2 text-xs text-zinc-400"
+        style="background: rgba(255,255,255,0.04)"
       >
         {{ child.content }}
       </div>
@@ -96,7 +98,7 @@ function emitVote() {
     <div v-if="showGrouping || canEdit || canDelete || canVote" class="mt-4 flex flex-wrap items-center gap-3 text-xs font-medium">
       <button
         v-if="showGrouping"
-        :class="selected ? 'border-brand-300 bg-brand-50 text-brand-700' : 'border-slate-200 text-slate-600 hover:border-slate-300 hover:text-slate-900'"
+        :class="selected ? 'border-[#00f2ff]/50 text-[#00f2ff]' : 'border-white/10 text-zinc-500 hover:border-white/25 hover:text-zinc-300'"
         class="rounded-full border px-3 py-1.5 transition"
         type="button"
         @click.stop="toggleSelection"
@@ -104,7 +106,7 @@ function emitVote() {
         {{ selected ? 'Selected' : 'Select for group' }}
       </button>
 
-      <button v-if="canEdit" class="text-slate-600 transition hover:text-slate-900" type="button" @click.stop="emitEdit">
+      <button v-if="canEdit" class="text-zinc-500 transition hover:text-white" type="button" @click.stop="emitEdit">
         Edit
       </button>
 
@@ -112,14 +114,14 @@ function emitVote() {
         Delete
       </button>
 
-      <span v-if="canVote && isOwnCard && !allowSelfVote" class="text-xs text-slate-400 italic">Your card</span>
+      <span v-if="canVote && isOwnCard && !allowSelfVote" class="text-xs text-zinc-600 italic">Your card</span>
 
       <button
         v-if="canVote && (!isOwnCard || allowSelfVote)"
-        :class="voteActive ? 'text-brand-600' : 'text-slate-600 hover:text-brand-600'"
+        :class="voteActive ? 'text-[#00f2ff]' : 'text-zinc-500 hover:text-[#00f2ff]'"
         :disabled="votesRemaining !== undefined && votesRemaining <= 0"
         :title="votesRemaining !== undefined && votesRemaining <= 0 ? 'No votes remaining' : undefined"
-        class="disabled:cursor-not-allowed disabled:text-slate-300"
+        class="disabled:cursor-not-allowed disabled:text-zinc-700"
         type="button"
         @click.stop="emitVote"
       >

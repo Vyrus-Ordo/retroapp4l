@@ -46,8 +46,8 @@ async function handleNextCard() {
     <!-- Header -->
     <div class="flex items-center justify-between gap-4">
       <div>
-        <h1 class="text-xl font-bold text-slate-900">Discussion</h1>
-        <p class="mt-1 text-sm text-slate-500">
+        <h1 class="text-xl font-light text-white">Discussion</h1>
+        <p class="mt-1 text-sm text-zinc-500">
           <template v-if="isFacilitator">Click a card to put it in focus for the group.</template>
           <template v-else>Your facilitator controls which card is in focus.</template>
         </p>
@@ -59,7 +59,7 @@ async function handleNextCard() {
         <span
           v-if="current?.timer_duration_seconds"
           class="text-lg font-semibold tabular-nums"
-          :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-slate-900'"
+          :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-[#00f2ff]'"
         >
           {{ timerStore.formatted }}
         </span>
@@ -69,40 +69,41 @@ async function handleNextCard() {
     <div class="grid gap-6 lg:grid-cols-[1fr,300px]">
       <!-- Sorted card list -->
       <div class="space-y-3">
-        <p class="text-xs font-semibold uppercase tracking-wide text-slate-400">Cards by votes</p>
+        <p class="text-xs font-light uppercase tracking-[0.2em] text-zinc-600">Cards by votes</p>
 
-        <p v-if="sortedCards.length === 0" class="py-12 text-center text-sm text-slate-400">No cards to discuss.</p>
+        <p v-if="sortedCards.length === 0" class="py-12 text-center text-sm text-zinc-600">No cards to discuss.</p>
 
         <article
           v-for="(card, index) in sortedCards"
           :key="card.id"
           :class="[
-            'rounded-xl border bg-white p-4 shadow-sm transition',
+            'rounded-xl border p-4 transition cursor-default',
             focus?.card_id === card.id
-              ? 'border-brand-400 ring-2 ring-brand-100'
+              ? 'border-[#00f2ff]/40 ring-1 ring-[#00f2ff]/15'
               : index < 3 && card.vote_count > 0
-              ? 'border-amber-300 bg-amber-50'
-              : 'border-slate-200',
-            isFacilitator ? 'cursor-pointer hover:border-brand-300 hover:shadow-md' : '',
+              ? 'border-amber-500/30'
+              : 'border-white/8',
+            isFacilitator ? 'cursor-pointer hover:border-white/20' : '',
           ]"
+          style="background: rgba(255,255,255,0.04)"
           @click="handleFocusCard(card)"
         >
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">{{ card.column }}</p>
-              <p class="mt-1 text-sm text-slate-500">{{ card.author_name }}</p>
+              <p class="text-xs font-light uppercase tracking-[0.2em] text-zinc-600">{{ card.column }}</p>
+              <p class="mt-1 text-sm text-zinc-600">{{ card.author_name }}</p>
             </div>
             <span
-              :class="card.vote_count > 0 ? 'bg-brand-50 text-brand-700' : 'bg-slate-100 text-slate-400'"
+              :class="card.vote_count > 0 ? 'border border-[#00f2ff]/25 text-[#00f2ff]' : 'border border-white/10 text-zinc-600'"
               class="inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold"
             >
               {{ card.vote_count }} vote<span v-if="card.vote_count !== 1">s</span>
             </span>
           </div>
 
-          <p class="mt-3 text-sm leading-6 text-slate-800">{{ card.content }}</p>
+          <p class="mt-3 text-sm leading-6 text-zinc-200">{{ card.content }}</p>
 
-          <div v-if="focus?.card_id === card.id" class="mt-2 flex items-center gap-1.5 text-xs font-medium text-brand-600">
+          <div v-if="focus?.card_id === card.id" class="mt-2 flex items-center gap-1.5 text-xs font-light text-[#00f2ff]/70">
             <ViewfinderCircleIcon class="h-4 w-4" />
             In focus
           </div>
@@ -120,20 +121,20 @@ async function handleNextCard() {
         />
 
         <!-- Action items list (Live Minutes) -->
-        <div class="space-y-4 rounded-xl bg-slate-50 p-6 border border-slate-100">
+        <div class="space-y-4 rounded-xl border border-white/8 p-6" style="background: rgba(255,255,255,0.03)">
           <div>
-            <h2 class="text-lg font-semibold text-slate-900">Session Minutes</h2>
-            <p class="text-sm text-slate-500">Action items created during this discussion.</p>
+            <h2 class="text-lg font-light text-white">Session Minutes</h2>
+            <p class="text-sm text-zinc-500">Action items created during this discussion.</p>
           </div>
 
-          <div v-if="actionItems.length === 0" class="text-sm text-slate-400 py-2">
+          <div v-if="actionItems.length === 0" class="text-sm text-zinc-600 py-2">
             No action items recorded yet.
           </div>
 
           <div class="space-y-2">
-            <div v-for="action in actionItems" :key="action.id" class="rounded-lg bg-white p-3 border border-slate-200 shadow-sm text-sm">
-              <p class="font-medium text-slate-900">{{ action.description }}</p>
-              <div class="mt-1 flex flex-col gap-1 text-xs text-slate-500">
+            <div v-for="action in actionItems" :key="action.id" class="rounded-lg border border-white/8 p-3 text-sm" style="background: rgba(255,255,255,0.04)">
+              <p class="font-light text-zinc-200">{{ action.description }}</p>
+              <div class="mt-1 flex flex-col gap-1 text-xs text-zinc-600">
                 <span v-if="action.assignee_name">Assignee: {{ action.assignee_name }}</span>
                 <span v-if="action.due_date">Due: {{ action.due_date }}</span>
               </div>

@@ -1,14 +1,14 @@
 <template>
   <div class="flex flex-col items-center justify-center min-h-[60vh] gap-6">
-    <span class="mdi mdi-cog-outline animate-spin text-5xl text-brand-500" />
-    <h1 class="text-2xl font-bold text-gray-900">Preparing session...</h1>
-    <p class="text-gray-600">{{ current?.title }}</p>
+    <span class="mdi mdi-cog-outline animate-spin text-5xl text-[#00f2ff]/60" />
+    <h1 class="text-2xl font-light text-white">Preparing session...</h1>
+    <p class="text-zinc-500">{{ current?.title }}</p>
     <div class="flex flex-col items-center gap-2 mt-6">
       <div v-if="isFacilitator">
         <button class="button-primary" @click="$emit('advance-phase')">Go to Lobby</button>
       </div>
       <div v-else class="flex flex-col items-center gap-1">
-        <span class="text-sm text-gray-700">Waiting for the facilitator to start</span>
+        <span class="text-sm text-zinc-600">Waiting for the facilitator to start</span>
         <div class="flex items-center gap-2 mt-2">
           <AvatarCircle v-for="p in participants" :key="p.id" :name="p.user_name" size="36" color="brand" />
         </div>

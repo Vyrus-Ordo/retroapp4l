@@ -10,6 +10,7 @@ const props = defineProps<{
   onlineIds: string[]
   accessLog: string[]
   inviteStatus: InviteStatus
+  inviteLink?: string | null
   inviteExpiresAt?: string | null
   facilitator?: boolean
   allowEntryLoading?: boolean
@@ -17,6 +18,7 @@ const props = defineProps<{
 
 defineEmits<{
   allowEntry: []
+  'copy-invite-link': []
 }>()
 
 // Countdown timer derived from inviteExpiresAt
@@ -67,9 +69,9 @@ const inviteStatusColor = computed(() => {
   <section aria-label="Participants panel">
     <!-- Participants list -->
     <div class="flex items-center justify-between gap-3">
-      <h2 class="text-lg font-semibold leading-6 text-slate-900">
+      <h2 class="text-lg font-light leading-6 text-white">
         Participants
-        <span class="ml-1 text-sm font-normal text-slate-400">({{ onlineIds.length || participants.length }} online)</span>
+        <span class="ml-1 text-sm font-light text-zinc-600">({{ onlineIds.length || participants.length }} online)</span>
       </h2>
     </div>
 
@@ -77,10 +79,10 @@ const inviteStatusColor = computed(() => {
       <li
         v-for="participant in participants"
         :key="participant.id"
-        class="flex items-center justify-between gap-3 text-sm text-slate-600"
+        class="flex items-center justify-between gap-3 text-sm text-zinc-500"
       >
         <span class="inline-flex items-center gap-2">
-          <UserCircleIcon class="h-5 w-5 text-brand-500" aria-hidden="true" />
+          <UserCircleIcon class="h-5 w-5 text-[#00f2ff]/60" aria-hidden="true" />
           {{ participant.user_name }}
         </span>
         <span
@@ -91,11 +93,11 @@ const inviteStatusColor = computed(() => {
           {{ onlineIds.includes(participant.user) ? "online" : "offline" }}
         </span>
       </li>
-      <li v-if="!participants.length" class="text-sm text-slate-400">No participants yet.</li>
+      <li v-if="!participants.length" class="text-sm text-zinc-600">No participants yet.</li>
     </ul>
 
     <!-- Admin section — facilitator only -->
-    <div v-if="facilitator" class="mt-6 rounded-xl bg-slate-50 p-4">
+    <div v-if="facilitator" class="mt-6 rounded-xl border border-white/8 p-4" style="background: rgba(255,255,255,0.03)">
       <div class="flex items-center gap-2">
         <component
           :is="inviteStatus === 'blocked' ? LockClosedIcon : LockOpenIcon"
@@ -103,7 +105,7 @@ const inviteStatusColor = computed(() => {
           :class="inviteStatus === 'blocked' ? 'text-danger-500' : 'text-success-600'"
           aria-hidden="true"
         />
-        <span class="text-sm font-medium text-slate-900">Invite link:</span>
+        <span class="text-sm font-light text-zinc-300">Invite link:</span>
         <span class="text-sm font-semibold" :class="inviteStatusColor">{{ inviteStatusLabel }}</span>
       </div>
 
@@ -117,7 +119,7 @@ const inviteStatusColor = computed(() => {
       <button
         v-if="inviteStatus !== 'active'"
         type="button"
-        class="mt-4 inline-flex w-full items-center justify-center rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-600 active:bg-brand-700 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black disabled:cursor-not-allowed disabled:bg-slate-100 disabled:text-slate-300"
+        class="mt-4 inline-flex w-full items-center justify-center rounded-lg border border-[#00f2ff] px-4 py-2 text-sm font-medium text-[#00f2ff] transition-all duration-200 hover:bg-[#00f2ff]/10 hover:shadow-glow disabled:cursor-not-allowed disabled:border-white/15 disabled:text-zinc-600"
         :disabled="allowEntryLoading || inviteStatus === 'temporarily_open'"
         :aria-label="inviteStatus === 'temporarily_open' ? 'Entry window is already open' : 'Allow new participants to join for 2 minutes'"
         @click="$emit('allowEntry')"
@@ -134,17 +136,27 @@ const inviteStatusColor = computed(() => {
       </p>
     </div>
 
+    <!-- Invite link — above access log -->
+    <div class="mt-6">
+      <h3 class="text-sm font-light text-zinc-400">Invite link</h3>
+      <div class="mt-2 flex items-center gap-2">
+        <span class="mdi mdi-link-variant text-[#00f2ff]/60 text-lg" />
+        <span class="font-mono text-xs bg-white/5 border border-white/10 px-2 py-1 rounded text-zinc-400 truncate max-w-[200px]">{{ inviteLink || 'Unavailable' }}</span>
+        <button v-if="inviteLink" class="button-secondary py-1 px-3 text-xs" @click="$emit('copy-invite-link')">Copy</button>
+      </div>
+    </div>
+
     <!-- Access log -->
     <div class="mt-6">
-      <h3 class="text-sm font-medium text-slate-900">Access log</h3>
-      <ul class="mt-3 space-y-2 text-xs text-slate-500" aria-label="Access log">
+      <h3 class="text-sm font-light text-zinc-400">Access log</h3>
+      <ul class="mt-3 space-y-2 text-xs text-zinc-600" aria-label="Access log">
         <li v-for="(item, index) in accessLog" :key="index" class="flex items-start gap-1">
           <NoSymbolIcon v-if="item.includes('blocked')" class="mt-0.5 h-3 w-3 flex-shrink-0 text-danger-500" aria-hidden="true" />
           <UserPlusIcon v-else-if="item.includes('joined')" class="mt-0.5 h-3 w-3 flex-shrink-0 text-success-500" aria-hidden="true" />
           <LockOpenIcon v-else class="mt-0.5 h-3 w-3 flex-shrink-0 text-warning-500" aria-hidden="true" />
           {{ item }}
         </li>
-        <li v-if="!accessLog.length" class="text-slate-400">Realtime access events will appear here.</li>
+        <li v-if="!accessLog.length" class="text-zinc-700">Realtime access events will appear here.</li>
       </ul>
     </div>
   </section>

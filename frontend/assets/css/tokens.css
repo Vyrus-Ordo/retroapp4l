@@ -1,75 +1,52 @@
 /*
- * Design System Tokens — RetroApp 4L
- * Fonte: colors_and_type.css (prototipo)
- * Inclua este arquivo em tailwind.css e nuxt.config.ts
+ * Design System Tokens — RetroApp 4L · Vyrus Ordo Dark Theme
  */
 :root {
-  /* Brand */
-  --ds-brand-50: #eff8ff;
-  --ds-brand-100: #dbefff;
-  --ds-brand-200: #b6e0fe;
-  --ds-brand-300: #84caff;
-  --ds-brand-400: #52b2fd;
-  --ds-brand-500: #009efb;
-  --ds-brand-600: #007bd4;
-  --ds-brand-700: #0062ab;
-  --ds-brand-800: #004e7c;
-  --ds-brand-900: #002c47;
-  /* Success */
-  --ds-success-50: #eafff5;
-  --ds-success-100: #c6f7e2;
-  --ds-success-200: #8eedc7;
-  --ds-success-300: #65d6ad;
-  --ds-success-400: #3ebd93;
-  --ds-success-500: #00c785;
-  --ds-success-600: #00a46e;
-  --ds-success-700: #057a55;
-  --ds-success-800: #046c4e;
-  --ds-success-900: #034d36;
-  /* Warning */
-  --ds-warning-50: #fef8ec;
-  --ds-warning-100: #fcefc7;
-  --ds-warning-200: #f8e3a3;
-  --ds-warning-300: #f9da8b;
-  --ds-warning-400: #f7d070;
-  --ds-warning-500: #ed7713;
-  --ds-warning-600: #d2550d;
-  --ds-warning-700: #ae390f;
-  --ds-warning-800: #8a2c0d;
-  --ds-warning-900: #5c1d0d;
+  /* Neon accent */
+  --neon-cyan: #00f2ff;
+  --neon-cyan-dim: rgba(0, 242, 255, 0.12);
+  --neon-cyan-mid: rgba(0, 242, 255, 0.35);
+  --neon-glow: 0 0 16px rgba(0, 242, 255, 0.25);
+
+  /* Column semantic accents (border-only) */
+  --col-loved: #22c55e;    /* green-500 */
+  --col-loathed: #ef4444;  /* red-500   */
+  --col-longed: #60a5fa;   /* blue-400  */
+  --col-learned: #a1a1aa;  /* zinc-400  */
+
+  /* Raw palette — dark */
+  --ds-brand-500: #00f2ff;
+  --ds-brand-600: rgba(0, 242, 255, 0.8);
+  --ds-brand-700: rgba(0, 242, 255, 0.6);
   /* Danger */
-  --ds-danger-50: #ffe3e3;
-  --ds-danger-100: #ffbdbd;
-  --ds-danger-200: #ff9b9b;
-  --ds-danger-300: #f86a6a;
-  --ds-danger-400: #ef4e4e;
-  --ds-danger-500: #f34f4f;
-  --ds-danger-600: #ed0b0b;
-  --ds-danger-700: #c70000;
-  --ds-danger-800: #990000;
-  --ds-danger-900: #660000;
-  /* Gray */
-  --ds-gray-50: #f5f5f6;
-  --ds-gray-100: #e7e7ea;
-  --ds-gray-200: #d4d4d8;
-  --ds-gray-300: #b5b5be;
-  --ds-gray-400: #9797a4;
-  --ds-gray-500: #696a71;
-  --ds-gray-600: #585860;
-  --ds-gray-700: #4c4c52;
-  --ds-gray-800: #39393f;
-  --ds-gray-900: #252527;
-  --ds-gray-950: #18181b;
-  /* Semantic aliases */
-  --fg-primary: var(--ds-gray-900);
-  --fg-secondary: var(--ds-gray-600);
-  --fg-tertiary: var(--ds-gray-400);
-  --bg-canvas: #f5f5f6;
-  --bg-surface: #fff;
-  --bg-primary: var(--ds-brand-50);
-  --bg-secondary: var(--ds-gray-50);
-  --border-default: var(--ds-gray-200);
-  --border-strong: var(--ds-gray-400);
+  --ds-danger-500: #ef4444;
+  /* Success */
+  --ds-success-500: #22c55e;
+  /* Warning */
+  --ds-warning-500: #f59e0b;
+  /* Gray scale (dark) */
+  --ds-gray-50:  rgba(255,255,255,0.03);
+  --ds-gray-100: rgba(255,255,255,0.06);
+  --ds-gray-200: rgba(255,255,255,0.10);
+  --ds-gray-300: #71717a;
+  --ds-gray-400: #a1a1aa;
+  --ds-gray-500: #d4d4d8;
+  --ds-gray-600: #e4e4e7;
+  --ds-gray-700: #3f3f46;
+  --ds-gray-800: #27272a;
+  --ds-gray-900: #18181b;
+  --ds-gray-950: #09090b;
+
+  /* Semantic aliases — Vyrus Ordo dark */
+  --fg-primary:   #ffffff;
+  --fg-secondary: #a1a1aa;
+  --fg-tertiary:  #52525b;
+  --bg-canvas:    #050505;
+  --bg-surface:   rgba(255, 255, 255, 0.04);
+  --bg-primary:   rgba(0, 242, 255, 0.05);
+  --bg-secondary: rgba(255, 255, 255, 0.03);
+  --border-default: rgba(0, 242, 255, 0.12);
+  --border-strong:  rgba(0, 242, 255, 0.35);
 }
 
 

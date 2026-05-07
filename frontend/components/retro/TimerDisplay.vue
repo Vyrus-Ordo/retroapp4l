@@ -16,10 +16,10 @@ defineEmits<{
 
 <template>
   <div class="timer-display inline-flex items-center gap-2">
-    <span :class="toneClass" class="text-xl font-semibold transition-colors duration-150">{{ label }}</span>
+    <span :class="toneClass" class="text-xl font-mono font-semibold transition-colors duration-150">{{ label }}</span>
     <button
       v-if="facilitator && !paused"
-      class="text-brand-500 hover:text-brand-700 transition-colors duration-150"
+      class="text-[#00f2ff]/70 hover:text-[#00f2ff] transition-colors duration-150"
       type="button"
       @click="$emit('pause')"
     >
@@ -27,7 +27,7 @@ defineEmits<{
     </button>
     <button
       v-if="facilitator && paused"
-      class="text-brand-500 hover:text-brand-700 transition-colors duration-150"
+      class="text-[#00f2ff]/70 hover:text-[#00f2ff] transition-colors duration-150"
       type="button"
       @click="$emit('resume')"
     >

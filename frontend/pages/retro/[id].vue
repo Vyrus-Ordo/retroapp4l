@@ -250,10 +250,12 @@ onMounted(async () => {
           :online-ids="participantStore.onlineIds"
           :access-log="participantStore.accessLog"
           :invite-status="participantStore.inviteStatus"
+          :invite-link="inviteLink"
           :invite-expires-at="participantStore.inviteExpiresAt"
           :facilitator="isFacilitator"
           :allow-entry-loading="allowEntryLoading"
           @allow-entry="handleAllowEntry"
+          @copy-invite-link="copyInviteLink"
         />
       </div>
     </div>

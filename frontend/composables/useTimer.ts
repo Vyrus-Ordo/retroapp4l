@@ -12,7 +12,7 @@ export function useTimer() {
     if (timerStore.secondsRemaining < 60) {
       return "text-warning-500"
     }
-    return "text-slate-900"
+    return "text-[#00f2ff]"
   })
 
   function start() {
