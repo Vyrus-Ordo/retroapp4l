@@ -159,6 +159,7 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * não há restrição explícita de fase além de sessão não fechada.
   * o serializer de cards expõe `group` e `group_parent_id` como identificadores do card pai; `group_parent_id` é alias público de `group_id`.
   * a UI normaliza `group`/`group_parent_id`, renderiza apenas cards raiz nas fases posteriores e mostra filhos agrupados como sub-itens em um único nível Pai -> Filhos.
+  * a tela de histórico (`history/[id].vue`) aplica a mesma lógica de agrupamento: `rootHistoryCards` filtra cards raiz e `historyChildrenByParentId` mapeia filhos por `group_parent_id`/`group`, passando-os como `groupedCards` para `RetroCard`.
 * Votação:
   * permitida somente na fase `voting`;
   * apenas cards `loathed` e `longed` são votáveis;
@@ -212,7 +213,7 @@ O frontend fica em `/frontend` e é uma SPA Nuxt.
 * `retro/invite/[token].vue`: resolve convite, coleta nome/e-mail opcional e entra como usuário autenticado ou guest.
 * `retro/[id].vue`: workspace colaborativo principal.
 * `history/index.vue`: histórico de retros fechadas.
-* `history/[id].vue`: detalhe de retro fechada.
+* `history/[id].vue`: detalhe de retro fechada; cards agrupados são renderizados com a hierarquia Pai -> Filhos usando `rootHistoryCards` e `historyChildrenByParentId` (computed locais da página).
 
 ### 3.2. Gerenciamento de Estado Global (`stores/` Pinia)
 

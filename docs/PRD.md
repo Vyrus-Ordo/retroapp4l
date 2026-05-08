@@ -270,6 +270,7 @@ Como facilitador, quero agrupar cards similares.
 - Não há restrição explícita de fase no backend além de sessão não fechada.
 - UI expõe agrupamento na fase `grouping`.
 - Cards filhos preservam `group`/`group_parent_id` ao avançar para votação e discussão e são renderizados como sub-itens do card pai em um único nível visual.
+- A tela de histórico (`history/[id].vue`) reproduz o mesmo agrupamento visual: apenas cards raiz são iterados e os filhos são passados via prop `groupedCards` para `RetroCard`.
 
 ---
 
@@ -654,7 +655,7 @@ A UI usa TailwindCSS com componentes próprios. O visual é dark/neon, com pain�
 | RF-13 | Discussão | Foco de card e ranking por votos | ✅ Implementado |
 | RF-14 | Ações | Action items criados em `discussion`, revisados em `actions` | ✅ Implementado |
 | RF-15 | Ações anteriores | Consulta e atualização de status da retro anterior | ✅ Implementado |
-| RF-16 | Histórico | Lista e detalhe de retros fechadas | ✅ Implementado |
+| RF-16 | Histórico | Lista e detalhe de retros fechadas; cards agrupados exibidos em hierarquia Pai -> Filhos | ✅ Implementado |
 | RF-17 | Presença | Eventos de entrada/saída e painel frontend | ⚠️ Estimado por WS/local state |
 | RF-18 | Snapshot WS | Snapshot parcial com action items | ⚠️ Parcial |
 | RF-19 | OAuth Google | Botão existe na UI; provider não configurado no backend | ⚠️ Incompleto |

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import MilestoneCard from "~/components/retro/MilestoneCard.vue"
 import RetroCard from "~/components/retro/RetroCard.vue"
+import type { Card } from "~/utils/types"
 
 const route = useRoute()
 const retroStore = useRetroStore()
@@ -19,6 +20,24 @@ onMounted(async () => {
 })
 
 const detail = computed(() => retroStore.historyDetail)
+
+const rootHistoryCards = computed<Card[]>(() => {
+  if (!detail.value?.cards) return []
+  return detail.value.cards.filter((c) => !c.group_parent_id && !c.group)
+})
+
+const historyChildrenByParentId = computed<Record<string, Card[]>>(() => {
+  if (!detail.value?.cards) return {}
+  const map: Record<string, Card[]> = {}
+  for (const card of detail.value.cards) {
+    const parentId = card.group_parent_id || card.group
+    if (parentId) {
+      if (!map[parentId]) map[parentId] = []
+      map[parentId].push(card)
+    }
+  }
+  return map
+})
 </script>
 
 <template>
@@ -47,7 +66,13 @@ const detail = computed(() => retroStore.historyDetail)
         <h2 class="text-lg font-light text-white">Cards and action items</h2>
         <div class="mt-6 grid gap-6 xl:grid-cols-2">
           <div class="space-y-4">
-            <RetroCard v-for="card in detail.cards" :key="card.id" :card="card" />
+            <RetroCard
+              v-for="card in rootHistoryCards"
+              :key="card.id"
+              :card="card"
+              :grouped-cards="historyChildrenByParentId[card.id] || []"
+              :show-vote-badge="true"
+            />
           </div>
           <div class="space-y-3 rounded-xl border border-white/8 p-4" style="background: rgba(255,255,255,0.03)">
             <div v-for="item in detail.action_items" :key="item.id" class="rounded-lg border border-white/8 p-4" style="background: rgba(255,255,255,0.04)">
