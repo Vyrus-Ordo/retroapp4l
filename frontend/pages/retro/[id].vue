@@ -146,11 +146,11 @@ async function handleVote(cardId: string) {
   }
 }
 
-async function submitCard(payload: { id?: string; column: CardColumn; content: string }) {
+async function submitCard(payload: { id?: string; column: CardColumn; content: string; is_anonymous: boolean }) {
   if (payload.id) {
-    await retroStore.updateCard(retrospectiveId.value, payload.id, { content: payload.content })
+    await retroStore.updateCard(retrospectiveId.value, payload.id, { content: payload.content, is_anonymous: payload.is_anonymous })
   } else {
-    await retroStore.createCard(retrospectiveId.value, { column: payload.column, content: payload.content })
+    await retroStore.createCard(retrospectiveId.value, { column: payload.column, content: payload.content, is_anonymous: payload.is_anonymous })
   }
   cardModalOpen.value = false
   editingCard.value = null

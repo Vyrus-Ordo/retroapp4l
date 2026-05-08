@@ -378,14 +378,23 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({"type": "participant.left", "user_id": event["user_id"]})
 
     async def card_create(self, event):
-        await self.send_json({"type": "card.created", "card": event["card"]})
+        card = dict(event["card"])
+        user_id = getattr(self.scope.get("user"), "id", None)
+        card["can_edit"] = str(user_id) == str(event.get("author_id"))
+        await self.send_json({"type": "card.created", "card": card})
 
     async def card_update(self, event):
+        card = event.get("card")
+        if card is not None:
+            card = dict(card)
+            user_id = getattr(self.scope.get("user"), "id", None)
+            card["can_edit"] = str(user_id) == str(event.get("author_id"))
         await self.send_json(
             {
                 "type": "card.updated",
                 "card_id": event["card_id"],
                 "content": event["content"],
+                "card": card,
             }
         )
 
@@ -460,7 +469,9 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
             {
                 "type": "discussion.focus_updated",
                 "card_id": event["card_id"],
-                "author": event["author"],
+                "author": event.get("author"),
+                "author_display": event.get("author_display"),
+                "is_anonymous": event.get("is_anonymous", False),
                 "column": event["column"],
                 "content": event["content"],
                 "vote_count": event["vote_count"],

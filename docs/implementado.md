@@ -46,9 +46,10 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * **Ações:** `opened`, `closed`, `participant_joined`, `link_reopened`, `link_auto_blocked`.
 
 * **`Card` (App: cards):**
-  * **Campos:** `id`, `retrospective`, `author`, `column`, `content`, `group`, `position`, `created_at`.
+  * **Campos:** `id`, `retrospective`, `author`, `column`, `content`, `is_anonymous`, `group`, `position`, `created_at`.
   * **Colunas:** `loved`, `loathed`, `longed`, `learned`. A UI exibe `loved` como "Liked".
   * **Propósito:** cards do quadro. Agrupamento é representado por `group` apontando para outro `Card`.
+  * **Anonimato:** `is_anonymous=false` por padrão. Quando `true`, `author` continua persistido, mas serializers públicos retornam `author=null`, `author_name=null` e `author_display="Anonymous"`.
 
 * **`CardVote` (App: cards):**
   * **Campos:** `id`, `card`, `voter`, `created_at`.
@@ -140,10 +141,17 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * `PUT /api/retrospectives/{id}/votes-config/`
 * Cards:
   * qualquer participante pode criar cards em fases não bloqueadas;
+  * criação/edição aceita `is_anonymous`;
+  * cards antigos seguem não anônimos porque o campo tem default `false`;
+  * cards anônimos preservam `author` internamente para permissões, votos, auditoria e relacionamentos;
+  * REST e WebSocket mascaram autoria visual com `author=null`, `author_name=null` e `author_display="Anonymous"`;
+  * REST inclui `can_edit`, calculado por usuário, para a UI permitir edição/exclusão do próprio card sem expor autor;
   * mutação de cards é bloqueada apenas em `discussion`, `actions` e `closed`;
   * autor pode editar/excluir o próprio card;
   * limite de conteúdo: 500 caracteres.
 * UI permite criar/editar/excluir cards somente na fase `board`, mas a API é mais permissiva.
+* UI exibe `Add anonymously` no modal de criação/edição e mostra badge discreto `Anonymous` em Board, Grouping, Voting, Discussion, Focus/derivados e History.
+* Ao abrir o modal de novo card pelo botão `Add` do board, o `CardComposer` aplica foco automático no textarea de descrição usando template ref e `nextTick()`.
 * Agrupamento:
   * apenas facilitador;
   * payload usa `card_ids` e opcional `group_parent_id`;
@@ -155,6 +163,7 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * máximo 1 voto por card por participante;
   * `allow_self_vote=false` bloqueia voto no próprio card;
   * cada voto decrementa `Participant.votes_remaining`; revogação incrementa.
+  * cards anônimos usam a autoria real para bloqueio de auto-voto sem revelar essa autoria no payload público.
 * Configuração de votos:
   * `PUT /votes-config/` altera apenas `max_votes_per_user` e reseta `votes_remaining` dos participantes;
   * permitido só antes de `voting`;
@@ -173,6 +182,7 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * criação na fase `actions` é bloqueada;
   * edição e exclusão são permitidas nas fases `discussion` e `actions`, apenas pelo facilitador;
   * participantes têm leitura na fase `actions`.
+  * quando um action item referencia card anônimo, o item mantém só o `card`/`card_id`; a UI não exibe autor do card relacionado.
 * Payload de criação/edição:
   * `description`;
   * `assignee_id` é o **id do Participant**, não o id do User;
@@ -227,7 +237,7 @@ O frontend fica em `/frontend` e é uma SPA Nuxt.
 2. **`LobbyView.vue`**: exibe link de convite e contagem de participantes; facilitador inicia a sessão. Pela ordem do frontend, o próximo passo é `check`, exceto quando `skip_check_phase=true`, quando vai para `presentation`.
 3. **`CheckView.vue`**: revisão de ações da última retro fechada do mesmo time. Somente facilitador consegue editar status pela UI.
 4. **`MilestonesView.vue`**: exibe todos os marcos cadastrados; a UI atual não usa os eventos de apresentação `.start/.next/.prev/.end`, apenas mostra a grade e deixa avançar fase.
-5. **`BoardView.vue`**: quadro 4L com criação/edição/exclusão de cards pela UI.
+5. **`BoardView.vue`**: quadro 4L com criação/edição/exclusão de cards pela UI. Ao acionar `Add`, o modal `CardComposer` abre com foco automático no campo de descrição.
 6. **`GroupingView.vue`**: facilitador seleciona cards da mesma coluna e agrupa; participantes observam.
 7. **`VotingView.vue`**: votos apenas em `loathed` e `longed`; mostra votos restantes.
 8. **`DiscussionView.vue`**: lista cards ordenados por votos, permite ao facilitador definir foco, avançar foco e criar action item associado ao card em foco.
@@ -264,6 +274,7 @@ O comportamento efetivo da aplicação é determinado pelo frontend somado ao co
 ## 5. Convenções e Pontos Chaves Implementados
 
 * **Backend como fonte de verdade para dados persistidos:** modelos, permissões e endpoints validam regras centrais como voto, action items, fechamento e acesso.
+* **Anonimato visual de cards:** `Card.author` permanece como fonte de verdade interna. A UI e os payloads públicos usam `is_anonymous`, `author_display` e `can_edit` para ocultar identidade sem alterar permissões.
 * **Validação de fases incompleta:** a fase atual é persistida no backend, mas a transição linear não é aplicada no consumer.
 * **Realtime por signals:** saves/deletes de cards, votos, milestones e action items emitem eventos WS.
 * **Snapshot WS parcial:** o frontend depende de REST para hidratar quase todo o estado inicial.

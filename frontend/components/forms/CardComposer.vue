@@ -9,19 +9,31 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   'update:modelValue': [value: boolean]
-  submit: [payload: { id?: string; content: string; column: CardColumn }]
+  submit: [payload: { id?: string; content: string; column: CardColumn; is_anonymous: boolean }]
 }>()
 
 const content = ref(props.initialCard?.content || "")
 const column = ref<CardColumn>(props.initialCard?.column || props.initialColumn || "loved")
+const isAnonymous = ref(props.initialCard?.is_anonymous || false)
+const descriptionInput = ref<HTMLTextAreaElement | null>(null)
 
 watch(
   [() => props.initialCard, () => props.initialColumn],
   ([card, col]) => {
     content.value = card?.content || ""
     column.value = card?.column || col || "loved"
+    isAnonymous.value = card?.is_anonymous || false
   },
   { immediate: true },
+)
+
+watch(
+  () => props.modelValue,
+  async (isOpen) => {
+    if (!isOpen || props.initialCard) return
+    await nextTick()
+    descriptionInput.value?.focus()
+  },
 )
 
 const selectColorClass = computed(() => {
@@ -40,6 +52,7 @@ function handleSubmit() {
     id: props.initialCard?.id,
     content: content.value,
     column: column.value,
+    is_anonymous: isAnonymous.value,
   })
   close()
 }
@@ -56,7 +69,11 @@ function handleSubmit() {
           <option value="longed" class="bg-[#0a0a0a] text-zinc-200 font-normal">Longed for</option>
           <option value="learned" class="bg-[#0a0a0a] text-zinc-200 font-normal">Learned</option>
         </select>
-        <textarea v-model="content" class="field-input min-h-32" maxlength="500" placeholder="Write a concise card." />
+        <textarea ref="descriptionInput" v-model="content" class="field-input min-h-32" maxlength="500" placeholder="Write a concise card." />
+        <label class="flex items-center gap-3 rounded-lg border border-white/10 px-3 py-2 text-sm text-zinc-300" style="background: rgba(255,255,255,0.03)">
+          <input v-model="isAnonymous" class="h-4 w-4 rounded border-white/20 bg-black/30 text-[#00f2ff] focus:ring-[#00f2ff]/30" type="checkbox">
+          <span>Add anonymously</span>
+        </label>
       </div>
       <div class="mt-6 flex justify-end gap-3">
         <button class="button-secondary" type="button" @click="close">Cancel</button>

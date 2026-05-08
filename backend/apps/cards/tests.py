@@ -22,24 +22,47 @@ class CardCRUDTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Card.objects.count(), 1)
         self.assertEqual(Card.objects.first().author, self.user)
+        self.assertFalse(Card.objects.first().is_anonymous)
+        self.assertEqual(response.data["author"], str(self.user.id))
+        self.assertEqual(response.data["author_name"], self.user.name)
+        self.assertFalse(response.data["is_anonymous"])
+        self.assertTrue(response.data["can_edit"])
+
+    def test_create_anonymous_card_masks_author_but_keeps_internal_author(self):
+        data = {"column": "loved", "content": "Ótimo trabalho!", "is_anonymous": True}
+        response = self.client.post(self.cards_url, data)
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        card = Card.objects.get()
+        self.assertEqual(card.author, self.user)
+        self.assertTrue(card.is_anonymous)
+        self.assertIsNone(response.data["author"])
+        self.assertIsNone(response.data["author_name"])
+        self.assertEqual(response.data["author_display"], "Anonymous")
+        self.assertTrue(response.data["can_edit"])
 
     def test_list_cards(self):
         Card.objects.create(retrospective=self.retrospective, author=self.user, column="loved", content="A")
-        Card.objects.create(retrospective=self.retrospective, author=self.user, column="loathed", content="B")
+        anonymous = Card.objects.create(retrospective=self.retrospective, author=self.user, column="loathed", content="B", is_anonymous=True)
         response = self.client.get(self.cards_url)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data), 2)
+        anonymous_payload = next(card for card in response.data if card["id"] == str(anonymous.id))
+        self.assertIsNone(anonymous_payload["author"])
+        self.assertIsNone(anonymous_payload["author_name"])
+        self.assertTrue(anonymous_payload["is_anonymous"])
 
     def test_edit_card_by_author(self):
-        card = Card.objects.create(retrospective=self.retrospective, author=self.user, column="loved", content="A")
+        card = Card.objects.create(retrospective=self.retrospective, author=self.user, column="loved", content="A", is_anonymous=True)
         url = f"/api/retrospectives/{self.retrospective.id}/cards/{card.id}/"
-        response = self.client.put(url, {"column": "loved", "content": "Editado"})
+        response = self.client.put(url, {"column": "loved", "content": "Editado", "is_anonymous": False})
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         card.refresh_from_db()
         self.assertEqual(card.content, "Editado")
+        self.assertFalse(card.is_anonymous)
 
     def test_edit_card_by_other_user_forbidden(self):
-        card = Card.objects.create(retrospective=self.retrospective, author=self.user, column="loved", content="A")
+        card = Card.objects.create(retrospective=self.retrospective, author=self.user, column="loved", content="A", is_anonymous=True)
         url = f"/api/retrospectives/{self.retrospective.id}/cards/{card.id}/"
         self.client.force_authenticate(user=self.other_user)
         response = self.client.put(url, {"column": "loved", "content": "Hack"})
@@ -166,6 +189,8 @@ class CardVotingTests(APITestCase):
         self.client.force_authenticate(user=self.voter)
 
     def test_participant_can_vote_on_loathed_card(self):
+        self.loathed_card.is_anonymous = True
+        self.loathed_card.save(update_fields=["is_anonymous"])
         response = self.client.post(self.vote_url)
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)

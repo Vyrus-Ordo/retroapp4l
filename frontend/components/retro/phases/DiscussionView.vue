@@ -91,7 +91,12 @@ async function handleNextCard() {
           <div class="flex items-start justify-between gap-3">
             <div>
               <p class="text-xs font-light uppercase tracking-[0.2em] text-zinc-600">{{ card.column }}</p>
-              <p class="mt-1 text-sm text-zinc-600">{{ card.author_name }}</p>
+              <p
+                :class="card.is_anonymous ? 'border-[#00f2ff]/20 text-[#00f2ff]/70' : 'text-zinc-600'"
+                class="mt-1 inline-flex rounded-full border border-transparent px-2 py-0.5 text-xs"
+              >
+                {{ card.author_display }}
+              </p>
             </div>
             <span
               :class="card.vote_count > 0 ? 'border border-[#00f2ff]/25 text-[#00f2ff]' : 'border border-white/10 text-zinc-600'"

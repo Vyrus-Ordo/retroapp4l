@@ -183,7 +183,7 @@ class RetrospectiveApiTests(APITestCase):
         milestone = Milestone.objects.create(retrospective=closed, author=self.user, category=MilestoneCategory.ACHIEVEMENT, description="Marco")
         from apps.cards.models import Card, CardVote
 
-        card = Card.objects.create(retrospective=closed, author=self.user, column="loathed", content="Dor")
+        card = Card.objects.create(retrospective=closed, author=self.user, column="loathed", content="Dor", is_anonymous=True)
         vote = CardVote.objects.create(card=card, voter=self.user)
         action_item = ActionItem.objects.create(retrospective=closed, description="Ação", assignee=self.user, card=card)
 
@@ -193,6 +193,9 @@ class RetrospectiveApiTests(APITestCase):
         self.assertEqual(response.data["participants"][0]["id"], str(participant.id))
         self.assertEqual(response.data["milestones"][0]["id"], str(milestone.id))
         self.assertEqual(response.data["cards"][0]["id"], str(card.id))
+        self.assertIsNone(response.data["cards"][0]["author"])
+        self.assertIsNone(response.data["cards"][0]["author_name"])
+        self.assertTrue(response.data["cards"][0]["is_anonymous"])
         self.assertEqual(response.data["votes"][0]["id"], str(vote.id))
         self.assertEqual(response.data["action_items"][0]["id"], str(action_item.id))
 
@@ -206,7 +209,7 @@ class RetrospectiveApiTests(APITestCase):
         Participant.objects.create(retrospective=retro, user=self.user, votes_remaining=3)
         from apps.cards.models import Card, CardVote
 
-        card_one = Card.objects.create(retrospective=retro, author=self.user, column="loathed", content="Primeiro")
+        card_one = Card.objects.create(retrospective=retro, author=self.user, column="loathed", content="Primeiro", is_anonymous=True)
         card_two = Card.objects.create(retrospective=retro, author=self.user, column="longed", content="Segundo")
         other_user = User.objects.create_user(name="Voter", email="voter-focus@example.com", password="supersecret123")
         Participant.objects.create(retrospective=retro, user=other_user, votes_remaining=3)
@@ -218,6 +221,9 @@ class RetrospectiveApiTests(APITestCase):
             format="json",
         )
         self.assertEqual(focus_response.status_code, status.HTTP_200_OK)
+        self.assertIsNone(focus_response.data["author"])
+        self.assertEqual(focus_response.data["author_display"], "Anonymous")
+        self.assertTrue(focus_response.data["is_anonymous"])
         retro.refresh_from_db()
         self.assertEqual(retro.focus_card_id, card_one.id)
 

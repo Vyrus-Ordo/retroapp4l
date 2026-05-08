@@ -19,6 +19,7 @@ class Card(models.Model):
 	author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="cards")
 	column = models.CharField(max_length=16, choices=CardColumn.choices)
 	content = models.CharField(max_length=500)
+	is_anonymous = models.BooleanField(default=False)
 	group = models.ForeignKey("self", on_delete=models.SET_NULL, related_name="grouped_cards", blank=True, null=True)
 	position = models.PositiveIntegerField(default=0)
 	created_at = models.DateTimeField(auto_now_add=True)

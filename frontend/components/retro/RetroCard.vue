@@ -41,7 +41,7 @@ const emit = defineEmits<{
   action: [payload: { type: "edit" | "delete"; card: Card }]
 }>()
 
-const cardAuthor = computed(() => props.card.author_name || props.card.author || "Anonymous")
+const cardAuthor = computed(() => props.card.author_display || "Anonymous")
 const cardContent = computed(() => props.card.content || "")
 
 function emitEdit() {
@@ -76,7 +76,12 @@ function emitVote() {
     <div class="flex items-start justify-between gap-3">
       <div>
         <p class="text-xs font-light uppercase tracking-[0.2em] text-zinc-600">{{ card.column }}</p>
-        <p class="mt-1 text-xs text-zinc-500">{{ cardAuthor }}</p>
+        <p
+          :class="card.is_anonymous ? 'border-[#00f2ff]/20 text-[#00f2ff]/70' : 'text-zinc-500'"
+          class="mt-1 inline-flex rounded-full border border-transparent px-2 py-0.5 text-xs"
+        >
+          {{ cardAuthor }}
+        </p>
       </div>
       <VoteBadge v-if="showVoteBadge" :active="voteActive" :count="card.vote_count" />
     </div>
@@ -92,6 +97,7 @@ function emitVote() {
         style="background: rgba(255,255,255,0.04)"
       >
         {{ child.content }}
+        <span v-if="child.is_anonymous" class="ml-2 text-[10px] uppercase tracking-wide text-[#00f2ff]/60">Anonymous</span>
       </div>
     </div>
 

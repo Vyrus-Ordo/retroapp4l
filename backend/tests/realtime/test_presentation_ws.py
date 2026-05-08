@@ -173,11 +173,14 @@ async def test_card_events_are_broadcast():
             "retrospective": str(retro.id),
             "author": str(user.id),
             "author_name": user.name,
+            "author_display": user.name,
             "column": "loved",
             "content": "Primeiro card",
+            "is_anonymous": False,
             "group": None,
             "position": 0,
             "vote_count": 0,
+            "can_edit": True,
             "created_at": created["card"]["created_at"],
         },
     }
@@ -188,7 +191,22 @@ async def test_card_events_are_broadcast():
         "type": "card.updated",
         "card_id": str(card.id),
         "content": "Card atualizado",
+        "card": updated["card"],
     }
+    assert updated["card"]["author"] == str(user.id)
+    assert updated["card"]["author_name"] == user.name
+    assert updated["card"]["can_edit"] is True
+
+    card.is_anonymous = True
+    await database_sync_to_async(card.save)(update_fields=["is_anonymous"])
+    anonymized = await communicator.receive_json_from()
+    assert anonymized["type"] == "card.updated"
+    assert anonymized["card"]["id"] == str(card.id)
+    assert anonymized["card"]["author"] is None
+    assert anonymized["card"]["author_name"] is None
+    assert anonymized["card"]["author_display"] == "Anonymous"
+    assert anonymized["card"]["is_anonymous"] is True
+    assert anonymized["card"]["can_edit"] is True
 
     card_id = str(card.id)
     await delete_card(card)
@@ -410,7 +428,9 @@ async def test_discussion_focus_update_is_broadcast():
         {
             "type": "discussion_focus_updated",
             "card_id": str(card.id),
-            "author": user.name,
+            "author": None,
+            "author_display": "Anonymous",
+            "is_anonymous": True,
             "column": card.column,
             "content": card.content,
             "vote_count": 0,
@@ -421,7 +441,9 @@ async def test_discussion_focus_update_is_broadcast():
     assert event == {
         "type": "discussion.focus_updated",
         "card_id": str(card.id),
-        "author": user.name,
+        "author": None,
+        "author_display": "Anonymous",
+        "is_anonymous": True,
         "column": card.column,
         "content": card.content,
         "vote_count": 0,

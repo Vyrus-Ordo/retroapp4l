@@ -4,7 +4,10 @@ from apps.cards.models import Card, CardVote
 
 
 class CardSerializer(serializers.ModelSerializer):
-    author_name = serializers.CharField(source="author.name", read_only=True)
+    author = serializers.SerializerMethodField()
+    author_name = serializers.SerializerMethodField()
+    author_display = serializers.SerializerMethodField()
+    can_edit = serializers.SerializerMethodField()
     vote_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
@@ -14,14 +17,38 @@ class CardSerializer(serializers.ModelSerializer):
             "retrospective",
             "author",
             "author_name",
+            "author_display",
             "column",
             "content",
+            "is_anonymous",
             "group",
             "position",
             "vote_count",
+            "can_edit",
             "created_at",
         )
-        read_only_fields = ("id", "author", "author_name", "created_at", "retrospective")
+        read_only_fields = ("id", "author", "author_name", "author_display", "can_edit", "created_at", "retrospective")
+
+    def get_author(self, obj):
+        if obj.is_anonymous:
+            return None
+        return str(obj.author_id)
+
+    def get_author_name(self, obj):
+        if obj.is_anonymous:
+            return None
+        return obj.author.name
+
+    def get_author_display(self, obj):
+        if obj.is_anonymous:
+            return "Anonymous"
+        return obj.author.name
+
+    def get_can_edit(self, obj):
+        request = self.context.get("request")
+        if request is None or not request.user or not request.user.is_authenticated:
+            return False
+        return obj.author_id == request.user.id
 
     def validate_content(self, value):
         if len(value) > 500:

@@ -13,12 +13,13 @@ def capture_card_previous_state(sender, instance, **kwargs):
     if not instance.pk:
         return
 
-    previous_card = Card.objects.filter(pk=instance.pk).values("content", "group_id").first()
+    previous_card = Card.objects.filter(pk=instance.pk).values("content", "group_id", "is_anonymous").first()
     if previous_card is None:
         return
 
     instance._previous_content = previous_card["content"]
     instance._previous_group_id = previous_card["group_id"]
+    instance._previous_is_anonymous = previous_card["is_anonymous"]
 
 
 @receiver(post_save, sender=Card)
@@ -33,20 +34,23 @@ def card_saved(sender, instance, created, **kwargs):
     if created:
         async_to_sync(channel_layer.group_send)(
             group,
-            {"type": "card_create", "card": card_data}
+            {"type": "card_create", "card": card_data, "author_id": str(instance.author_id)}
         )
         return
 
     previous_content = getattr(instance, "_previous_content", None)
     previous_group_id = getattr(instance, "_previous_group_id", None)
+    previous_is_anonymous = getattr(instance, "_previous_is_anonymous", None)
 
-    if previous_content != instance.content:
+    if previous_content != instance.content or previous_is_anonymous != instance.is_anonymous:
         async_to_sync(channel_layer.group_send)(
             group,
             {
                 "type": "card_update",
                 "card_id": str(instance.id),
                 "content": instance.content,
+                "card": card_data,
+                "author_id": str(instance.author_id),
             }
         )
 

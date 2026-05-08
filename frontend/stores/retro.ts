@@ -40,6 +40,11 @@ function upsertById<T extends { id: string }>(collection: T[], item: T) {
   return collection.map((candidate, candidateIndex) => (candidateIndex === index ? item : candidate))
 }
 
+function upsertCard(collection: Card[], item: Card) {
+  const existing = collection.find((candidate) => candidate.id === item.id)
+  return upsertById(collection, existing?.can_edit ? { ...item, can_edit: true } : item)
+}
+
 export const useRetroStore = defineStore("retro", {
   state: (): RetroState => ({
     retrospectives: [],
@@ -131,6 +136,8 @@ export const useRetroStore = defineStore("retro", {
               .map((card) => ({
                 card_id: card.id,
                 author: card.author_name,
+                author_display: card.author_display,
+                is_anonymous: card.is_anonymous,
                 column: card.column,
                 content: card.content,
                 vote_count: card.vote_count,
@@ -179,16 +186,16 @@ export const useRetroStore = defineStore("retro", {
       const response = await api.get<{ suggestions: string[] }>(`/teams/suggestions/${query ? `?q=${encodeURIComponent(query)}` : ""}`)
       return response.suggestions
     },
-    async createCard(retrospectiveId: string, payload: { column: string; content: string; position?: number }) {
+    async createCard(retrospectiveId: string, payload: { column: string; content: string; is_anonymous?: boolean; position?: number }) {
       const api = useApiClient()
       const card = await api.post<Card, typeof payload>(`/retrospectives/${retrospectiveId}/cards/`, payload)
-      this.cards = upsertById(this.cards, card)
+      this.cards = upsertCard(this.cards, card)
       return card
     },
-    async updateCard(retrospectiveId: string, cardId: string, payload: { content: string }) {
+    async updateCard(retrospectiveId: string, cardId: string, payload: { content: string; is_anonymous?: boolean }) {
       const api = useApiClient()
       const card = await api.patch<Card, typeof payload>(`/retrospectives/${retrospectiveId}/cards/${cardId}/`, payload)
-      this.cards = upsertById(this.cards, card)
+      this.cards = upsertCard(this.cards, card)
     },
     async deleteCard(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
@@ -335,10 +342,14 @@ export const useRetroStore = defineStore("retro", {
       }
 
       if (type === "card.created" && event.card) {
-        this.cards = upsertById(this.cards, event.card as Card)
+        this.cards = upsertCard(this.cards, event.card as Card)
       }
 
       if (type === "card.updated") {
+        if (event.card) {
+          this.cards = upsertCard(this.cards, event.card as Card)
+          return
+        }
         this.cards = this.cards.map((card) =>
           card.id === event.card_id ? { ...card, content: String(event.content || card.content) } : card,
         )
@@ -422,7 +433,9 @@ export const useRetroStore = defineStore("retro", {
       if (type === "discussion.focus_updated") {
         this.discussionFocus = {
           card_id: String(event.card_id),
-          author: String(event.author),
+          author: event.author === null || event.author === undefined ? null : String(event.author),
+          author_display: String(event.author_display || event.author || "Anonymous"),
+          is_anonymous: Boolean(event.is_anonymous),
           column: event.column as DiscussionFocusPayload["column"],
           content: String(event.content),
           vote_count: Number(event.vote_count || 0),

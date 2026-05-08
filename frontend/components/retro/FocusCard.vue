@@ -6,7 +6,7 @@
     </div>
     <div class="text-base text-zinc-200 font-light">{{ card.text }}</div>
     <div class="flex gap-2 mt-2">
-      <span class="text-xs text-zinc-600">Author: {{ card.author || 'Anonymous' }}</span>
+      <span class="text-xs text-zinc-600">{{ card.is_anonymous ? 'Anonymous' : (card.author_display || card.author || 'Participant') }}</span>
       <VoteBadge :count="card.votes || 0" :active="true" />
     </div>
     <div class="flex gap-2 mt-4 justify-end">

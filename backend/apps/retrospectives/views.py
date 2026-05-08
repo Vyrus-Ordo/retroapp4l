@@ -40,7 +40,9 @@ User = get_user_model()
 def serialize_focus_card(card):
 	return {
 		"card_id": str(card.id),
-		"author": card.author.name,
+		"author": None if card.is_anonymous else card.author.name,
+		"author_display": "Anonymous" if card.is_anonymous else card.author.name,
+		"is_anonymous": card.is_anonymous,
 		"column": card.column,
 		"content": card.content,
 		"vote_count": card.vote_count,

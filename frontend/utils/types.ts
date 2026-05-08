@@ -129,11 +129,13 @@ export const PHASE_META = {
 export interface Card {
   id: string
   retrospective: string
-  anonymous: boolean
+  is_anonymous: boolean
   groupedInto: string | null
   myVotes?: number
-  author: string
-  author_name: string
+  author: string | null
+  author_name: string | null
+  author_display: string
+  can_edit: boolean
   column: CardColumn
   content: string
   group: string | null
@@ -199,7 +201,9 @@ export interface HistoryDetail {
 
 export interface DiscussionFocusPayload {
   card_id: string
-  author: string
+  author: string | null
+  author_display: string
+  is_anonymous: boolean
   column: CardColumn
   content: string
   vote_count: number
