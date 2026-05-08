@@ -11,6 +11,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 ### Adicionado
 - Documentação de implementação (`docs/implementado.md`) com mapa de referência da base de código
 
+### Alterado
+- Refinamento responsivo do board 4L para manter títulos de colunas em linha única, com colunas simétricas e sem truncamento
+- Compactação discreta dos headers das colunas, botão `Add`, contador, espaçamento horizontal e sidebar de participantes para preservar a estética dark/neon
+
 ---
 
 ## [0.9.0] - 2026-05

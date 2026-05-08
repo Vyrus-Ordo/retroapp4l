@@ -218,9 +218,10 @@ onMounted(async () => {
         @resume="sendTimerResume"
       />
     </template>
-    <div class="grid gap-6 xl:grid-cols-[minmax(0,1fr),340px]">
+    <div class="grid gap-4 xl:grid-cols-[minmax(0,1fr),280px]">
       <component
         :is="phaseComponent"
+        class="min-w-0"
         :current="current"
         :active-phase="activePhase"
         :is-facilitator="isFacilitator"
@@ -244,7 +245,7 @@ onMounted(async () => {
         @edit-action="openEditAction"
       />
 
-      <div v-if="current && activePhase !== 'closed'" class="panel p-6 lg:p-7">
+      <div v-if="current && activePhase !== 'closed'" class="panel p-4 lg:p-5">
         <ParticipantPanel
           :participants="participantStore.participants"
           :online-ids="participantStore.onlineIds"

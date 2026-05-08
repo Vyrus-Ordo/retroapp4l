@@ -65,7 +65,7 @@ O backend (`/backend/apps/`) foi modularizado nos seguintes domínios. A modelag
 *   **Middleware Customizado:** Camada `middleware.py` intercepta auth nos WebSockets.
 
 ### `cards` (Itens do 4L)
-*   **Lógica de Negócio:** Criação, edição, movimentação e remoção dos cartões nas 4 colunas (Liked, Learned, Lacked, Longed For).
+*   **Lógica de Negócio:** Criação, edição, movimentação e remoção dos cartões nas 4 colunas (Liked, Loathed, Longed For, Learned).
 *   **Eventos Realtime:** O arquivo `signals.py` escuta as mudanças nos models via ORM do Django e propaga mensagens pro channel layer, atualizando a UI de todos.
 *   **Votos:** Lógica para distribuição de votos dos participantes.
 
@@ -106,7 +106,7 @@ A interface reflete de forma modularizada o estado do `state_machine.py`. Os com
 2.  **`LobbyView.vue`**: Sala de espera onde os participantes aguardam o início.
 3.  **`CheckView.vue`**: Primeira fase do fluxo do time.
 4.  **`MilestonesView.vue`**: Exibição de milestones.
-5.  **`BoardView.vue`**: Fase crucial. Uma prancheta (`BoardGrid`) com 4 colunas (`ColumnHeader`), onde ocorrem criações ativas de `RetroCard` usando o `CardComposer`.
+5.  **`BoardView.vue`**: Fase crucial. Uma prancheta (`BoardGrid`) com 4 colunas simétricas (`ColumnHeader`) para Liked, Loathed, Longed For e Learned, onde ocorrem criações ativas de `RetroCard` usando o `CardComposer`.
 6.  **`GroupingView.vue`**: Fase de consolidação e agrupamento de cartões afins.
 7.  **`VotingView.vue`**: Os participantes gastam seus votos em itens agrupados ou avulsos (usa `VoteControls` e `VoteBadge`).
 8.  **`DiscussionView.vue`**: Apresenta os cartões mais votados no `FocusCard`. Interface acoplada com geração de *Action Items* via `ActionEditor` e `ActionItemForm`.
@@ -123,7 +123,7 @@ A aplicação é rigorosamente orientada por uma máquina de estados linear (`st
 2.  **`LOBBY` (Sala de Espera):** Participantes (via link ou código PIN) começam a se conectar. O Facilitador controla o acesso e aguarda o quórum.
 3.  **`PRESENTATION` (Abertura):** Momento para dar as boas-vindas e introduzir a sprint ou o tema da retro.
 4.  **`CHECK` (Quebra-gelo / Milestones):** Os participantes podem registrar `Milestones` (conquistas, agradecimentos, desafios) que ocorreram na iteração antes do início do quadro. Pode ser pulado através da flag `skip_check_phase`.
-5.  **`BOARD` (Brainstorm / Divergência):** A fase principal. O quadro com as 4 Colunas (Liked, Learned, Lacked, Longed For) é aberto para livre criação de cartões (`Card`).
+5.  **`BOARD` (Brainstorm / Divergência):** A fase principal. O quadro com as 4 colunas (Liked, Loathed, Longed For, Learned) é aberto para livre criação de cartões (`Card`).
 6.  **`GROUPING` (Agrupamento / Sintonia):** A criação é bloqueada. O Facilitador junta cartões com assuntos redundantes, formando *clusters* baseados no model `Card` através do campo recursivo `group`.
 7.  **`VOTING` (Votação):** Os participantes distribuem sua cota de votos (`CardVote`) nos cartões individuais ou agrupamentos.
 8.  **`DISCUSSION` (Convergência):** O sistema ordena os cartões mais votados. O Facilitador foca (`focus_card`) um cartão por vez na tela de todos. Durante o debate de um item, *Action Items* são gerados e atrelados a ele.
@@ -162,3 +162,6 @@ O RetroApp 4L não utiliza frameworks de UI em componentes (como Vuetify ou Elem
 
 ### 6.3. Ícones e Complementos
 *   Utilização intensiva da biblioteca oficial **`@heroicons/vue`** para ícones escaláveis e harmônicos com a tipografia Poppins.
+*   O `ColumnHeader` do board utiliza ícones por coluna, contador tabular e botão `Add` compacto no próprio cabeçalho.
+*   O layout do board foi refinado para manter os títulos das colunas em linha única, sem `ellipsis` ou quebra de linha, preservando larguras iguais, altura uniforme e alinhamento visual entre as quatro colunas.
+*   A distribuição horizontal do workspace foi otimizada com menor gap entre colunas e sidebar de participantes mais compacta, mantendo a identidade dark/neon sem aumentar o tamanho geral do board.

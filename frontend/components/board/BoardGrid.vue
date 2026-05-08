@@ -31,7 +31,7 @@ const columnAccent: Record<string, string> = {
 </script>
 
 <template>
-  <div class="grid gap-4 xl:grid-cols-4">
+  <div class="grid gap-3 xl:grid-cols-4">
     <section
       v-for="column in ['loved', 'loathed', 'longed', 'learned']"
       :key="column"
@@ -41,7 +41,12 @@ const columnAccent: Record<string, string> = {
         border: `1px solid ${columnAccent[column]}26`,
       }"
     >
-      <ColumnHeader :column="column as CardColumn" :count="columns[column as CardColumn].length" />
+      <ColumnHeader
+        :column="column as CardColumn"
+        :count="columns[column as CardColumn].length"
+        :can-create="phase === 'board'"
+        @create="$emit('createCard', column as CardColumn)"
+      />
       <div class="flex min-h-80 flex-col gap-4 p-4" style="background: rgba(0,0,0,0.2)">
         <RetroCard
           v-for="card in columns[column as CardColumn]"
@@ -63,10 +68,6 @@ const columnAccent: Record<string, string> = {
           @toggle-select="$emit('toggleSelect', card.id)"
           @vote="$emit('vote', card)"
         />
-
-        <button v-if="phase === 'board'" class="button-secondary mt-auto" type="button" @click="$emit('createCard', column as CardColumn)">
-          Add card
-        </button>
       </div>
     </section>
   </div>
