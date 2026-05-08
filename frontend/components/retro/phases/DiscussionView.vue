@@ -27,6 +27,8 @@ const actionItems = computed<ActionItem[]>(() => props.retroStore.actionItems)
 
 const sortedCards = computed<Card[]>(() => props.discussionQueue)
 
+const groupedChildren = computed<Record<string, Card[]>>(() => props.retroStore.groupedChildrenByParentId)
+
 const queueAfterFocus = computed<Card[]>(() =>
   focus.value ? sortedCards.value.filter((c) => c.id !== focus.value!.card_id) : sortedCards.value,
 )
@@ -107,6 +109,21 @@ async function handleNextCard() {
           </div>
 
           <p class="mt-3 text-sm leading-6 text-zinc-200">{{ card.content }}</p>
+
+          <div v-if="groupedChildren[card.id]?.length" class="mt-3 space-y-1.5 border-t border-white/8 pt-3">
+            <p class="text-xs font-light text-zinc-600">
+              {{ groupedChildren[card.id].length }} grouped card{{ groupedChildren[card.id].length > 1 ? 's' : '' }}
+            </p>
+            <div
+              v-for="child in groupedChildren[card.id]"
+              :key="child.id"
+              class="rounded-lg px-3 py-2 text-xs text-zinc-400"
+              style="background: rgba(255,255,255,0.04)"
+            >
+              {{ child.content }}
+              <span v-if="child.is_anonymous" class="ml-2 text-[10px] uppercase tracking-wide text-[#00f2ff]/60">Anonymous</span>
+            </div>
+          </div>
 
           <div v-if="focus?.card_id === card.id" class="mt-2 flex items-center gap-1.5 text-xs font-light text-[#00f2ff]/70">
             <ViewfinderCircleIcon class="h-4 w-4" />

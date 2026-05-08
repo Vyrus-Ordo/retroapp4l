@@ -402,7 +402,14 @@ class RetrospectiveConsumer(AsyncJsonWebsocketConsumer):
         await self.send_json({"type": "card.deleted", "card_id": event["card_id"]})
 
     async def card_grouped(self, event):
-        await self.send_json({"type": "card.grouped", "card_id": event["card_id"], "group_id": event["group_id"]})
+        await self.send_json(
+            {
+                "type": "card.grouped",
+                "card_id": event["card_id"],
+                "group_id": event["group_id"],
+                "group_parent_id": event["group_id"],
+            }
+        )
 
     async def card_ungrouped(self, event):
         await self.send_json(

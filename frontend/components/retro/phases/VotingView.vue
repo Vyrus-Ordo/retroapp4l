@@ -60,6 +60,7 @@ function handleVote(card: Card) {
       :columns="retroStore.cardsByColumn"
       :selected-ids="[]"
       :current-user-id="currentUserId"
+      :grouped-children="retroStore.groupedChildrenByParentId"
       :voted-card-ids="votedCardIds"
       :votes-remaining="votesRemaining"
       :allow-self-vote="current?.allow_self_vote ?? false"

@@ -8,6 +8,7 @@ class CardSerializer(serializers.ModelSerializer):
     author_name = serializers.SerializerMethodField()
     author_display = serializers.SerializerMethodField()
     can_edit = serializers.SerializerMethodField()
+    group_parent_id = serializers.UUIDField(source="group_id", read_only=True)
     vote_count = serializers.IntegerField(read_only=True, default=0)
 
     class Meta:
@@ -22,6 +23,7 @@ class CardSerializer(serializers.ModelSerializer):
             "content",
             "is_anonymous",
             "group",
+            "group_parent_id",
             "position",
             "vote_count",
             "can_edit",

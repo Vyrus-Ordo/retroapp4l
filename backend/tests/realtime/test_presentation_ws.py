@@ -318,6 +318,7 @@ async def test_card_grouping_events_are_broadcast():
         "type": "card.grouped",
         "card_id": str(child.id),
         "group_id": str(parent.id),
+        "group_parent_id": str(parent.id),
     }
 
     await ungroup_card(child)

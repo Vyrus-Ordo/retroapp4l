@@ -269,6 +269,7 @@ Como facilitador, quero agrupar cards similares.
 - Apenas facilitador.
 - Não há restrição explícita de fase no backend além de sessão não fechada.
 - UI expõe agrupamento na fase `grouping`.
+- Cards filhos preservam `group`/`group_parent_id` ao avançar para votação e discussão e são renderizados como sub-itens do card pai em um único nível visual.
 
 ---
 
@@ -552,7 +553,7 @@ A UI usa TailwindCSS com componentes próprios. O visual é dark/neon, com pain�
 | `card.created` | S → C | `{card}` com autoria mascarada se `is_anonymous=true` |
 | `card.updated` | S → C | `{card_id, content, card}`; `card` respeita anonimato |
 | `card.deleted` | S → C | `{card_id}` |
-| `card.grouped` | S → C | `{card_id, group_id}` |
+| `card.grouped` | S → C | `{card_id, group_id, group_parent_id}` |
 | `card.ungrouped` | S → C | `{card_id, previous_group_id}` |
 | `vote.cast` | S → C | `{card_id, voter_id, votes_remaining}` ou `{vote}` em caminho legado do consumer |
 | `vote.revoked` | S → C | `{card_id, voter_id, votes_remaining}` |

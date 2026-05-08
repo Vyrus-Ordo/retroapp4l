@@ -152,11 +152,13 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
 * UI permite criar/editar/excluir cards somente na fase `board`, mas a API é mais permissiva.
 * UI exibe `Add anonymously` no modal de criação/edição e mostra badge discreto `Anonymous` em Board, Grouping, Voting, Discussion, Focus/derivados e History.
 * Ao abrir o modal de novo card pelo botão `Add` do board, o `CardComposer` aplica foco automático no textarea de descrição usando template ref e `nextTick()`.
-* Agrupamento:
+  * Agrupamento:
   * apenas facilitador;
   * payload usa `card_ids` e opcional `group_parent_id`;
   * exige pelo menos 2 cards da mesma coluna;
   * não há restrição explícita de fase além de sessão não fechada.
+  * o serializer de cards expõe `group` e `group_parent_id` como identificadores do card pai; `group_parent_id` é alias público de `group_id`.
+  * a UI normaliza `group`/`group_parent_id`, renderiza apenas cards raiz nas fases posteriores e mostra filhos agrupados como sub-itens em um único nível Pai -> Filhos.
 * Votação:
   * permitida somente na fase `voting`;
   * apenas cards `loathed` e `longed` são votáveis;
@@ -240,7 +242,7 @@ O frontend fica em `/frontend` e é uma SPA Nuxt.
 5. **`BoardView.vue`**: quadro 4L com criação/edição/exclusão de cards pela UI. Ao acionar `Add`, o modal `CardComposer` abre com foco automático no campo de descrição.
 6. **`GroupingView.vue`**: facilitador seleciona cards da mesma coluna e agrupa; participantes observam.
 7. **`VotingView.vue`**: votos apenas em `loathed` e `longed`; mostra votos restantes.
-8. **`DiscussionView.vue`**: lista cards ordenados por votos, permite ao facilitador definir foco, avançar foco e criar action item associado ao card em foco.
+8. **`DiscussionView.vue`**: lista cards raiz ordenados por votos, renderiza filhos agrupados como sub-itens, permite ao facilitador definir foco, avançar foco e criar action item associado ao card em foco.
 9. **`ActionsView.vue`**: revisão de action items; facilitador pode editar/excluir e fechar a retro. A UI não exibe botão de criação nessa fase.
 10. **`ClosedView.vue`**: componente de encerramento, mas `retro/[id].vue` redireciona para `/history/{id}` quando detecta status `closed`.
 

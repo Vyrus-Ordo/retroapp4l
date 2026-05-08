@@ -139,6 +139,7 @@ export interface Card {
   column: CardColumn
   content: string
   group: string | null
+  group_parent_id: string | null
   position: number
   vote_count: number
   created_at: string

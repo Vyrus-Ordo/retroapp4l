@@ -54,7 +54,7 @@ const inviteLink = computed(() => {
   return requestUrl.origin + '/retro/invite/' + current.value.invite_token
 })
 const discussionQueue = computed(() =>
-  retroStore.cards.slice().sort((a, b) => b.vote_count - a.vote_count),
+  retroStore.cards.filter((card) => !card.group).slice().sort((a, b) => b.vote_count - a.vote_count),
 )
 
 const phaseComponent = computed(() => {

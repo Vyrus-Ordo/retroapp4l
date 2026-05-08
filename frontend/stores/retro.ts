@@ -41,8 +41,14 @@ function upsertById<T extends { id: string }>(collection: T[], item: T) {
 }
 
 function upsertCard(collection: Card[], item: Card) {
+  item = normalizeCard(item)
   const existing = collection.find((candidate) => candidate.id === item.id)
   return upsertById(collection, existing?.can_edit ? { ...item, can_edit: true } : item)
+}
+
+function normalizeCard(card: Card): Card {
+  const group = card.group || card.group_parent_id || null
+  return { ...card, group, group_parent_id: group }
 }
 
 export const useRetroStore = defineStore("retro", {
@@ -127,7 +133,7 @@ export const useRetroStore = defineStore("retro", {
 
       try {
         this.current = await api.get<RetrospectiveDetail>(`/retrospectives/${retrospectiveId}/`)
-        this.cards = await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)
+        this.cards = (await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)).map(normalizeCard)
         this.votes = await api.get<Vote[]>(`/retrospectives/${retrospectiveId}/votes/`)
         this.previewPhase = null
         this.discussionFocus = this.current.focus_card_id
@@ -229,8 +235,11 @@ export const useRetroStore = defineStore("retro", {
       const api = useApiClient()
       const toastStore = useToastStore()
       try {
-        await api.post(`/retrospectives/${retrospectiveId}/cards/group/`, { card_ids: this.selectedCardIds })
-        this.cards = await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)
+        await api.post(`/retrospectives/${retrospectiveId}/cards/group/`, {
+          card_ids: this.selectedCardIds,
+          group_parent_id: this.selectedCardIds[0],
+        })
+        this.cards = (await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)).map(normalizeCard)
         this.selectedCardIds = []
       } catch (error) {
         toastStore.error(error instanceof Error ? error.message : "Failed to group cards.")
@@ -239,7 +248,7 @@ export const useRetroStore = defineStore("retro", {
     async ungroupCard(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
       await api.post(`/retrospectives/${retrospectiveId}/cards/${cardId}/ungroup/`)
-      this.cards = await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)
+      this.cards = (await api.get<Card[]>(`/retrospectives/${retrospectiveId}/cards/`)).map(normalizeCard)
     },
     async castVote(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
@@ -360,13 +369,16 @@ export const useRetroStore = defineStore("retro", {
       }
 
       if (type === "card.grouped") {
+        const groupParentId = String(event.group_parent_id || event.group_id)
         this.cards = this.cards.map((card) =>
-          card.id === event.card_id ? { ...card, group: String(event.group_id) } : card,
+          card.id === event.card_id ? { ...card, group: groupParentId, group_parent_id: groupParentId } : card,
         )
       }
 
       if (type === "card.ungrouped") {
-        this.cards = this.cards.map((card) => (card.id === event.card_id ? { ...card, group: null } : card))
+        this.cards = this.cards.map((card) =>
+          card.id === event.card_id ? { ...card, group: null, group_parent_id: null } : card,
+        )
       }
 
       if (type === "vote.cast") {

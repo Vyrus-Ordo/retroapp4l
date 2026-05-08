@@ -107,7 +107,12 @@ class RetrospectiveAccessMixin:
 			raise PermissionDenied("Only participants can access this retrospective.")
 
 	def discussion_cards_queryset(self, retrospective):
-		return Card.objects.filter(retrospective=retrospective).select_related("author").annotate(vote_count=Count("votes")).order_by("-vote_count", "created_at")
+		return (
+			Card.objects.filter(retrospective=retrospective, group__isnull=True)
+			.select_related("author")
+			.annotate(vote_count=Count("votes"))
+			.order_by("-vote_count", "created_at")
+		)
 
 	def broadcast_phase_changed(self, retrospective):
 		channel_layer = get_channel_layer()

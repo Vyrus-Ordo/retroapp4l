@@ -20,6 +20,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - Payloads REST e WebSocket de cards/foco de discussão agora respeitam anonimato visual, retornando `Anonymous` como exibição pública
 - Permissões visuais de edição/exclusão de cards passaram a usar `can_edit` em vez de depender da exposição do autor na UI
 - Documentação (`docs/PRD.md` e `docs/implementado.md`) atualizada com regras de anonimato, serialização, UI, WebSocket e histórico
+- Agrupamento de cards agora é preservado visualmente nas fases de votação e discussão, com filhos renderizados como sub-itens do card pai e suporte ao alias público `group_parent_id`
 
 ---
 

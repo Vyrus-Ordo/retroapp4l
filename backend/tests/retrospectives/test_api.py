@@ -211,9 +211,11 @@ class RetrospectiveApiTests(APITestCase):
 
         card_one = Card.objects.create(retrospective=retro, author=self.user, column="loathed", content="Primeiro", is_anonymous=True)
         card_two = Card.objects.create(retrospective=retro, author=self.user, column="longed", content="Segundo")
+        grouped_child = Card.objects.create(retrospective=retro, author=self.user, column="longed", content="Filho agrupado", group=card_two)
         other_user = User.objects.create_user(name="Voter", email="voter-focus@example.com", password="supersecret123")
         Participant.objects.create(retrospective=retro, user=other_user, votes_remaining=3)
         CardVote.objects.create(card=card_two, voter=other_user)
+        CardVote.objects.create(card=grouped_child, voter=other_user)
 
         focus_response = self.client.post(
             f"/api/retrospectives/{retro.id}/focus-card/",
