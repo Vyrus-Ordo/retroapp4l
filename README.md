@@ -1,4 +1,4 @@
-# 💠 RetroApp 4L — Vyrus Ordo
+# 💠 RetroApp 4L
 
 > **"Retrospectives with Traceability. Zero Noise."**
 
