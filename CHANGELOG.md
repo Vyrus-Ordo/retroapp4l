@@ -10,10 +10,16 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ### Adicionado
 - Documentação de implementação (`docs/implementado.md`) com mapa de referência da base de código
+- Suporte a cards anônimos com campo `is_anonymous`, migration retrocompatível, serialização pública mascarada e autoria real preservada no backend
+- Opção `Add anonymously` no modal de criação/edição de cards
+- Foco automático no campo de descrição ao abrir o modal de novo card pelo board
 
 ### Alterado
 - Refinamento responsivo do board 4L para manter títulos de colunas em linha única, com colunas simétricas e sem truncamento
 - Compactação discreta dos headers das colunas, botão `Add`, contador, espaçamento horizontal e sidebar de participantes para preservar a estética dark/neon
+- Payloads REST e WebSocket de cards/foco de discussão agora respeitam anonimato visual, retornando `Anonymous` como exibição pública
+- Permissões visuais de edição/exclusão de cards passaram a usar `can_edit` em vez de depender da exposição do autor na UI
+- Documentação (`docs/PRD.md` e `docs/implementado.md`) atualizada com regras de anonimato, serialização, UI, WebSocket e histórico
 
 ---
 
