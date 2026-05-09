@@ -1,0 +1,85 @@
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env.dev
+    ports:
+      - "8000:8000"
+    depends_on:
+      - db
+      - redis
+    volumes:
+      # Bind mount: alterações no código refletem imediatamente no container
+      - ./backend:/app
+    networks:
+      - internal
+
+  worker:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile.worker
+    env_file:
+      - ./backend/.env.dev
+    depends_on:
+      - db
+      - redis
+    volumes:
+      - ./backend:/app
+    networks:
+      - internal
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    environment:
+      NUXT_PUBLIC_API_BASE: http://localhost:8000/api
+      NUXT_PUBLIC_WS_BASE: ws://localhost:8000/ws
+      HOST: 0.0.0.0
+      PORT: "3000"
+    ports:
+      - "3000:3000"
+    depends_on:
+      - backend
+    volumes:
+      # Bind mount do código para hot reload
+      - ./frontend:/app
+      # Preserva o node_modules instalado na imagem
+      # sem isso o bind mount sobrescreve a pasta e quebra
+      - /app/node_modules
+    networks:
+      - internal
+
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: retroapp4l
+      POSTGRES_USER: retroapp4l
+      POSTGRES_PASSWORD: retroapp4l
+    ports:
+      # Exposto no host para conectar com DBeaver, TablePlus etc.
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      # Exposto no host para inspecionar com redis-cli ou RedisInsight
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - internal
+
+volumes:
+  postgres_data:
+  redis_data:
+
+networks:
+  internal:
+    driver: bridge

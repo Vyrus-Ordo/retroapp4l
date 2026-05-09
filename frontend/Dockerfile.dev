@@ -1,0 +1,13 @@
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copia apenas o package.json para aproveitar cache do Docker
+# O restante do código vem via bind mount no docker-compose.dev.yml
+COPY package.json package-lock.json ./
+RUN npm ci
+
+EXPOSE 3000
+
+# Nuxt dev server com hot reload
+CMD ["npm", "run", "dev"]
