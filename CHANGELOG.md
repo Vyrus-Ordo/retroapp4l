@@ -9,6 +9,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 ## [Não lançado]
 
 ### Adicionado
+- Exportação da retrospectiva para Markdown em layouts 'table' e 'sections' (acessível apenas ao facilitador na página de histórico)
+- Composable `useExportMarkdown` para transformação de dados da retrospectiva em Markdown
 - Documentação de implementação (`docs/implementado.md`) com mapa de referência da base de código
 - Suporte a cards anônimos com campo `is_anonymous`, migration retrocompatível, serialização pública mascarada e autoria real preservada no backend
 - Opção `Add anonymously` no modal de criação/edição de cards

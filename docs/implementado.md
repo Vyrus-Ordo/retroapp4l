@@ -213,7 +213,7 @@ O frontend fica em `/frontend` e é uma SPA Nuxt.
 * `retro/invite/[token].vue`: resolve convite, coleta nome/e-mail opcional e entra como usuário autenticado ou guest.
 * `retro/[id].vue`: workspace colaborativo principal.
 * `history/index.vue`: histórico de retros fechadas.
-* `history/[id].vue`: detalhe de retro fechada; cards agrupados são renderizados com a hierarquia Pai -> Filhos usando `rootHistoryCards` e `historyChildrenByParentId` (computed locais da página).
+* `history/[id].vue`: detalhe de retro fechada; cards agrupados são renderizados com a hierarquia Pai -> Filhos usando `rootHistoryCards` e `historyChildrenByParentId`. Inclui funcionalidade de exportação da retrospectiva para Markdown (layouts de tabela ou seções) disponível exclusivamente para o facilitador através de um modal e botão dedicados, utilizando o composable `useExportMarkdown`.
 
 ### 3.2. Gerenciamento de Estado Global (`stores/` Pinia)
 
@@ -233,6 +233,7 @@ O frontend fica em `/frontend` e é uma SPA Nuxt.
   * `skip_check_phase` faz o frontend pular de `lobby` para `presentation`.
   * Essa ordem diverge de `state_machine.py`, que lista `presentation` antes de `check`, mas a validação backend não impede o fluxo enviado pela UI.
 * `useTimer.ts`: loop local de contagem do timer.
+* `useExportMarkdown.ts`: transformação de dados da retrospectiva (cards agrupados, action items, participantes e marcos) em string Markdown com suporte a layouts `table` e `sections`.
 
 ### 3.4. Fluxo de Retrospectiva (Componentes Visuais de `phases/`)
 
