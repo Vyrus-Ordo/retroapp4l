@@ -64,6 +64,10 @@ async function submit() {
 
         <p v-if="errorMessage" role="alert" class="text-sm text-danger-500">{{ errorMessage }}</p>
 
+        <p class="demo-notice">
+          🚧 This is a test and demonstration environment. Data may be removed and the service may become unavailable without prior notice.
+        </p>
+
         <button :disabled="pending" class="button-primary w-full" type="submit">
           <ArrowRightOnRectangleIcon class="mr-2 h-5 w-5" />
           {{ pending ? 'Signing in...' : 'Sign in' }}
@@ -88,3 +92,17 @@ async function submit() {
     </section>
   </AppShell>
 </template>
+
+<style scoped>
+.demo-notice {
+  margin-top: 0.75rem;
+  padding: 0.625rem 0.875rem;
+  border-radius: 0.375rem;
+  border: 1px solid #f97316;
+  background-color: rgba(249, 115, 22, 0.08);
+  color: #fdba74;
+  font-size: 0.75rem;
+  line-height: 1.5;
+  text-align: center;
+}
+</style>
