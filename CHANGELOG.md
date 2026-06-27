@@ -8,6 +8,8 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Não lançado]
 
+## [0.9.1] - 2026-06
+
 ### Adicionado
 - Exportação da retrospectiva para Markdown em layouts 'table' e 'sections' (acessível apenas ao facilitador na página de histórico)
 - Composable `useExportMarkdown` para transformação de dados da retrospectiva em Markdown
