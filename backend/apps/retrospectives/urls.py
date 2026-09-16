@@ -15,6 +15,8 @@ from apps.retrospectives.views import (
     RetrospectiveHistoryView,
     RetrospectiveListCreateView,
     RetrospectiveNextFocusCardView,
+    SprintSummaryHistoryView,
+    SprintSummaryView,
     TeamSuggestionView,
 )
 
@@ -24,6 +26,8 @@ urlpatterns = [
     path("retrospectives/", RetrospectiveListCreateView.as_view(), name="retrospective-list-create"),
     path("retrospectives/<uuid:pk>/", RetrospectiveDetailView.as_view(), name="retrospective-detail"),
     path("retrospectives/history/", RetrospectiveHistoryView.as_view(), name="retrospective-history"),
+    path("retrospectives/sprint-summary-history/", SprintSummaryHistoryView.as_view(), name="sprint-summary-history"),
+    path("retrospectives/<uuid:pk>/sprint-summary/", SprintSummaryView.as_view(), name="sprint-summary"),
     path("retrospectives/<uuid:retrospective_id>/detail/", ClosedRetrospectiveDetailView.as_view(), name="closed-retrospective-detail"),
     path("retrospectives/<uuid:retrospective_id>/close/", RetrospectiveCloseView.as_view(), name="retrospective-close"),
     path("retrospectives/<uuid:retrospective_id>/focus-card/", RetrospectiveFocusCardView.as_view(), name="retrospective-focus-card"),

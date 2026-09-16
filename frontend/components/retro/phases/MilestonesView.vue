@@ -9,6 +9,7 @@
         <button v-if="isFacilitator" class="button-primary py-1.5 text-sm" @click="$emit('advance-phase')">Next phase</button>
       </div>
     </div>
+
     <div class="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
       <MilestoneCard v-for="milestone in current.milestones" :key="milestone.id" :milestone="milestone" />
       <div v-if="!current.milestones.length" class="rounded-lg border border-dashed border-white/10 p-6 text-sm text-zinc-600">
@@ -16,13 +17,33 @@
       </div>
     </div>
 
+    <template v-if="retroStore.sprintSummary">
+      <SprintSummaryCards :summary="retroStore.sprintSummary" />
+      <SprintSummaryChart
+        :history="retroStore.sprintSummaryHistory"
+        :current="retroStore.sprintSummary"
+      />
+    </template>
   </div>
 </template>
 
 <script setup lang="ts">
 import MilestoneCard from '~/components/retro/MilestoneCard.vue'
+import SprintSummaryCards from '~/components/retro/SprintSummaryCards.vue'
+import SprintSummaryChart from '~/components/retro/SprintSummaryChart.vue'
+
 const props = defineProps({
   current: Object,
-  isFacilitator: Boolean
+  isFacilitator: Boolean,
+})
+
+const retroStore = useRetroStore()
+
+onMounted(async () => {
+  if (!props.current?.id) return
+  await retroStore.fetchSprintSummary(props.current.id)
+  if (props.current.team_key) {
+    await retroStore.fetchSprintSummaryHistory(props.current.team_key)
+  }
 })
 </script>

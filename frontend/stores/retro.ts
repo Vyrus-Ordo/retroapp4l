@@ -12,6 +12,8 @@ import type {
   RetrospectiveDetail,
   RetrospectiveSummary,
   RetroPhase,
+  SprintSummary,
+  SprintSummaryHistory,
   Vote,
 } from "~/utils/types"
 
@@ -27,6 +29,8 @@ interface RetroState {
   selectedCardIds: string[]
   previewPhase: RetroPhase | null
   discussionFocus: DiscussionFocusPayload | null
+  sprintSummary: SprintSummary | null
+  sprintSummaryHistory: SprintSummaryHistory[]
   error: string | null
   loading: boolean
 }
@@ -64,6 +68,8 @@ export const useRetroStore = defineStore("retro", {
     selectedCardIds: [],
     previewPhase: null,
     discussionFocus: null,
+    sprintSummary: null,
+    sprintSummaryHistory: [],
     error: null,
     loading: false,
   }),
@@ -334,6 +340,26 @@ export const useRetroStore = defineStore("retro", {
       if (this.current) {
         this.current = { ...this.current, status: "closed", closed_at: new Date().toISOString() }
       }
+    },
+    async fetchSprintSummary(retroId: string): Promise<void> {
+      const api = useApiClient()
+      this.sprintSummary = await api.get<SprintSummary>(`/retrospectives/${retroId}/sprint-summary/`)
+    },
+    async saveSprintSummary(
+      retroId: string,
+      payload: { total_stories: number; completed: number; carryover: number },
+    ): Promise<void> {
+      const api = useApiClient()
+      this.sprintSummary = await api.post<SprintSummary, typeof payload>(
+        `/retrospectives/${retroId}/sprint-summary/`,
+        payload,
+      )
+    },
+    async fetchSprintSummaryHistory(teamKey: string): Promise<void> {
+      const api = useApiClient()
+      this.sprintSummaryHistory = await api.get<SprintSummaryHistory[]>(
+        `/retrospectives/sprint-summary-history/?team_key=${encodeURIComponent(teamKey)}`,
+      )
     },
     setPreviewPhase(phase: RetroPhase | null) {
       this.previewPhase = phase
