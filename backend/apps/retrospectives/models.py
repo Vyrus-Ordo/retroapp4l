@@ -68,6 +68,23 @@ class Retrospective(models.Model):
 		return self.title
 
 
+class SprintSummary(models.Model):
+	id            = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+	retrospective = models.OneToOneField(
+		Retrospective,
+		on_delete=models.CASCADE,
+		related_name="sprint_summary",
+	)
+	total_stories = models.PositiveIntegerField()
+	completed     = models.PositiveIntegerField()
+	carryover     = models.PositiveIntegerField()
+	created_at    = models.DateTimeField(auto_now_add=True)
+	updated_at    = models.DateTimeField(auto_now=True)
+
+	class Meta:
+		verbose_name = "Sprint Summary"
+
+
 class Milestone(models.Model):
 	id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
 	retrospective = models.ForeignKey(Retrospective, on_delete=models.CASCADE, related_name="milestones")

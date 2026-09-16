@@ -228,3 +228,18 @@ export interface InviteResolveResponse {
   invite_status: "active" | "blocked" | "temporarily_open"
   entry_expires_at: string | null
 }
+
+export interface SprintSummary {
+  id: string
+  total_stories: number
+  completed: number
+  carryover: number
+  delivery_rate: number | null
+  created_at: string
+  updated_at: string
+}
+
+export interface SprintSummaryHistory extends SprintSummary {
+  sprint_name: string | null
+  closed_at: string
+}

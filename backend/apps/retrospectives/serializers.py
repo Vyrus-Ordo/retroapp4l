@@ -2,7 +2,7 @@ from rest_framework import serializers
 
 from apps.actions.serializers import ActionItemSerializer
 from apps.cards.serializers import CardSerializer, CardVoteSerializer
-from apps.retrospectives.models import Milestone, Participant, Retrospective
+from apps.retrospectives.models import Milestone, Participant, Retrospective, SprintSummary
 
 
 class ParticipantSerializer(serializers.ModelSerializer):
@@ -190,3 +190,33 @@ class ClosedRetrospectiveDetailSerializer(serializers.ModelSerializer):
             "action_items",
         )
         read_only_fields = fields
+
+
+class SprintSummarySerializer(serializers.ModelSerializer):
+    delivery_rate = serializers.SerializerMethodField()
+
+    class Meta:
+        model  = SprintSummary
+        fields = [
+            "id",
+            "total_stories",
+            "completed",
+            "carryover",
+            "delivery_rate",
+            "created_at",
+            "updated_at",
+        ]
+        read_only_fields = ["id", "created_at", "updated_at"]
+
+    def get_delivery_rate(self, obj):
+        if not obj.total_stories:
+            return None
+        return round(obj.completed / obj.total_stories * 100, 1)
+
+
+class SprintSummaryHistorySerializer(SprintSummarySerializer):
+    sprint_name = serializers.CharField(source="retrospective.sprint_name", allow_null=True)
+    closed_at = serializers.DateTimeField(source="retrospective.closed_at")
+
+    class Meta(SprintSummarySerializer.Meta):
+        fields = SprintSummarySerializer.Meta.fields + ["sprint_name", "closed_at"]

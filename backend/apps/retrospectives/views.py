@@ -5,6 +5,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.contrib.auth import get_user_model
 from django.db.models import Count, Prefetch, Q
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
 from rest_framework import generics, permissions, status
 from rest_framework.exceptions import PermissionDenied
@@ -22,6 +23,7 @@ from apps.retrospectives.models import (
 	Participant,
 	Retrospective,
 	RetrospectiveStatus,
+	SprintSummary,
 )
 from apps.retrospectives.serializers import (
 	ClosedRetrospectiveDetailSerializer,
@@ -31,6 +33,8 @@ from apps.retrospectives.serializers import (
 	RetrospectiveDetailSerializer,
 	RetrospectiveHistorySerializer,
 	RetrospectiveListSerializer,
+	SprintSummaryHistorySerializer,
+	SprintSummarySerializer,
 )
 from apps.users.serializers import GuestInviteJoinSerializer, UserSerializer
 
@@ -580,4 +584,60 @@ class PresenceView(RetrospectiveAccessMixin, APIView):
 		]
 		return Response({"participants": data}, status=status.HTTP_200_OK)
 
-# Create your views here.
+class SprintSummaryView(RetrospectiveAccessMixin, generics.GenericAPIView):
+	serializer_class = SprintSummarySerializer
+	permission_classes = [IsAuthenticated]
+
+	def get_retrospective(self):
+		return get_object_or_404(Retrospective, pk=self.kwargs["pk"])
+
+	def get_object(self):
+		retro = self.get_retrospective()
+		obj, _ = SprintSummary.objects.get_or_create(
+			retrospective=retro,
+			defaults={"total_stories": 0, "completed": 0, "carryover": 0},
+		)
+		return obj
+
+	def get(self, request, *args, **kwargs):
+		serializer = self.get_serializer(self.get_object())
+		return Response(serializer.data)
+
+	def _write(self, request, partial=False):
+		retro = self.get_retrospective()
+		if request.user != retro.facilitator:
+			raise PermissionDenied("Apenas o facilitador pode editar o sprint summary.")
+		if retro.status != "setup":
+			raise PermissionDenied("Sprint summary só pode ser editado na fase setup.")
+		instance = self.get_object()
+		serializer = self.get_serializer(instance, data=request.data, partial=partial)
+		serializer.is_valid(raise_exception=True)
+		serializer.save()
+		return Response(serializer.data)
+
+	def post(self, request, *args, **kwargs):
+		return self._write(request, partial=False)
+
+	def put(self, request, *args, **kwargs):
+		return self._write(request, partial=False)
+
+	def patch(self, request, *args, **kwargs):
+		return self._write(request, partial=True)
+
+
+class SprintSummaryHistoryView(generics.ListAPIView):
+	serializer_class = SprintSummaryHistorySerializer
+	permission_classes = [IsAuthenticated]
+
+	def get_queryset(self):
+		team_key = self.request.query_params.get("team_key", "")
+		if not team_key:
+			return SprintSummary.objects.none()
+		return (
+			SprintSummary.objects.filter(
+				retrospective__team_key=team_key,
+				retrospective__status="closed",
+			)
+			.select_related("retrospective")
+			.order_by("retrospective__closed_at")
+		)
