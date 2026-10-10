@@ -1,10 +1,14 @@
 # RetroApp 4L — Documento de Requisitos do Produto (PRD)
 
-**Versão:** 10.0 — Estado Implementado Atual
-**Data:** Maio 2026
+**Versão:** 10.1 — Estado Implementado Atual
+**Data:** Outubro 2026
 **Status:** Reconciliado com o código-fonte atual
 **Audiência:** Agente de IA, Tech Lead, contribuidores
 **Licença:** MIT
+
+> **Changelog v10.1:**
+> - Adicionada US-07b "Registrar resumo da sprint" (`SprintSummary`), implementada e mergeada em 2026-06-27 mas que não havia sido documentada no PRD.
+> - Registrado o gap do botão "+ Add Milestone" no `SetupView`, que não tem handler conectado em `retro/[id].vue`.
 
 > **Changelog v10.0:**
 > - Documento reconciliado novamente usando o código-fonte como única fonte da verdade.
@@ -241,6 +245,23 @@ Como facilitador, quero registrar marcos da sprint antes da sessão.
 - Guests são bloqueados.
 - Categorias: `achievement`, `challenge`, `change`, `recognition`, `other`.
 - `description` até 500 caracteres.
+
+---
+
+**US-07b — Registrar resumo da sprint**
+
+Como facilitador, quero registrar métricas quantitativas da sprint (histórias planejadas, concluídas e carry-over) antes de cadastrar marcos.
+
+**Critérios implementados:**
+- `GET/POST/PUT/PATCH /api/retrospectives/{id}/sprint-summary/`.
+- `GET` cria o registro com `get_or_create` (defaults zerados) se ainda não existir; disponível para qualquer participante da retro.
+- Escrita (`POST`/`PUT`/`PATCH`) restrita ao facilitador e somente na fase `setup`; `403` fora dessas condições.
+- `delivery_rate` é calculado (`completed / total_stories * 100`, 1 decimal) e nunca persistido; `null` se `total_stories == 0`.
+- `GET /api/retrospectives/sprint-summary-history/?team_key=<slug>` retorna a série histórica (retros `closed` do mesmo `team_key`, ordenada por `closed_at` ascendente); sem `team_key` retorna lista vazia.
+- UI (`SetupView`): formulário `SprintSummaryForm` com os três campos numéricos e taxa de entrega calculada reativamente; botão "+ Add Milestone" fica desabilitado enquanto `total_stories == 0` (sem summary preenchido).
+- UI (`MilestonesView`, fase `presentation`): `SprintSummaryCards` (4 indicadores) + `SprintSummaryChart` — barra de progresso simples se houver menos de 2 pontos históricos, gráfico de linha SVG nativo (sem lib externa) a partir de 2 pontos, com o ponto atual sempre destacado como losango.
+
+**Gap conhecido:** o botão "+ Add Milestone" do `SetupView` emite o evento `add-milestone`, mas `pages/retro/[id].vue` não tem handler registrado para ele — clicar no botão não tem efeito. Hoje a única forma real de criar milestones é em `retro/create.vue`, antes da sessão existir; não há fluxo de criação de milestone dentro do workspace ativo.
 
 ---
 

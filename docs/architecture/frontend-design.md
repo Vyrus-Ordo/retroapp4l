@@ -1,6 +1,6 @@
 # RetroApp 4L — Frontend Design System
 
-**Versão:** 2026-06-27
+**Versão:** 2026-06-27 (atualizado em 2026-10-10 com os componentes `SprintSummaryForm`, `SprintSummaryCards`, `SprintSummaryChart`)
 **Source of truth:** código-fonte. Tokens, componentes e comportamentos extraídos diretamente dos arquivos.
 
 ---
@@ -912,22 +912,82 @@ retros: RetrospectiveSummary[]   // obrigatória
 
 ---
 
+#### `SprintSummaryForm`
+
+**Arquivo:** `frontend/components/forms/SprintSummaryForm.vue`
+
+**Props:**
+```typescript
+retroId: string                      // obrigatória
+initialData?: SprintSummary | null   // pré-preenche se já existir
+```
+
+**Emits:** `saved: [SprintSummary]`
+
+**Campos:** três inputs numéricos (`total_stories`, `completed`, `carryover`, `type="number" min="0"`), cada um com `<label for>` corretamente associado ao `id` do input — diferente de `CardComposer`/`ActionItemForm`, que usam só `placeholder` sem `<label>` (ver seção 9, Acessibilidade).
+
+**Taxa de entrega:** computed reativo `((completed / total) * 100).toFixed(1)}%`, exibido em `text-2xl font-light`; vira `text-[#00f2ff]` quando `total > 0`, senão `text-zinc-600` com valor `'--'`.
+
+**Botão "Save Sprint Summary":** `.button-primary`, mostra `"Saving..."` + `disabled` durante a chamada. Em sucesso, toast `"Sprint summary saved."`; em erro, toast `"Failed to save sprint summary."`.
+
+**Usado em:** `SetupView.vue`, acima da seção de milestones. Facilitador apenas (bloqueio real está no backend: `403` fora da fase `setup` ou se não for facilitador).
+
+---
+
+#### `SprintSummaryCards`
+
+**Arquivo:** `frontend/components/retro/SprintSummaryCards.vue`
+
+**Props:**
+```typescript
+summary: SprintSummary   // obrigatória
+```
+
+**Visual:** grid `grid-cols-2 xl:grid-cols-4`, 4 cards `.panel p-4 flex flex-col gap-1 items-center text-center`. Label `text-xs text-zinc-500 uppercase tracking-wide`, valor `text-2xl font-light`.
+
+**Cards exibidos:** Total Sprint (`total_stories`), Concluídas (`completed`), Carry-over (`carryover`), Taxa de Entrega (`delivery_rate + '%'` ou `'--'` se `null`, único card com `text-[#00f2ff]`).
+
+**Usado em:** `MilestonesView.vue`, abaixo da grade de milestones, apenas quando `retroStore.sprintSummary` não é `null`.
+
+---
+
+#### `SprintSummaryChart`
+
+**Arquivo:** `frontend/components/retro/SprintSummaryChart.vue`
+
+**Props:**
+```typescript
+history: SprintSummaryHistory[]   // retros fechadas do mesmo team_key, ordenadas por closed_at ASC
+current: SprintSummary            // sprint atual (pode não estar fechada)
+```
+
+**Lógica condicional** (`showChart = history.length >= 2`):
+- **< 2 pontos históricos:** barra de progresso simples — `div` com largura `delivery_rate + '%'`, `bg-[#00f2ff]` sobre `bg-white/10 rounded-full h-2`, percentual exibido ao lado.
+- **≥ 2 pontos históricos:** gráfico de linha em SVG nativo (`viewBox="0 0 600 200"`, sem lib externa). Eixo Y com linhas de referência em 25/50/75/100%. `<polyline>` conectando os pontos (`stroke="#00f2ff"`). Pontos históricos como `<circle r="4">` com `<title>` de tooltip. Ponto atual sempre como `<polygon>` em losango para diferenciar da série fechada. Labels do eixo X truncados a 8 caracteres com `…`.
+- **Sem dados** (`current.delivery_rate === null`, ou seja `total_stories == 0`): mensagem `"Sem dados para exibir."` em `text-sm text-zinc-600` — único texto em português dentro de um componente majoritariamente em inglês.
+
+**Usado em:** `MilestonesView.vue`, junto com `SprintSummaryCards`, mesma condição (`retroStore.sprintSummary` não nulo).
+
+---
+
 ## 7. Padrões visuais por fase da sessão
 
 ### Fase `setup`
 
 **Quem vê o quê:**
-- Facilitador: botão "Go to Lobby" + ícone cog girando
+- Facilitador: `SprintSummaryForm` (3 inputs numéricos + taxa de entrega calculada), botão "Go to Lobby" + ícone cog girando. Abaixo, seção de milestones com botão `+ Add Milestone` desabilitado enquanto `SprintSummary.total_stories == 0`.
 - Participante: mensagem de espera + avatares dos participantes conectados (AvatarCircle)
 
 **Ações disponíveis:**
-- Facilitador: avançar para `lobby`
+- Facilitador: salvar Sprint Summary, avançar para `lobby`
 
-**Estado do board/cards:** sem board — tela centrada com min-h-[60vh]
+**Estado do board/cards:** sem board — tela centrada com min-h-[60vh] (participante) ou formulário + lista de milestones (facilitador)
 
 **Estado do timer:** oculto (fase não cronometrada)
 
 **Elementos específicos:** ícone `mdi-cog-outline` com `animate-spin` (CSS local, não Tailwind). Única fase com animação de ícone.
+
+> ⚠️ **Gap conhecido:** o botão `+ Add Milestone` emite o evento `add-milestone`, mas `pages/retro/[id].vue` não registra handler para ele — clicar não tem efeito. Não há fluxo de criação de milestone dentro do workspace ativo hoje; só é possível em `retro/create.vue`, antes da sessão existir.
 
 ---
 
@@ -971,8 +1031,8 @@ retros: RetrospectiveSummary[]   // obrigatória
 **Componente:** `MilestonesView`
 
 **Quem vê o quê:**
-- Facilitador: grid de `MilestoneCard` + botão avançar
-- Participante: mesmos marcos, sem botão avançar
+- Facilitador: grid de `MilestoneCard` + botão avançar. Quando `SprintSummary` existe para a retro, abaixo da grade renderiza `SprintSummaryCards` + `SprintSummaryChart`.
+- Participante: mesmos marcos, sem botão avançar; mesmos componentes de Sprint Summary se existirem.
 
 **Ações disponíveis:**
 - Facilitador: avançar fase

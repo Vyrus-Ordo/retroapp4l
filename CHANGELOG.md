@@ -8,6 +8,10 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Não lançado]
 
+### Documentação
+- Reconciliação de `docs/architecture/data-model.md`, `docs/PRD.md`, `docs/project-status.md` e `docs/architecture/frontend-design.md` com a feature `SprintSummary` (mergeada em 0.9.1 mas nunca documentada) — model, endpoints, permissões e os três componentes de frontend (`SprintSummaryForm`, `SprintSummaryCards`, `SprintSummaryChart`)
+- Registrado gap conhecido: botão `+ Add Milestone` em `SetupView` emite `add-milestone`, mas `retro/[id].vue` não tem handler para o evento — criação de milestone dentro do workspace ativo não está implementada
+
 ## [0.9.1] - 2026-06
 
 ### Adicionado

@@ -1,6 +1,6 @@
 # RetroApp 4L — Modelo de Dados
 
-**Versão:** 2026-06-27
+**Versão:** 2026-06-27 (atualizado em 2026-10-10 com `SprintSummary`)
 **Source of truth:** este arquivo. Em caso de conflito com PRD.md ou project-status.md, este vence para questões de schema e payload.
 
 > **Para agentes:** antes de criar migration, alterar model ou validar payload, leia este arquivo inteiro.
@@ -17,6 +17,7 @@ users/
 retrospectives/
   ├─ retrospectives_retrospective
   ├─ retrospectives_milestone
+  ├─ retrospectives_sprintsummary
   ├─ retrospectives_participant
   └─ retrospectives_accesslog
 
@@ -220,6 +221,56 @@ class Milestone(models.Model):
 | Campo virtual | Serializer | Tipo | Lógica |
 |---|---|---|---|
 | `author_name` | `MilestoneSerializer` | `string` | `obj.author.name` |
+
+---
+
+### `SprintSummary` → tabela `retrospectives_sprintsummary`
+
+```sql
+CREATE TABLE retrospectives_sprintsummary (
+    id               UUID        NOT NULL PRIMARY KEY DEFAULT gen_random_uuid(),
+    retrospective_id UUID        NOT NULL UNIQUE REFERENCES retrospectives_retrospective(id) ON DELETE CASCADE,
+    total_stories    INTEGER     NOT NULL,  -- PositiveIntegerField
+    completed        INTEGER     NOT NULL,  -- PositiveIntegerField
+    carryover        INTEGER     NOT NULL,  -- PositiveIntegerField
+    created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+```
+
+```python
+class SprintSummary(models.Model):
+    id             = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    retrospective  = models.OneToOneField(Retrospective, on_delete=models.CASCADE, related_name="sprint_summary")
+    total_stories  = models.PositiveIntegerField()
+    completed      = models.PositiveIntegerField()
+    carryover      = models.PositiveIntegerField()
+    created_at     = models.DateTimeField(auto_now_add=True)
+    updated_at     = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Sprint Summary"
+```
+
+> **Relação `OneToOne`:** cada retro tem no máximo um `SprintSummary`. O registro é criado via `get_or_create` na primeira leitura (`GET /sprint-summary/`, defaults `total_stories=completed=carryover=0`), nunca diretamente pelo cliente.
+>
+> **`delivery_rate`:** campo virtual, não persistido. Calculado no serializer como `round(completed / total_stories * 100, 1)`; retorna `null` quando `total_stories == 0`.
+>
+> **Permissões:** leitura (`GET`) por qualquer participante da retro; escrita (`POST`/`PUT`/`PATCH`) restrita ao facilitador e somente na fase `setup` — fora dessa condição, `403`.
+>
+> **Sem exclusão:** não existe endpoint `DELETE`; o registro só é removido em cascata com a retrospectiva (`on_delete=CASCADE`).
+>
+> **Migration:** `0007_add_sprint_summary.py`, escrita manualmente (Docker estava offline durante o desenvolvimento desta feature) seguindo o padrão das migrations anteriores do app. Nenhuma divergência de schema identificada entre migration e model.
+>
+> **Uso no frontend:** lido/gravado em `SetupView` (`SprintSummaryForm`) e exibido em `MilestonesView` (`SprintSummaryCards` + `SprintSummaryChart`). Ver `frontend-design.md` para o comportamento visual.
+
+#### Campos virtuais expostos pela API
+
+| Campo virtual | Serializer | Tipo | Lógica |
+|---|---|---|---|
+| `delivery_rate` | `SprintSummarySerializer`, `SprintSummaryHistorySerializer` | `float \| null` | `round(completed / total_stories * 100, 1)`; `null` se `total_stories == 0` |
+| `sprint_name` | `SprintSummaryHistorySerializer` | `string \| null` | `retrospective.sprint_name` |
+| `closed_at` | `SprintSummaryHistorySerializer` | `TIMESTAMPTZ` | `retrospective.closed_at` |
 
 ---
 
@@ -469,6 +520,8 @@ Todos os campos que a API expõe mas que não existem como coluna no banco:
 | `Retrospective` | `action_items_count` | `integer` | anotado via queryset no histórico |
 | `Retrospective` | `action_item_status_summary` | `object` | contagem por status: `{ not_started, in_progress, done }` |
 | `Milestone` | `author_name` | `string` | `author.name` |
+| `SprintSummary` | `delivery_rate` | `float \| null` | `round(completed / total_stories * 100, 1)`; `null` se `total_stories == 0` |
+| `SprintSummary` (history) | `sprint_name`, `closed_at` | `string \| null`, `TIMESTAMPTZ` | lidos de `retrospective.sprint_name` / `retrospective.closed_at` |
 | `Participant` | `user_name` | `string` | `user.name` |
 | `Participant` | `user_email` | `string` | `user.display_email` |
 | `Card` | `author` | `UUID \| null` | `null` quando `is_anonymous=True` |
@@ -494,3 +547,4 @@ Todos os campos que a API expõe mas que não existem como coluna no banco:
 | 5 | `skip_check_phase` sem efeito | PRDs anteriores diziam que não havia efeito | Tem efeito no frontend (`usePhase.ts`); backend não valida |
 | 6 | `state_machine.py` aplicada | PRD dizia que transições lineares eram validadas | O consumer WebSocket não chama `is_valid_transition`; aceita qualquer status válido |
 | 7 | Ordem de fases | `state_machine.py` e PRD antigo: `presentation` antes de `check` | `usePhase.ts` e comportamento efetivo: `check` antes de `presentation` |
+| 8 | Botão "Add Milestone" em `SetupView` | A spec original (2026-06-27) previa apenas desabilitar o botão sem `SprintSummary`; não escopava o wiring da criação | `SetupView.vue` emite `add-milestone`, mas `pages/retro/[id].vue` não registra handler para esse evento — clicar no botão não faz nada. Milestones só podem ser criados hoje via `retro/create.vue` (antes da sessão existir) |

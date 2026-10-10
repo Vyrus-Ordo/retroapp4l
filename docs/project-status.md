@@ -1,6 +1,6 @@
 # Documentação de Implementação Atual - RetroApp 4L
 
-> **Última Atualização:** Maio de 2026
+> **Última Atualização:** Outubro de 2026
 > **Objetivo:** Este documento descreve o comportamento atualmente implementado no código-fonte. O código é a única fonte da verdade.
 
 ---
@@ -36,6 +36,12 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * **Campos:** `id`, `retrospective`, `author`, `category`, `description`, `created_at`.
   * **Categorias:** `achievement`, `challenge`, `change`, `recognition`, `other`.
   * **Propósito:** marcos cadastrados pelo facilitador na fase `setup`.
+
+* **`SprintSummary` (App: retrospectives):**
+  * **Campos:** `id`, `retrospective` (OneToOne), `total_stories`, `completed`, `carryover`, `created_at`, `updated_at`.
+  * **Propósito:** métricas quantitativas da sprint (histórias planejadas/concluídas/carry-over), registradas pelo facilitador na fase `setup` antes de cadastrar milestones.
+  * **`delivery_rate`:** não persistido, calculado no serializer (`completed / total_stories * 100`, 1 decimal); `null` se `total_stories == 0`.
+  * **Criação:** via `get_or_create` na primeira leitura (`GET /sprint-summary/`), nunca diretamente pelo cliente; defaults zerados.
 
 * **`Participant` (App: retrospectives):**
   * **Campos:** `id`, `retrospective`, `user`, `votes_remaining`, `joined_at`.
@@ -104,6 +110,11 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * CRUD em `/api/retrospectives/{id}/milestones/`;
   * criação/edição/exclusão apenas pelo facilitador na fase `setup`;
   * guests não podem criar/editar/excluir marcos.
+* Sprint Summary:
+  * `GET/POST/PUT/PATCH /api/retrospectives/{id}/sprint-summary/`;
+  * `GET` qualquer participante da retro; escrita apenas facilitador e somente na fase `setup` (`403` fora disso);
+  * `GET /api/retrospectives/sprint-summary-history/?team_key=<slug>` retorna série histórica de retros `closed` do mesmo time, ordenada por `closed_at` ascendente; sem `team_key`, lista vazia;
+  * não há endpoint de exclusão; o registro só desaparece em cascata com a retrospectiva.
 
 ### `realtime` (WebSockets e Sincronização)
 
@@ -237,10 +248,10 @@ O frontend fica em `/frontend` e é uma SPA Nuxt.
 
 ### 3.4. Fluxo de Retrospectiva (Componentes Visuais de `phases/`)
 
-1. **`SetupView.vue`**: tela de preparação; facilitador avança para lobby.
+1. **`SetupView.vue`**: tela de preparação; facilitador avança para lobby. O facilitador vê primeiro o `SprintSummaryForm` (Sprint Summary), depois a seção de milestones. O botão `+ Add Milestone` fica desabilitado enquanto `SprintSummary.total_stories == 0`; emite o evento `add-milestone`, mas `retro/[id].vue` **não tem handler registrado** para esse evento — clicar no botão não tem efeito algum hoje.
 2. **`LobbyView.vue`**: exibe link de convite e contagem de participantes; facilitador inicia a sessão. Pela ordem do frontend, o próximo passo é `check`, exceto quando `skip_check_phase=true`, quando vai para `presentation`.
 3. **`CheckView.vue`**: revisão de ações da última retro fechada do mesmo time. Somente facilitador consegue editar status pela UI.
-4. **`MilestonesView.vue`**: exibe todos os marcos cadastrados; a UI atual não usa os eventos de apresentação `.start/.next/.prev/.end`, apenas mostra a grade e deixa avançar fase.
+4. **`MilestonesView.vue`**: exibe todos os marcos cadastrados; a UI atual não usa os eventos de apresentação `.start/.next/.prev/.end`, apenas mostra a grade e deixa avançar fase. Quando existe `SprintSummary` para a retro, renderiza abaixo da grade os componentes `SprintSummaryCards` (4 indicadores: Total Sprint, Concluídas, Carry-over, Taxa de Entrega) e `SprintSummaryChart` (barra de progresso com <2 pontos históricos do `team_key`; gráfico de linha SVG nativo com ≥2 pontos, ponto atual sempre em losango).
 5. **`BoardView.vue`**: quadro 4L com criação/edição/exclusão de cards pela UI. Ao acionar `Add`, o modal `CardComposer` abre com foco automático no campo de descrição.
 6. **`GroupingView.vue`**: facilitador seleciona cards da mesma coluna e agrupa; participantes observam.
 7. **`VotingView.vue`**: votos apenas em `loathed` e `longed`; mostra votos restantes.
@@ -328,3 +339,5 @@ O frontend usa TailwindCSS e CSS customizado, sem biblioteca de componentes como
 * A tela `/join` estava descrita como entrada por PIN/código de sala; atualmente ela apenas navega para `/retro/{code}`.
 * A presença REST estava descrita como online/offline; o endpoint retorna participantes, e online/offline é estimado no frontend por eventos WebSocket.
 * OAuth estava descrito como não exposto; a UI expõe um botão Google, mas o backend não configura provider Google no settings do repositório.
+* `SprintSummary` foi implementado (migration 0007, endpoints e UI completos) mas nunca entrou nesta documentação até agora — a spec original (`docs/specs/SprintSummary/`) previa atualizar `project-status.md` após a implementação e isso não aconteceu.
+* O botão `+ Add Milestone` do `SetupView` (introduzido junto com `SprintSummary` para bloquear a criação de milestones sem summary) emite `add-milestone`, mas não há handler para esse evento em `retro/[id].vue` — a criação de milestones dentro do workspace ativo não está implementada; só é possível na criação da retro (`retro/create.vue`).
