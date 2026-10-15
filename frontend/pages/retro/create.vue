@@ -29,7 +29,6 @@ const phaseDurationsMinutes = reactive<Record<string, number>>({ ...DEFAULT_DURA
 const form = reactive({
   title: "",
   sprint_name: "",
-  description: "",
   team_key: "",
   max_votes_per_user: 3,
   allow_self_vote: false,
@@ -78,6 +77,7 @@ async function submit() {
     }
     const retrospectiveId = await retroStore.createRetrospective({
       ...form,
+      description: "",
       phase_durations,
       milestones: form.include_milestones ? milestones.value : [],
     })
@@ -103,7 +103,6 @@ async function submit() {
               <input v-model="form.sprint_name" class="field-input" placeholder="Sprint">
               <input v-model="form.title" class="field-input" placeholder="Retrospective title">
             </div>
-            <textarea v-model="form.description" class="field-input min-h-24" placeholder="Context (optional)" />
             <div class="grid grid-cols-2 gap-4">
               <div>
                 <input v-model="form.team_key" class="field-input" list="team-suggestions" placeholder="Team">
