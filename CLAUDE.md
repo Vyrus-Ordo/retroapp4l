@@ -2,11 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+> **Execution rule (see `AGENTS.md`): every command below runs INSIDE the
+> docker-compose containers, never directly on the host.** The bare commands
+> in this section exist only to document which command to run — prefix each
+> one with `docker compose exec <service>` (or `docker compose -f
+> docker-compose.dev.yml exec <service>`), e.g. `docker compose exec backend
+> pytest`, `docker compose exec frontend npm run lint`. Never run `npm run
+> ...`, `pytest`, `python manage.py ...` or `ruff ...` straight on the host.
+
 ---
 
 ## Commands
 
-### Backend (Django)
+### Backend (Django) — run via `docker compose exec backend <command>`
 
 ```bash
 cd backend
@@ -31,7 +39,7 @@ ruff check .
 ruff format .
 ```
 
-### Frontend (Nuxt 3)
+### Frontend (Nuxt 3) — run via `docker compose exec frontend <command>`
 
 ```bash
 cd frontend
