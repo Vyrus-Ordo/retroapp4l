@@ -31,6 +31,15 @@ const votesRemaining = computed(() => {
   return participant?.votes_remaining ?? props.current?.max_votes_per_user ?? 0
 })
 
+const teamVotesRemaining = computed(() => {
+  const participants = props.current?.participants
+  if (!Array.isArray(participants)) return 0
+  return participants.reduce(
+    (sum: number, p: { votes_remaining?: number } | null) => sum + (Number(p?.votes_remaining) || 0),
+    0,
+  )
+})
+
 function handleVote(card: Card) {
   emit("vote", card.id)
 }
@@ -48,7 +57,7 @@ function handleVote(card: Card) {
           Next phase
         </button>
         <span class="inline-flex items-center gap-1.5 rounded-full border border-[#00f2ff]/25 px-3 py-1 text-sm font-light text-[#00f2ff]">
-          {{ votesRemaining }} vote<span v-if="votesRemaining !== 1">s</span> left
+          {{ teamVotesRemaining }} vote<span v-if="teamVotesRemaining !== 1">s</span> left · team
         </span>
         <span v-if="current?.timer_duration_seconds" class="text-lg font-light tabular-nums font-mono" :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-[#00f2ff]'">>
           {{ timerStore.formatted }}
