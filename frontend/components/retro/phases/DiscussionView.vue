@@ -33,6 +33,17 @@ const queueAfterFocus = computed<Card[]>(() =>
   focus.value ? sortedCards.value.filter((c) => c.id !== focus.value!.card_id) : sortedCards.value,
 )
 
+const rankLabels = ["Most voted", "2nd most voted", "3rd most voted"]
+
+function isTopRanked(card: Card, index: number): boolean {
+  return index < 3 && card.vote_count > 0
+}
+
+function cardBackground(card: Card, index: number): string {
+  if (focus.value?.card_id === card.id) return "rgba(255,255,255,0.04)"
+  return isTopRanked(card, index) ? "rgba(245,158,11,0.10)" : "rgba(255,255,255,0.04)"
+}
+
 async function handleFocusCard(card: Card) {
   if (!props.isFacilitator) return
   await props.retroStore.focusCard(retrospectiveId.value, card.id)
@@ -82,17 +93,28 @@ async function handleNextCard() {
             'rounded-xl border p-4 transition cursor-default',
             focus?.card_id === card.id
               ? 'border-[#00f2ff]/40 ring-1 ring-[#00f2ff]/15'
-              : index < 3 && card.vote_count > 0
-              ? 'border-amber-500/30'
+              : isTopRanked(card, index)
+              ? 'border-amber-500/50'
               : 'border-white/8',
             isFacilitator ? 'cursor-pointer hover:border-white/20' : '',
           ]"
-          style="background: rgba(255,255,255,0.04)"
+          :style="{ background: cardBackground(card, index) }"
           @click="handleFocusCard(card)"
         >
           <div class="flex items-start justify-between gap-3">
             <div>
-              <p class="text-xs font-light uppercase tracking-[0.2em] text-zinc-600">{{ card.column }}</p>
+              <div class="flex items-center gap-2">
+                <span
+                  v-if="isTopRanked(card, index)"
+                  :title="rankLabels[index]"
+                  :aria-label="rankLabels[index]"
+                  :class="index === 0 ? 'bg-amber-500/25 text-amber-100 ring-amber-500/60' : 'bg-amber-500/15 text-amber-300 ring-amber-500/40'"
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-bold ring-1"
+                >
+                  #{{ index + 1 }}
+                </span>
+                <p class="text-xs font-light uppercase tracking-[0.2em] text-zinc-600">{{ card.column }}</p>
+              </div>
               <p
                 :class="card.is_anonymous ? 'border-[#00f2ff]/20 text-[#00f2ff]/70' : 'text-zinc-600'"
                 class="mt-1 inline-flex rounded-full border border-transparent px-2 py-0.5 text-xs"
