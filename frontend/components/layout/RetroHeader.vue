@@ -25,7 +25,7 @@ import type { RetroPhase } from '~/utils/types'
 import PhaseCarousel from './PhaseCarousel.vue'
 import SettingsModal from './SettingsModal.vue'
 
-const props = defineProps<{
+defineProps<{
   currentPhase: RetroPhase
   skipCheckPhase?: boolean
 }>()

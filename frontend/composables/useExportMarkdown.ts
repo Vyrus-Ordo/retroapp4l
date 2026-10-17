@@ -42,7 +42,7 @@ export const useExportMarkdown = (options: ExportMarkdownOptions) => {
     }
 
     // Header
-    const participantNames = participants.map((p: any) => p.user_name || p.name).join(', ') || '-'
+    const participantNames = participants.map((p: Participant & { name?: string }) => p.user_name || p.name).join(', ') || '-'
     let md = `# ${retro.title}\n`
     md += `**Sprint:** ${retro.sprint_name || '-'}\n`
     md += `**Time:** ${retro.team_key}\n`
@@ -127,9 +127,14 @@ export const useExportMarkdown = (options: ExportMarkdownOptions) => {
         done: 'Concluído'
       }
       
-      actionItems.forEach((item: any) => {
+      actionItems.forEach((item: ActionItem) => {
         const desc = item.description || '-'
-        const assignee = item.assignee?.user?.name || item.assignee_name || '-'
+        const assignee =
+          (typeof item.assignee === 'string' || !item.assignee
+            ? null
+            : (item.assignee as { user?: { name?: string } }).user?.name) ||
+          item.assignee_name ||
+          '-'
         let due = '-'
         if (item.due_date) {
           const dDate = new Date(item.due_date)

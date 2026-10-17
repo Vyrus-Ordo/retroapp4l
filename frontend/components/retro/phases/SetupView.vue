@@ -3,8 +3,8 @@
     <template v-if="isFacilitator">
       <SprintSummaryForm
         v-if="current?.id"
-        :retroId="current.id"
-        :initialData="retroStore.sprintSummary"
+        :retro-id="current.id"
+        :initial-data="retroStore.sprintSummary"
       />
 
       <div class="panel p-6 flex flex-col gap-4">
@@ -54,9 +54,15 @@ import MilestoneCard from '~/components/retro/MilestoneCard.vue'
 import SprintSummaryForm from '~/components/forms/SprintSummaryForm.vue'
 
 const props = defineProps({
-  current: Object,
+  current: {
+    type: Object,
+    default: null,
+  },
   isFacilitator: Boolean,
-  participants: Array,
+  participants: {
+    type: Array,
+    default: () => [],
+  },
 })
 
 defineEmits(['advance-phase', 'add-milestone'])

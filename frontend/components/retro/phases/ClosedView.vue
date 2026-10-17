@@ -8,7 +8,10 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-  current: Object
+defineProps({
+  current: {
+    type: Object,
+    default: null,
+  },
 })
 </script>

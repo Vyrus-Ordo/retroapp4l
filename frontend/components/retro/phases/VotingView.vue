@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Card } from "~/utils/types"
+import type { Card, Participant, RetrospectiveDetail, Vote } from "~/utils/types"
 
 import BoardGrid from "~/components/board/BoardGrid.vue"
 
 const props = defineProps<{
-  current: any
+  current: RetrospectiveDetail
   isFacilitator: boolean
-  retroStore: any
-  timerStore: any
+  retroStore: ReturnType<typeof useRetroStore>
+  timerStore: ReturnType<typeof useTimerStore>
 }>()
 
 const emit = defineEmits<{
@@ -20,15 +20,24 @@ const currentUserId = computed(() => authStore.user?.id)
 
 const votedCardIds = computed(() =>
   props.retroStore.votes
-    .filter((v: any) => v.voter === currentUserId.value)
-    .map((v: any) => v.card),
+    .filter((v: Vote) => v.voter === currentUserId.value)
+    .map((v: Vote) => v.card),
 )
 
 const votesRemaining = computed(() => {
   const participant = props.current?.participants?.find(
-    (p: any) => p.user === currentUserId.value,
+    (p: Participant) => p.user === currentUserId.value,
   )
   return participant?.votes_remaining ?? props.current?.max_votes_per_user ?? 0
+})
+
+const teamVotesRemaining = computed(() => {
+  const participants = props.current?.participants
+  if (!Array.isArray(participants)) return 0
+  return participants.reduce(
+    (sum: number, p: { votes_remaining?: number } | null) => sum + (Number(p?.votes_remaining) || 0),
+    0,
+  )
 })
 
 function handleVote(card: Card) {
@@ -48,7 +57,7 @@ function handleVote(card: Card) {
           Next phase
         </button>
         <span class="inline-flex items-center gap-1.5 rounded-full border border-[#00f2ff]/25 px-3 py-1 text-sm font-light text-[#00f2ff]">
-          {{ votesRemaining }} vote<span v-if="votesRemaining !== 1">s</span> left
+          {{ teamVotesRemaining }} vote<span v-if="teamVotesRemaining !== 1">s</span> left · team
         </span>
         <span v-if="current?.timer_duration_seconds" class="text-lg font-light tabular-nums font-mono" :class="timerStore.secondsRemaining < 60 ? 'text-danger-500' : 'text-[#00f2ff]'">>
           {{ timerStore.formatted }}

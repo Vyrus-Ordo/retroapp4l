@@ -4,7 +4,6 @@ authStore.init()
 
 const router = useRouter()
 
-const isGuestSession = computed(() => authStore.isGuestSession)
 const isAuthenticatedUser = computed(() => authStore.isAuthenticated && !authStore.isGuestSession)
 
 const initials = computed(() => {

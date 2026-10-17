@@ -17,10 +17,14 @@
 
 <script setup lang="ts">
 import VoteBadge from './VoteBadge.vue'
-const props = defineProps({
-  card: Object,
-  canNext: Boolean
+defineProps({
+  card: {
+    type: Object,
+    default: null,
+  },
+  canNext: Boolean,
 })
+defineEmits(['next'])
 </script>
 
 <style scoped>

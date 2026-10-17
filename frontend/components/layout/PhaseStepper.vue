@@ -24,7 +24,7 @@ const props = defineProps<{
   currentPhase: string
   isFacilitator?: boolean
 }>()
-const emit = defineEmits(['select'])
+defineEmits(['select'])
 
 const currentIdx = computed(() => props.phases.indexOf(props.currentPhase))
 const label = (phase: string) => PHASE_META[phase]?.label || phase

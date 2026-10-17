@@ -30,7 +30,7 @@ async function submit() {
   pending.value = true
   try {
     await navigateTo(`/retro/${code.value}`)
-  } catch (e) {
+  } catch {
     error.value = "Invalid code or retrospective not found."
   } finally {
     pending.value = false
