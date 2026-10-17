@@ -33,9 +33,14 @@ import SprintSummaryCards from '~/components/retro/SprintSummaryCards.vue'
 import SprintSummaryChart from '~/components/retro/SprintSummaryChart.vue'
 
 const props = defineProps({
-  current: Object,
+  current: {
+    type: Object,
+    default: null,
+  },
   isFacilitator: Boolean,
 })
+
+defineEmits(['advance-phase'])
 
 const retroStore = useRetroStore()
 

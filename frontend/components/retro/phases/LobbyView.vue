@@ -38,9 +38,17 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-  inviteLink: String,
+defineProps({
+  inviteLink: {
+    type: String,
+    default: null,
+  },
   isFacilitator: Boolean,
-  participants: Array
+  participants: {
+    type: Array,
+    default: () => [],
+  },
 })
+
+defineEmits(['advance-phase', 'copy-invite-link'])
 </script>

@@ -76,8 +76,8 @@ const handleExport = (layout: 'table' | 'sections') => {
         </div>
         <button
           v-if="isFacilitator"
-          @click="showExportModal = true"
           class="button-secondary text-sm shrink-0"
+          @click="showExportModal = true"
         >
           Exportar
         </button>
@@ -119,7 +119,7 @@ const handleExport = (layout: 'table' | 'sections') => {
     <Teleport to="body">
       <div v-if="showExportModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
         <div class="panel w-full max-w-md p-6 relative">
-          <button @click="showExportModal = false" class="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors">
+          <button class="absolute top-4 right-4 text-zinc-400 hover:text-white transition-colors" @click="showExportModal = false">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -128,12 +128,12 @@ const handleExport = (layout: 'table' | 'sections') => {
           <h2 class="text-xl font-light text-white mb-6">Exportar retrospectiva</h2>
           
           <div class="space-y-4">
-            <button @click="handleExport('sections')" class="w-full text-left p-4 rounded-xl border border-white/8 hover:bg-white/5 transition-colors group">
+            <button class="w-full text-left p-4 rounded-xl border border-white/8 hover:bg-white/5 transition-colors group" @click="handleExport('sections')">
               <div class="font-medium text-white group-hover:text-[#00f2ff] transition-colors">Seções</div>
               <div class="text-xs text-zinc-400 mt-1">Cada coluna como bloco separado. Melhor para textos longos.</div>
             </button>
             
-            <button @click="handleExport('table')" class="w-full text-left p-4 rounded-xl border border-white/8 hover:bg-white/5 transition-colors group">
+            <button class="w-full text-left p-4 rounded-xl border border-white/8 hover:bg-white/5 transition-colors group" @click="handleExport('table')">
               <div class="font-medium text-white group-hover:text-[#00f2ff] transition-colors">Tabela</div>
               <div class="text-xs text-zinc-400 mt-1">Colunas lado a lado. Melhor para visão compacta.</div>
             </button>

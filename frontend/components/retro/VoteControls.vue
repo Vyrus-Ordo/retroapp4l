@@ -8,9 +8,13 @@
 
 <script setup lang="ts">
 import VoteBadge from './VoteBadge.vue'
-const props = defineProps({
-  votes: Number,
+defineProps({
+  votes: {
+    type: Number,
+    default: 0,
+  },
   active: Boolean,
-  disabled: Boolean
+  disabled: Boolean,
 })
+defineEmits(['vote'])
 </script>

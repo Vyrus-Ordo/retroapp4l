@@ -7,14 +7,14 @@ import {
   MinusCircleIcon,
 } from "@heroicons/vue/24/outline"
 
-import type { ActionItem } from "~/utils/types"
+import type { ActionItem, Participant, RetrospectiveDetail } from "~/utils/types"
 
 const props = defineProps<{
-  current: any
+  current: RetrospectiveDetail
   isFacilitator: boolean
-  retroStore: any
-  timerStore: any
-  participants: any[]
+  retroStore: ReturnType<typeof useRetroStore>
+  timerStore: ReturnType<typeof useTimerStore>
+  participants: Participant[]
 }>()
 
 const emit = defineEmits<{

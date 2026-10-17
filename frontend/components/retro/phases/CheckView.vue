@@ -15,7 +15,7 @@
           <p class="text-sm font-light text-zinc-200">{{ action.description }}</p>
           <p class="mt-1 text-xs text-zinc-600">{{ action.assignee_name || 'No assignee' }}</p>
         </div>
-        <select class="field-input max-w-48" :value="action.status" @change="retroStore.updatePreviousActionStatus(current.id, action.id, String(($event.target as HTMLSelectElement).value))" :disabled="!isFacilitator">
+        <select class="field-input max-w-48" :value="action.status" :disabled="!isFacilitator" @change="retroStore.updatePreviousActionStatus(current.id, action.id, String(($event.target as HTMLSelectElement).value))">
           <option class="bg-[#0d0d0d] text-zinc-200" value="not_started">Not started</option>
           <option class="bg-[#0d0d0d] text-zinc-200" value="in_progress">In progress</option>
           <option class="bg-[#0d0d0d] text-zinc-200" value="done">Done</option>
@@ -30,9 +30,17 @@
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-  current: Object,
+defineProps({
+  current: {
+    type: Object,
+    default: null,
+  },
   isFacilitator: Boolean,
-  retroStore: Object
+  retroStore: {
+    type: Object,
+    default: null,
+  },
 })
+
+defineEmits(['advance-phase'])
 </script>

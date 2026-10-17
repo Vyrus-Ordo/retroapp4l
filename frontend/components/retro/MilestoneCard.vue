@@ -1,4 +1,3 @@
-defineProps<{
 <template>
   <div class="milestone-card rounded-lg border border-white/10 p-4 flex flex-col gap-2" style="background: rgba(255,255,255,0.04)">
     <div class="flex items-center gap-2 mb-1">
@@ -11,8 +10,11 @@ defineProps<{
 </template>
 
 <script setup lang="ts">
-const props = defineProps({
-  milestone: Object
+defineProps({
+  milestone: {
+    type: Object,
+    default: null,
+  },
 })
 </script>
 

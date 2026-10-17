@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import BoardGrid from "~/components/board/BoardGrid.vue"
 
+import type { RetrospectiveDetail } from "~/utils/types"
+
 const props = defineProps<{
-  current: any
+  current: RetrospectiveDetail
   isFacilitator: boolean
-  retroStore: any
+  retroStore: ReturnType<typeof useRetroStore>
 }>()
 
 const emit = defineEmits<{

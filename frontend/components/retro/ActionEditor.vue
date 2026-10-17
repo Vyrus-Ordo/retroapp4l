@@ -16,9 +16,12 @@
 <script setup lang="ts">
 import { reactive, watchEffect } from 'vue'
 const props = defineProps({
-  action: Object
+  action: {
+    type: Object,
+    default: null,
+  },
 })
-const emit = defineEmits(['save', 'cancel'])
+defineEmits(['save', 'cancel'])
 const form = reactive({
   title: '',
   description: '',
