@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { MilestoneCategory } from "~/utils/types"
 import MilestoneCard from "~/components/retro/MilestoneCard.vue"
+import { MILESTONE_CATEGORIES, MILESTONE_VISUALS } from "~/utils/milestoneVisuals"
 
 const retroStore = useRetroStore()
 
@@ -163,11 +164,14 @@ async function submit() {
             </div>
             <div class="grid gap-2 grid-cols-[140px,1fr,auto]">
               <select v-model="milestoneDraft.category" class="field-input">
-                <option class="bg-[#0d0d0d] text-zinc-200" value="achievement">Achievement</option>
-                <option class="bg-[#0d0d0d] text-zinc-200" value="challenge">Challenge</option>
-                <option class="bg-[#0d0d0d] text-zinc-200" value="change">Change</option>
-                <option class="bg-[#0d0d0d] text-zinc-200" value="recognition">Recognition</option>
-                <option class="bg-[#0d0d0d] text-zinc-200" value="other">Other</option>
+                <option
+                  v-for="category in MILESTONE_CATEGORIES"
+                  :key="category"
+                  class="bg-[#0d0d0d] text-zinc-200"
+                  :value="category"
+                >
+                  {{ MILESTONE_VISUALS[category].label }}
+                </option>
               </select>
               <input v-model="milestoneDraft.description" class="field-input" placeholder="Describe the milestone">
               <button class="button-secondary" type="button" @click="addMilestone">Add</button>
