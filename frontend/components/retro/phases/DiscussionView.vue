@@ -1,15 +1,15 @@
 <script setup lang="ts">
 import { ViewfinderCircleIcon } from "@heroicons/vue/24/outline"
 
-import type { Card, DiscussionFocusPayload, ActionItem } from "~/utils/types"
+import type { Card, DiscussionFocusPayload, ActionItem, RetrospectiveDetail } from "~/utils/types"
 
 import FocusCard from "~/components/board/FocusCard.vue"
 
 const props = defineProps<{
-  current: any
+  current: RetrospectiveDetail
   isFacilitator: boolean
-  retroStore: any
-  timerStore: any
+  retroStore: ReturnType<typeof useRetroStore>
+  timerStore: ReturnType<typeof useTimerStore>
   discussionQueue: Card[]
 }>()
 

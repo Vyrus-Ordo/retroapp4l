@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Card } from "~/utils/types"
+import type { Card, Participant, RetrospectiveDetail, Vote } from "~/utils/types"
 
 import BoardGrid from "~/components/board/BoardGrid.vue"
 
 const props = defineProps<{
-  current: any
+  current: RetrospectiveDetail
   isFacilitator: boolean
-  retroStore: any
-  timerStore: any
+  retroStore: ReturnType<typeof useRetroStore>
+  timerStore: ReturnType<typeof useTimerStore>
 }>()
 
 const emit = defineEmits<{
@@ -20,13 +20,13 @@ const currentUserId = computed(() => authStore.user?.id)
 
 const votedCardIds = computed(() =>
   props.retroStore.votes
-    .filter((v: any) => v.voter === currentUserId.value)
-    .map((v: any) => v.card),
+    .filter((v: Vote) => v.voter === currentUserId.value)
+    .map((v: Vote) => v.card),
 )
 
 const votesRemaining = computed(() => {
   const participant = props.current?.participants?.find(
-    (p: any) => p.user === currentUserId.value,
+    (p: Participant) => p.user === currentUserId.value,
   )
   return participant?.votes_remaining ?? props.current?.max_votes_per_user ?? 0
 })

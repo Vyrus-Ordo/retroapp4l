@@ -12,7 +12,7 @@ withDefaults(
     phase: string
     groupedChildren?: Record<string, Card[]>
   }>(),
-  { votedCardIds: () => [], groupedChildren: () => ({}), votesRemaining: undefined, allowSelfVote: false },
+  { votedCardIds: () => [], currentUserId: undefined, groupedChildren: () => ({}), votesRemaining: undefined, allowSelfVote: false },
 )
 
 defineEmits<{

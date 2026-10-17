@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { Card, CardColumn } from "~/utils/types"
+import type { Card, CardColumn, RetrospectiveDetail } from "~/utils/types"
 
 import BoardGrid from "~/components/board/BoardGrid.vue"
 
-const props = defineProps<{
-  current: any
+defineProps<{
+  current: RetrospectiveDetail
   isFacilitator: boolean
-  retroStore: any
-  timerStore: any
+  retroStore: ReturnType<typeof useRetroStore>
+  timerStore: ReturnType<typeof useTimerStore>
 }>()
 
 const emit = defineEmits<{

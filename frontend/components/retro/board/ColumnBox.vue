@@ -25,14 +25,19 @@
 
 <script setup lang="ts">
 import RetroCard from '../RetroCard.vue'
-const props = defineProps({
-  column: Object,
+defineProps({
+  column: {
+    type: Object,
+    default: null,
+  },
   cards: {
     type: Array,
     default: () => []
   },
   canAdd: Boolean
 })
+
+defineEmits(['add-card', 'card-action'])
 </script>
 
 <style scoped>

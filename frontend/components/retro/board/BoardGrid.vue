@@ -5,7 +5,7 @@
       :key="col.id"
       :column="col"
       :cards="cardsByColumn[col.id] || []"
-      :canAdd="canAdd"
+      :can-add="canAdd"
       @add-card="$emit('add-card', col.id)"
       @card-action="$emit('card-action', $event)"
     />
@@ -15,7 +15,7 @@
 <script setup lang="ts">
 import ColumnBox from './ColumnBox.vue'
 import { COLUMN_META } from '~/utils/types'
-const props = defineProps({
+defineProps({
   columns: {
     type: Array,
     default: () => COLUMN_META
@@ -26,6 +26,8 @@ const props = defineProps({
   },
   canAdd: Boolean
 })
+
+defineEmits(['add-card', 'card-action'])
 </script>
 
 <style scoped>

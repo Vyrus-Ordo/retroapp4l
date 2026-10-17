@@ -64,7 +64,7 @@ export function useApiClient() {
               body: options.body,
               headers: { ...headers, Authorization: `Bearer ${authStore.access}` },
             })
-          } catch (retryError) {
+          } catch {
             authStore.clear()
             throw new Error("Session expired. Please sign in again.")
           }
