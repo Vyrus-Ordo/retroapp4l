@@ -12,6 +12,7 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 - Fase Check: ações `not_started`/`in_progress` de qualquer retro fechada do mesmo `team_key` continuam aparecendo até serem marcadas `done` (antes só a última retro fechada era consultada, e pendências mais antigas sumiam)
 - Fase Check: seção colapsável "Concluídos desde a última retro" com as ações marcadas `done` após o fechamento da última retro do time, com botão "Reabrir" para o facilitador
 - Campo `ActionItem.status_updated_at` (migration `0004` com backfill por `created_at`), exposto como somente leitura na API
+- Actions Review: página `/actions` (link no menu) com tabela de ações dos times do usuário, filtros (time, status, responsável, atrasadas, prazo, busca), ordenação, paginação e edição pelo facilitador de ações de retros fechadas; endpoints `GET /api/actions/`, `GET /api/actions/teams/`, `GET`/`PATCH /api/actions/{id}/` (sem criação nem exclusão; sem migration)
 - Serviço `tests` em `docker-compose.dev.yml` (`docker compose -f docker-compose.dev.yml run --rm tests`, JUnit em `backend/reports/junit.xml`)
 
 ### Alterado

@@ -244,3 +244,52 @@ export interface SprintSummaryHistory extends SprintSummary {
   sprint_name: string | null
   closed_at: string
 }
+
+export interface ActionReviewRetrospective {
+  id: string
+  title: string
+  sprint_name: string | null
+  team_key: string
+  status: RetroPhase
+  closed_at: string | null
+}
+
+export interface ActionReviewItem {
+  id: string
+  description: string
+  status: ActionStatus
+  status_updated_at: string | null
+  due_date: string | null
+  is_overdue: boolean
+  external_tracker_url: string
+  assignee_name: string | null
+  assignee_user_id: string | null
+  /** id do Participant do responsável atual na retro de origem (null quando não houver). */
+  assignee_participant_id: string | null
+  retrospective: ActionReviewRetrospective
+  can_edit: boolean
+}
+
+
+export interface ActionReviewTeam {
+  team_key: string
+  pending: number
+  total: number
+  can_edit: boolean
+}
+
+export interface ActionReviewPage {
+  count: number
+  next: string | null
+  previous: string | null
+  results: ActionReviewItem[]
+}
+
+export interface ActionReviewAssigneeOption {
+  participant_id: string
+  name: string
+}
+
+export interface ActionReviewDetail extends ActionReviewItem {
+  assignee_options: ActionReviewAssigneeOption[]
+}

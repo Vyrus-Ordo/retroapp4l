@@ -144,6 +144,9 @@ The backend accepts any valid phase sent by the facilitator. Phase enforcement i
 - `Card.group` → self-FK to parent `Card`; `group_parent_id` is the public alias. Cards in groups are one level deep only (parent → children, no nesting).
 - `team_key` (SlugField) groups retrospectives across sessions; there is no `Team` entity.
 
+### Actions Review (`/actions`)
+`backend/apps/actions/review.py` + `frontend/pages/actions/`. Access derives from `team_key` (no Team entity): read = facilitator or participant of any retro with that key; edit = facilitator of any retro of the team and only for `closed` retros; no create/delete. Never expose card content/author in the listing. Spec: `docs/specs/ActionsReview/spec.md`.
+
 ### Anonymous cards
 
 `Card.author` is always persisted. When `is_anonymous=True`, serializers return `author=null`, `author_name=null`, `author_display="Anonymous participant"` and include `can_edit` (computed per-user) so users can still edit their own cards without the UI revealing authorship. `allow_self_vote=False` uses the real author internally to block self-voting even on anonymous cards.

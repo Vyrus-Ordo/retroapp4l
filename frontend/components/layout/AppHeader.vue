@@ -38,6 +38,7 @@ async function handleLogout() {
         <NuxtLink class="rounded-md px-3 py-2 font-light transition-colors hover:text-white" to="/join">Join via link</NuxtLink>
         <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-light transition-colors hover:text-white" to="/retro/create">New retro</NuxtLink>
         <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-light transition-colors hover:text-white" to="/history">History</NuxtLink>
+        <NuxtLink v-if="isAuthenticatedUser" class="rounded-md px-3 py-2 font-light transition-colors hover:text-white" to="/actions">Actions Review</NuxtLink>
         <template v-if="isAuthenticatedUser">
           <div class="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full border border-[#00f2ff]/30 text-xs font-semibold text-[#00f2ff]">
             {{ initials }}

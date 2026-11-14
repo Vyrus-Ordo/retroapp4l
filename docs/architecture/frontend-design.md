@@ -1240,6 +1240,7 @@ Se usuário já estava em `closed` ao carregar (sessão fechada), `fetchSession(
 **Diferenças visuais:**
 - `AppHeader`: link "New retro" oculto para guests (`v-if="isAuthenticatedUser"`)
 - `AppHeader`: link "History" oculto para guests (`v-if="isAuthenticatedUser"`)
+- `AppHeader`: link "Actions Review" (`/actions`) oculto para guests (`v-if="isAuthenticatedUser"`); a página usa `stores/actionsReview.ts` (filtros, lista paginada, times, detalhe, `updateAction`) e `components/actions/` (`ActionsReviewFilters`, `ActionsReviewTable`, `ActionEditModal`). O modal pré-seleciona o responsável por `assignee_participant_id` e só envia `assignee_id` quando o select muda.
 - `index.vue`: mostra landing page em vez de dashboard (`showLanding = !authStore.isAuthenticated || authStore.isGuestSession`)
 - `index.vue` dashboard: `HistoryTable` oculta para guests (`v-if="!authStore.isGuestSession"`)
 
