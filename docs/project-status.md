@@ -209,6 +209,13 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * `recently_completed`: ações `done` com `status_updated_at` posterior ao `closed_at` da retro fechada mais recente do time (desconsidera retros fechadas sem `closed_at`); vazio se o time não tem retro fechada; ordenadas da mais recente para a mais antiga;
   * `PUT .../previous-actions/{action_id}/status/`: qualquer participante da retro atual atualiza ação de qualquer retro fechada do mesmo time; permite reabrir (`done` → `in_progress`/`not_started`);
   * `"pending"` ainda é aceito como alias legado e gravado como `not_started`.
+* Actions Review (`backend/apps/actions/review.py`, spec `docs/specs/ActionsReview/spec.md`):
+  * `GET /api/actions/` (paginado 25/100; filtros `team_key`*, `status`*, `assignee` (id ou `me`), `overdue`, `due_before`, `due_after`, `q`, `ordering`), `GET /api/actions/teams/` (contagens `pending`/`total` e `can_edit` por time), `GET` e `PATCH /api/actions/{id}/`; `POST`, `PUT` e `DELETE` não existem (405);
+  * leitura: facilitador ou participante de alguma retro do `team_key` (convidado recebe 403; ação de time fora do alcance responde 404);
+  * edição: facilitador de alguma retro do `team_key` **e** apenas ações de retro `closed` (retro ativa responde 403: edita-se dentro da retro); campos editáveis: `description`, `assignee_id` (Participant da retro de origem), `due_date`, `status`, `external_tracker_url`;
+  * itens expõem `assignee_participant_id` (pré-seleção do responsável no modal) e nunca conteúdo/autor do card; concluir por aqui atualiza `status_updated_at` e alimenta `recently_completed` da fase Check;
+  * sem migration.
+* Frontend `/actions` (link "Actions Review" no `AppHeader`, só autenticados): `pages/actions/index.vue`, store `stores/actionsReview.ts`, componentes `components/actions/` (`ActionsReviewFilters`, `ActionsReviewTable`, `ActionEditModal`); padrão ao abrir: todos os times, `not_started` + `in_progress`, ordenado por prazo. E2E com mocks em `frontend/e2e/actions-review.spec.ts`.
 
 ---
 

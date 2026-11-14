@@ -336,6 +336,16 @@ Como participante, quero revisar ações da retro anterior.
 - `PUT /api/retrospectives/{id}/previous-actions/{action_id}/status/` atualiza status.
 - Status aceitos: `not_started`, `in_progress`, `done` e alias legado `pending` convertido para `not_started`.
 
+**US-06b — Revisar ações do time (Actions Review)**
+
+Como facilitador ou participante, quero ver em uma tabela todas as ações dos meus times, fora de uma retro, e como facilitador editar ações de retros já fechadas.
+
+**Critérios implementados:**
+- Página `/actions` (usuário autenticado, não convidado), padrão: todos os meus times, só `not_started` e `in_progress`, por prazo.
+- Filtros por time, status, responsável (inclui "só minhas"), atrasadas, prazo e busca; ordenação e paginação.
+- Somente o facilitador (de alguma retro do time) edita, e só ações de retro fechada; não há criação fora de retro nem exclusão.
+- Ver `docs/specs/ActionsReview/spec.md`.
+
 ---
 
 **US-08 — Adicionar card ao board**
@@ -652,6 +662,9 @@ A UI usa TailwindCSS com componentes próprios. O visual é dark/neon, com pain�
 | GET/POST | `/api/retrospectives/{id}/action-items/` | Lista/cria action items |
 | GET/PATCH/DELETE | `/api/retrospectives/{id}/action-items/{action_id}/` | Detalhe/edita/remove |
 | GET | `/api/retrospectives/{id}/previous-actions/` | Retorna `{action_items, recently_completed}`: pendências (`not_started`/`in_progress`) de todas as retros fechadas do mesmo time e, separadamente, ações concluídas desde o fechamento da última retro do time |
+| GET | `/api/actions/` | Actions Review: ações dos times do usuário (paginado; filtros por time, status, responsável, atraso, prazo, busca; ordenação) |
+| GET | `/api/actions/teams/` | Actions Review: times do usuário com contagem de pendentes/total e `can_edit` |
+| GET/PATCH | `/api/actions/{action_id}/` | Actions Review: detalhe (com `assignee_options`) e edição parcial por facilitador, só ação de retro fechada (sem POST/DELETE) |
 | PUT | `/api/retrospectives/{id}/previous-actions/{action_id}/status/` | Atualiza status de ação de qualquer retro fechada do mesmo time (inclui reabrir uma ação `done`) |
 
 ---
