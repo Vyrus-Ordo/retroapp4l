@@ -651,8 +651,8 @@ A UI usa TailwindCSS com componentes próprios. O visual é dark/neon, com pain�
 |---|---|---|
 | GET/POST | `/api/retrospectives/{id}/action-items/` | Lista/cria action items |
 | GET/PATCH/DELETE | `/api/retrospectives/{id}/action-items/{action_id}/` | Detalhe/edita/remove |
-| GET | `/api/retrospectives/{id}/previous-actions/` | Ações da última retro fechada do mesmo time |
-| PUT | `/api/retrospectives/{id}/previous-actions/{action_id}/status/` | Atualiza status de ação anterior |
+| GET | `/api/retrospectives/{id}/previous-actions/` | Retorna `{action_items, recently_completed}`: pendências (`not_started`/`in_progress`) de todas as retros fechadas do mesmo time e, separadamente, ações concluídas desde o fechamento da última retro do time |
+| PUT | `/api/retrospectives/{id}/previous-actions/{action_id}/status/` | Atualiza status de ação de qualquer retro fechada do mesmo time (inclui reabrir uma ação `done`) |
 
 ---
 

@@ -31,6 +31,10 @@ python manage.py test               # all tests
 python manage.py test apps.cards    # single app
 pytest                              # via pytest-django
 
+# Canonical full-suite run: disposable container, own db/redis deps,
+# exit code = pytest exit code, JUnit written to backend/reports/junit.xml
+docker compose -f docker-compose.dev.yml run --rm tests
+
 # Celery worker + beat (single process)
 celery -A config worker -B -l info
 

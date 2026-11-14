@@ -22,6 +22,7 @@ class ActionItem(models.Model):
 	due_date = models.DateField(blank=True, null=True)
 	external_tracker_url = models.URLField(blank=True)
 	status = models.CharField(max_length=20, choices=ActionItemStatus.choices, default=ActionItemStatus.NOT_STARTED)
+	status_updated_at = models.DateTimeField(null=True, blank=True)
 	created_at = models.DateTimeField(auto_now_add=True)
 
 	class Meta:

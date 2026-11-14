@@ -3,7 +3,7 @@ from rest_framework.exceptions import NotFound, PermissionDenied
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from apps.actions.models import ActionItem
+from apps.actions.models import ActionItem, ActionItemStatus
 from apps.actions.serializers import ActionItemSerializer, PreviousActionStatusSerializer
 from apps.retrospectives.models import Participant, Retrospective, RetrospectiveStatus
 
@@ -34,13 +34,40 @@ class ActionAccessMixin:
 		if retrospective.facilitator != user:
 			raise PermissionDenied("Only the facilitator can perform this action.")
 
-	def get_previous_closed_retrospective(self, retrospective):
+	def get_latest_closed_retrospective(self, retrospective):
 		return (
 			Retrospective.objects.filter(team_key=retrospective.team_key, status=RetrospectiveStatus.CLOSED)
 			.exclude(id=retrospective.id)
 			.filter(closed_at__isnull=False)
 			.order_by("-closed_at", "-created_at")
 			.first()
+		)
+
+	def get_pending_previous_actions(self, retrospective):
+		return (
+			ActionItem.objects.filter(
+				retrospective__team_key=retrospective.team_key,
+				retrospective__status=RetrospectiveStatus.CLOSED,
+				status__in=[ActionItemStatus.NOT_STARTED, ActionItemStatus.IN_PROGRESS],
+			)
+			.exclude(retrospective=retrospective)
+			.select_related("assignee", "card", "retrospective")
+			.order_by("retrospective__closed_at", "created_at")
+		)
+
+	def get_recently_completed_actions(self, retrospective, latest_closed_retrospective):
+		if latest_closed_retrospective is None or latest_closed_retrospective.closed_at is None:
+			return ActionItem.objects.none()
+		return (
+			ActionItem.objects.filter(
+				retrospective__team_key=retrospective.team_key,
+				retrospective__status=RetrospectiveStatus.CLOSED,
+				status=ActionItemStatus.DONE,
+				status_updated_at__gt=latest_closed_retrospective.closed_at,
+			)
+			.exclude(retrospective=retrospective)
+			.select_related("assignee", "card", "retrospective")
+			.order_by("-status_updated_at")
 		)
 
 
@@ -112,19 +139,20 @@ class PreviousActionListView(ActionAccessMixin, APIView):
 	def get(self, request, retrospective_id):
 		retrospective = self.get_retrospective()
 		self.ensure_participant(retrospective, request.user)
-		previous_retrospective = self.get_previous_closed_retrospective(retrospective)
-		if previous_retrospective is None:
-			return Response({"retrospective_id": None, "action_items": []})
 
-		serializer = ActionItemSerializer(
-			ActionItem.objects.filter(retrospective=previous_retrospective).select_related("assignee", "card"),
-			many=True,
-			context={"request": request, "retrospective": previous_retrospective},
+		latest_closed = self.get_latest_closed_retrospective(retrospective)
+		context = {"request": request, "retrospective": retrospective}
+
+		pending_serializer = ActionItemSerializer(
+			self.get_pending_previous_actions(retrospective), many=True, context=context
+		)
+		completed_serializer = ActionItemSerializer(
+			self.get_recently_completed_actions(retrospective, latest_closed), many=True, context=context
 		)
 		return Response(
 			{
-				"retrospective_id": str(previous_retrospective.id),
-				"action_items": serializer.data,
+				"action_items": pending_serializer.data,
+				"recently_completed": completed_serializer.data,
 			}
 		)
 
@@ -136,19 +164,19 @@ class PreviousActionStatusUpdateView(ActionAccessMixin, APIView):
 		retrospective = self.get_retrospective()
 		self.ensure_participant(retrospective, request.user)
 
-		previous_retrospective = self.get_previous_closed_retrospective(retrospective)
-		if previous_retrospective is None:
-			raise NotFound("No previous closed retrospective found for this team.")
-
 		try:
-			action_item = ActionItem.objects.get(id=action_id, retrospective=previous_retrospective)
+			action_item = ActionItem.objects.select_related("retrospective").get(
+				id=action_id,
+				retrospective__team_key=retrospective.team_key,
+				retrospective__status=RetrospectiveStatus.CLOSED,
+			)
 		except ActionItem.DoesNotExist as error:
-			raise NotFound("Action item not found in the previous retrospective.") from error
+			raise NotFound("Action item not found in a closed retrospective for this team.") from error
 
 		serializer = PreviousActionStatusSerializer(data=request.data)
 		serializer.is_valid(raise_exception=True)
 		action_item.status = serializer.validated_data["status"]
-		action_item.save(update_fields=["status"])
+		action_item.save(update_fields=["status", "status_updated_at"])
 
 		return Response(
 			{

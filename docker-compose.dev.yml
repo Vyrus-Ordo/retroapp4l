@@ -58,11 +58,51 @@ services:
       POSTGRES_DB: retroapp4l
       POSTGRES_USER: retroapp4l
       POSTGRES_PASSWORD: retroapp4l
+    healthcheck:
+      # Usado por `run` do serviço tests: garante que o Postgres
+      # aceita conexões antes de o pytest criar o banco de teste
+      test: ["CMD-SHELL", "pg_isready -U retroapp4l -d retroapp4l"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 5s
     ports:
       # Exposto no host para conectar com DBeaver, TablePlus etc.
-      - "5432:5432"
+      # 5433 no host porque 5432 já está ocupada pelo container
+      # compartilhado postgres-pgvector (infra/postgres_pgvector)
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  # Suíte backend (pytest-django) em container descartável.
+  # Comando canônico: docker compose -f docker-compose.dev.yml run --rm tests
+  # Reaproveita a MESMA imagem do serviço backend (mesmo build/Dockerfile,
+  # sem pip install duplicado); o exit code do container é o do pytest, então
+  # `run --rm tests` retorna != 0 quando a suíte falha.
+  # O --junitxml=reports/junit.xml vem do backend/pytest.ini (addopts).
+  tests:
+    # Perfil "tools": não sobe no `up -d` (é run-once); só roda quando
+    # chamado explicitamente com `docker compose ... run --rm tests`.
+    profiles: ["tools"]
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    image: retroapp4l-backend
+    env_file:
+      - ./backend/.env.dev
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    command: ["pytest"]
+    volumes:
+      # Mesmo bind mount do backend: testa o código atual sem rebuild
+      - ./backend:/app
+      # reports/junit.xml fica no host após o run
+      - ./backend/reports:/app/reports
     networks:
       - internal
 

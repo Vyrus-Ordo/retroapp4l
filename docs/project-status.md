@@ -62,8 +62,9 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * **Regra:** constraint única para `card + voter`.
 
 * **`ActionItem` (App: actions):**
-  * **Campos:** `id`, `retrospective`, `card`, `description`, `assignee`, `due_date`, `external_tracker_url`, `status`, `created_at`.
+  * **Campos:** `id`, `retrospective`, `card`, `description`, `assignee`, `due_date`, `external_tracker_url`, `status`, `status_updated_at`, `created_at`.
   * **Status:** `not_started`, `in_progress`, `done`.
+  * **`status_updated_at`:** nullable, read-only na API. Preenchido por `pre_save` (`apps/actions/signals.py`) na criação e a cada mudança de `status`. Migration `0004` faz backfill com `created_at` para registros antigos. Serve de corte temporal para a seção de concluídos da fase `check`.
 
 ### Módulos de Lógica e Funcionalidades
 
@@ -202,9 +203,11 @@ O backend fica em `/backend`. Os apps de domínio estão em `/backend/apps/`.
   * `assignee_id` é o **id do Participant**, não o id do User;
   * `card_id` opcional, validado contra cards da retro;
   * `due_date`, `status`, `external_tracker_url`.
-* Ações anteriores:
-  * busca a última retro `closed` com mesmo `team_key`;
-  * status pode ser atualizado por qualquer participante da retro atual pelo endpoint de previous-actions;
+* Ações anteriores (fase `check`):
+  * `GET .../previous-actions/` retorna `{ "action_items": [...], "recently_completed": [...] }` (sem `retrospective_id`; cada item expõe seu próprio `retrospective`);
+  * `action_items`: ações `not_started`/`in_progress` de **todas** as retros `closed` com o mesmo `team_key` (exclui a retro atual), mais antigas primeiro; saem dessa lista apenas ao virar `done`;
+  * `recently_completed`: ações `done` com `status_updated_at` posterior ao `closed_at` da retro fechada mais recente do time (desconsidera retros fechadas sem `closed_at`); vazio se o time não tem retro fechada; ordenadas da mais recente para a mais antiga;
+  * `PUT .../previous-actions/{action_id}/status/`: qualquer participante da retro atual atualiza ação de qualquer retro fechada do mesmo time; permite reabrir (`done` → `in_progress`/`not_started`);
   * `"pending"` ainda é aceito como alias legado e gravado como `not_started`.
 
 ---
@@ -250,7 +253,7 @@ O frontend fica em `/frontend` e é uma SPA Nuxt.
 
 1. **`SetupView.vue`**: tela de preparação; facilitador avança para lobby. O facilitador vê primeiro o `SprintSummaryForm` (Sprint Summary), depois a seção de milestones. O botão `+ Add Milestone` fica desabilitado enquanto `SprintSummary.total_stories == 0`; emite o evento `add-milestone`, mas `retro/[id].vue` **não tem handler registrado** para esse evento — clicar no botão não tem efeito algum hoje.
 2. **`LobbyView.vue`**: exibe link de convite e contagem de participantes; facilitador inicia a sessão. Pela ordem do frontend, o próximo passo é `check`, exceto quando `skip_check_phase=true`, quando vai para `presentation`.
-3. **`CheckView.vue`**: revisão de ações da última retro fechada do mesmo time. Somente facilitador consegue editar status pela UI.
+3. **`CheckView.vue`**: revisão de ações pendentes de todas as retros fechadas do mesmo time (não só a última). Somente facilitador consegue editar status pela UI; ao marcar `done`, o item migra da lista ativa para a seção colapsável "Concluídos desde a última retro" (também em tempo real via WebSocket `action.check_updated`), onde o facilitador pode reabri-lo (volta como `in_progress`).
 4. **`MilestonesView.vue`**: exibe todos os marcos cadastrados; a UI atual não usa os eventos de apresentação `.start/.next/.prev/.end`, apenas mostra a grade e deixa avançar fase. Quando existe `SprintSummary` para a retro, renderiza abaixo da grade os componentes `SprintSummaryCards` (4 indicadores: Total Sprint, Concluídas, Carry-over, Taxa de Entrega) e `SprintSummaryChart` (barra de progresso com <2 pontos históricos do `team_key`; gráfico de linha SVG nativo com ≥2 pontos, ponto atual sempre em losango).
 5. **`BoardView.vue`**: quadro 4L com criação/edição/exclusão de cards pela UI. Ao acionar `Add`, o modal `CardComposer` abre com foco automático no campo de descrição.
 6. **`GroupingView.vue`**: facilitador seleciona cards da mesma coluna e agrupa; participantes observam.

@@ -55,6 +55,28 @@ function normalizeCard(card: Card): Card {
   return { ...card, group, group_parent_id: group }
 }
 
+function moveActionBetweenLists(
+  previousActions: PreviousActionsResponse,
+  actionId: string,
+  newStatus: ActionItem["status"],
+): PreviousActionsResponse {
+  const found =
+    previousActions.action_items.find((item) => item.id === actionId) ??
+    previousActions.recently_completed.find((item) => item.id === actionId)
+  if (!found) return previousActions
+
+  const updated: ActionItem = { ...found, status: newStatus }
+  const action_items = previousActions.action_items.filter((item) => item.id !== actionId)
+  const recently_completed = previousActions.recently_completed.filter((item) => item.id !== actionId)
+
+  if (newStatus === "done") {
+    recently_completed.unshift(updated)
+  } else {
+    action_items.push(updated)
+  }
+  return { action_items, recently_completed }
+}
+
 export const useRetroStore = defineStore("retro", {
   state: (): RetroState => ({
     retrospectives: [],
@@ -62,7 +84,7 @@ export const useRetroStore = defineStore("retro", {
     cards: [],
     votes: [],
     actionItems: [],
-    previousActions: { retrospective_id: null, action_items: [] },
+    previousActions: { action_items: [], recently_completed: [] },
     history: [],
     historyDetail: null,
     selectedCardIds: [],
@@ -165,7 +187,7 @@ export const useRetroStore = defineStore("retro", {
         try {
           this.previousActions = await api.get<PreviousActionsResponse>(`/retrospectives/${retrospectiveId}/previous-actions/`)
         } catch {
-          this.previousActions = { retrospective_id: null, action_items: [] }
+          this.previousActions = { action_items: [], recently_completed: [] }
         }
       } catch (error) {
         this.error = error instanceof Error ? error.message : "Unable to load retrospective."
@@ -316,12 +338,7 @@ export const useRetroStore = defineStore("retro", {
     async updatePreviousActionStatus(retrospectiveId: string, actionId: string, status: string) {
       const api = useApiClient()
       await api.put(`/retrospectives/${retrospectiveId}/previous-actions/${actionId}/status/`, { status })
-      this.previousActions = {
-        ...this.previousActions,
-        action_items: this.previousActions.action_items.map((item) =>
-          item.id === actionId ? { ...item, status: status as ActionItem["status"] } : item,
-        ),
-      }
+      this.previousActions = moveActionBetweenLists(this.previousActions, actionId, status as ActionItem["status"])
     },
     async focusCard(retrospectiveId: string, cardId: string) {
       const api = useApiClient()
@@ -460,12 +477,11 @@ export const useRetroStore = defineStore("retro", {
       }
 
       if (type === "action.check_updated") {
-        this.previousActions = {
-          ...this.previousActions,
-          action_items: this.previousActions.action_items.map((item) =>
-            item.id === event.action_id ? { ...item, status: event.status as ActionItem["status"] } : item,
-          ),
-        }
+        this.previousActions = moveActionBetweenLists(
+          this.previousActions,
+          String(event.action_id),
+          event.status as ActionItem["status"],
+        )
       }
 
       if (type === "discussion.focus_updated") {
