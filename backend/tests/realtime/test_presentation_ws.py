@@ -1,3 +1,5 @@
+import asyncio
+
 import pytest
 from channels.db import database_sync_to_async
 from channels.testing import WebsocketCommunicator
@@ -166,6 +168,10 @@ async def test_card_events_are_broadcast():
 
     card = await create_card(retro, user, "Primeiro card")
     created = await communicator.receive_json_from()
+    # Comparação exata do payload: o CardSerializer (usado pelos signals) inclui
+    # `group_parent_id` (espelho de `group`, None quando o card não está agrupado),
+    # então o campo precisa constar no esperado para o teste continuar detectando
+    # qualquer campo novo/removido no contrato de `card.created`.
     assert created == {
         "type": "card.created",
         "card": {
@@ -178,6 +184,7 @@ async def test_card_events_are_broadcast():
             "content": "Primeiro card",
             "is_anonymous": False,
             "group": None,
+            "group_parent_id": None,
             "position": 0,
             "vote_count": 0,
             "can_edit": True,
@@ -231,7 +238,7 @@ async def test_participant_join_is_broadcast_to_other_connected_clients():
     joining_user = await create_named_user("Participant", "participant-join@example.com")
     retro = await create_retro(facilitator)
     await create_participant(retro, facilitator)
-    await create_participant(retro, joining_user)
+    joining_participant = await create_participant(retro, joining_user)
 
     facilitator_token = str(AccessToken.for_user(facilitator))
     joining_token = str(AccessToken.for_user(joining_user))
@@ -257,9 +264,13 @@ async def test_participant_join_is_broadcast_to_other_connected_clients():
     assert joining_snapshot["type"] == "session.snapshot"
 
     joined_event = await facilitator_communicator.receive_json_from()
+    # O evento `participant.joined` passou a carregar `participant_id` (id do
+    # registro Participant, não do User), usado pelo frontend para casar a lista
+    # de presentes. Mantemos a comparação exata para seguir detectando drift.
     assert joined_event == {
         "type": "participant.joined",
         "user_id": str(joining_user.id),
+        "participant_id": str(joining_participant.id),
         "name": joining_user.name,
         "avatar_url": joining_user.avatar_url,
     }
@@ -393,7 +404,22 @@ async def test_action_check_update_is_broadcast():
     assert snapshot["type"] == "session.snapshot"
 
     await update_action_status(action_item, "in_progress")
-    event = await communicator.receive_json_from()
+    # Ao mudar o status o backend emite `action.updated` (payload completo) e, em
+    # seguida, `action.check_updated` (evento enxuto usado pela fase de check).
+    # Consumimos as mensagens até achar o `action.check_updated` — não podemos
+    # assumir que ele é a primeira — e falhamos explicitamente se ele não vier,
+    # para o teste continuar cobrindo a emissão desse evento.
+    event = None
+    for _ in range(10):
+        try:
+            candidate = await communicator.receive_json_from(timeout=0.5)
+        except asyncio.TimeoutError:
+            break
+        if candidate.get("type") == "action.check_updated":
+            event = candidate
+            break
+
+    assert event is not None, "action.check_updated não foi emitido após a mudança de status"
     assert event == {
         "type": "action.check_updated",
         "action_id": str(action_item.id),

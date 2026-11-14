@@ -341,7 +341,7 @@ O botão "Reabrir" cobre o caso de erro humano (marcou `done` por engano) — de
 | `backend/apps/actions/signals.py` | `pre_save` passa a setar `status_updated_at` na criação e em toda mudança de status |
 | `backend/apps/actions/views.py` | `get_latest_closed_retrospective`, `get_pending_previous_actions`, `get_recently_completed_actions`; reescrever `PreviousActionListView.get` e `PreviousActionStatusUpdateView.put` |
 | `backend/apps/actions/serializers.py` | Expor `status_updated_at` em `ActionItemSerializer` |
-| `backend/apps/actions/tests.py` | Reescrever teste de agregação multi-retro; adicionar testes para `recently_completed` (dentro/fora da janela temporal), para reabertura (`done` → `in_progress`) e para backfill não quebrar dados antigos |
+| `backend/tests/actions/test_action_items.py` (movido de `backend/apps/actions/tests.py`, que não era coletado pela suíte canônica) | Reescrever teste de agregação multi-retro; adicionar testes para `recently_completed` (dentro/fora da janela temporal), para reabertura (`done` → `in_progress`) e para backfill não quebrar dados antigos |
 | `frontend/utils/types.ts` | `ActionItem` ganha `status_updated_at`; `PreviousActionsResponse` ganha `recently_completed`, perde `retrospective_id` |
 | `frontend/stores/retro.ts` | Defaults com `recently_completed: []`; helper `moveActionBetweenLists`; `updatePreviousActionStatus` e handler `action.check_updated` usam o helper |
 | `frontend/components/retro/phases/CheckView.vue` | Texto descritivo + seção colapsável "Concluídos desde a última retro" com botão Reabrir |

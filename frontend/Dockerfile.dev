@@ -1,4 +1,20 @@
-FROM node:22-alpine
+# Base: node:22-slim (Debian, glibc) — mesmo major de Node do runtime de
+# produção. O Chromium do Playwright é instalado aqui mesmo, então o e2e
+# roda no próprio container do frontend sem imagem separada.
+#
+# Motivo de não ser node:22-alpine: o Playwright distribui apenas binários
+# Chromium para glibc. Em Alpine (musl) o browser não inicia — sem gcompat o
+# spawn falha com ENOENT (falta /lib64/ld-linux-x86-64.so.2) e com gcompat
+# falha no relocamento de símbolos (`g_value_unset: symbol not found`).
+#
+# Motivo de não usar a imagem oficial do Playwright como base: ela arrasta
+# Ubuntu + Node 24 (~4 GB) e o ambiente de dev deixa de espelhar produção.
+#
+# ATENÇÃO: a versão do Playwright instalada abaixo deve estar SEMPRE casada
+# com a de @playwright/test no package.json. Ao subir a do package.json,
+# suba a da linha de install junto, senão o e2e falha com
+# "Executable doesn't exist at /root/.cache/ms-playwright/...".
+FROM node:22-slim
 
 WORKDIR /app
 
@@ -6,6 +22,12 @@ WORKDIR /app
 # O restante do código vem via bind mount no docker-compose.dev.yml
 COPY package.json package-lock.json ./
 RUN npm ci
+
+# Apenas Chromium (firefox/webkit não são usados no e2e). --with-deps instala
+# as libs de sistema via apt; as listas do apt são removidas na MESMA camada
+# para não inflar a imagem.
+RUN npx playwright install --with-deps chromium \
+    && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 3000
 
