@@ -31,6 +31,10 @@ python manage.py test               # all tests
 python manage.py test apps.cards    # single app
 pytest                              # via pytest-django
 
+# Canonical full-suite run: disposable container, own db/redis deps,
+# exit code = pytest exit code, JUnit written to backend/reports/junit.xml
+docker compose -f docker-compose.dev.yml run --rm tests
+
 # Celery worker + beat (single process)
 celery -A config worker -B -l info
 
@@ -62,6 +66,15 @@ docker compose up --build
 
 # Dev with hot reload volumes
 docker compose -f docker-compose.dev.yml up --build
+
+# Dev stack notes (docker-compose.dev.yml):
+#  - db is published on host port 5433 (5432 is taken by the shared postgres-pgvector).
+#  - frontend image is node:22-slim + Chromium (Playwright), ~2.4 GB. Run e2e with the
+#    output OUTSIDE the repo, because frontend/test-results/.last-run.json is tracked:
+#      docker compose -f docker-compose.dev.yml exec frontend npx playwright test --output=/tmp/pw-results
+#  - If `up --build frontend` hangs on `apt-get update` inside BuildKit (seen after the
+#    machine resumes from sleep; plain `docker run` still works), restart Docker Desktop
+#    or build the image with `docker build --network=host` instead of re-running compose.
 
 # Production
 docker compose -f docker-compose.prod.yml up -d --build

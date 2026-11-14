@@ -8,6 +8,17 @@ O formato segue [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/).
 
 ## [Não lançado]
 
+### Adicionado
+- Fase Check: ações `not_started`/`in_progress` de qualquer retro fechada do mesmo `team_key` continuam aparecendo até serem marcadas `done` (antes só a última retro fechada era consultada, e pendências mais antigas sumiam)
+- Fase Check: seção colapsável "Concluídos desde a última retro" com as ações marcadas `done` após o fechamento da última retro do time, com botão "Reabrir" para o facilitador
+- Campo `ActionItem.status_updated_at` (migration `0004` com backfill por `created_at`), exposto como somente leitura na API
+- Serviço `tests` em `docker-compose.dev.yml` (`docker compose -f docker-compose.dev.yml run --rm tests`, JUnit em `backend/reports/junit.xml`)
+
+### Alterado
+- `GET /api/retrospectives/{id}/previous-actions/` passa a retornar `{action_items, recently_completed}` e deixa de retornar `retrospective_id`
+- `PUT .../previous-actions/{action_id}/status/` aceita ação de qualquer retro fechada do mesmo time
+- Porta do `db` no `docker-compose.dev.yml` mapeada para `5433` no host (5432 ocupada por Postgres compartilhado)
+
 ### Documentação
 - Reconciliação de `docs/architecture/data-model.md`, `docs/PRD.md`, `docs/project-status.md` e `docs/architecture/frontend-design.md` com a feature `SprintSummary` (mergeada em 0.9.1 mas nunca documentada) — model, endpoints, permissões e os três componentes de frontend (`SprintSummaryForm`, `SprintSummaryCards`, `SprintSummaryChart`)
 - Registrado gap conhecido: botão `+ Add Milestone` em `SetupView` emite `add-milestone`, mas `retro/[id].vue` não tem handler para o evento — criação de milestone dentro do workspace ativo não está implementada

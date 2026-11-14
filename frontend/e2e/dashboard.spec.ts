@@ -1,15 +1,15 @@
 /**
- * E2E — Dashboard: creates a retrospective and verifies it appears in the list.
+ * E2E — Dashboard: the authenticated home exposes the create-retrospective
+ * entry point and the create form rejects an empty submit.
  *
- * IMPORTANT: This test requires a running backend + authenticated user.
- * Pre-condition: TEST_FACILITATOR account must exist in the database.
- * To create: POST /api/auth/register/ with email/password from helpers.ts
+ * Requires: running backend + frontend. TEST_FACILITATOR is provisioned on
+ * demand by ensureUser() in helpers.ts — see e2e/README.md.
  *
- * Run: npx playwright test e2e/dashboard.spec.ts
+ * Run: docker compose -f docker-compose.dev.yml exec frontend npx playwright test e2e/dashboard.spec.ts
  */
-import { expect, test } from "@playwright/test"
+import { TEST_FACILITATOR, expect, loginAs, test } from "./helpers"
 
-import { TEST_FACILITATOR, loginAs } from "./helpers"
+const NEW_RETRO_LINK = { name: "New retrospective", exact: true } as const
 
 test.describe("Dashboard", () => {
   test.beforeEach(async ({ page }) => {
@@ -18,19 +18,24 @@ test.describe("Dashboard", () => {
 
   test("shows create retrospective button", async ({ page }) => {
     await page.goto("/")
-    await expect(page.getByRole("link", { name: /new retro|create/i }).or(page.getByRole("button", { name: /new retro|create/i })).first()).toBeVisible()
+
+    await expect(page.getByRole("link", NEW_RETRO_LINK)).toBeVisible()
   })
 
   test("can navigate to create retrospective page", async ({ page }) => {
     await page.goto("/")
-    await page.getByRole("link", { name: /new retro|create/i }).or(page.getByRole("button", { name: /new retro|create/i })).first().click()
-    await expect(page).toHaveURL(/retro\/create/)
+    await page.getByRole("link", NEW_RETRO_LINK).click()
+
+    await expect(page).toHaveURL(/\/retro\/create$/)
+    await expect(page.getByRole("heading", { name: "New retrospective" })).toBeVisible()
   })
 
   test("create retrospective form validates required fields", async ({ page }) => {
     await page.goto("/retro/create")
-    await page.getByRole("button", { name: /create|save/i }).first().click()
-    // At least one validation error should appear
-    await expect(page.locator("[class*='danger'], [class*='error'], [role='alert']").first()).toBeVisible({ timeout: 3000 })
+
+    await page.getByRole("button", { name: /create and go to lobby/i }).click()
+
+    await expect(page.getByText(/title and team are required/i)).toBeVisible()
+    await expect(page).toHaveURL(/\/retro\/create$/)
   })
 })

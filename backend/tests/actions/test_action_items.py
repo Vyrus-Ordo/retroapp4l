@@ -1,3 +1,7 @@
+import importlib
+from datetime import timedelta
+
+from django.apps import apps as django_apps
 from django.contrib.auth import get_user_model
 from rest_framework import status
 from rest_framework.test import APITestCase
@@ -129,42 +133,138 @@ class ActionItemApiTests(APITestCase):
 		self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
 		self.assertFalse(ActionItem.objects.filter(id=action_item.id).exists())
 
-	def test_previous_actions_returns_latest_closed_retrospective_for_same_team(self):
-		older_retro = Retrospective.objects.create(
-			title="Sprint 4",
-			team_key="platform-team",
+	def _create_closed_retrospective(self, title, closed_at, team_key="platform-team"):
+		retro = Retrospective.objects.create(
+			title=title,
+			team_key=team_key,
 			facilitator=self.facilitator,
 			status=RetrospectiveStatus.CLOSED,
-			closed_at="2026-04-01T12:00:00Z",
+			closed_at=closed_at,
 		)
-		latest_retro = Retrospective.objects.create(
-			title="Sprint 4.1",
-			team_key="platform-team",
-			facilitator=self.facilitator,
-			status=RetrospectiveStatus.CLOSED,
-			closed_at="2026-04-10T12:00:00Z",
+		Participant.objects.create(retrospective=retro, user=self.facilitator, votes_remaining=3)
+		retro.refresh_from_db()
+		return retro
+
+	def _previous_actions_url(self):
+		return f"/api/retrospectives/{self.retrospective.id}/previous-actions/"
+
+	def test_previous_actions_aggregates_pending_from_all_closed_retrospectives(self):
+		older_retro = self._create_closed_retrospective("Sprint 4", "2026-04-01T12:00:00Z")
+		latest_retro = self._create_closed_retrospective("Sprint 4.1", "2026-04-10T12:00:00Z")
+		other_team = self._create_closed_retrospective("Outra equipe", "2026-04-15T12:00:00Z", team_key="other-team")
+
+		older_pending = ActionItem.objects.create(
+			retrospective=older_retro, description="Antiga pendente", assignee=self.facilitator
 		)
-		other_team = Retrospective.objects.create(
-			title="Outra equipe",
-			team_key="other-team",
-			facilitator=self.facilitator,
-			status=RetrospectiveStatus.CLOSED,
-			closed_at="2026-04-15T12:00:00Z",
+		older_done = ActionItem.objects.create(
+			retrospective=older_retro,
+			description="Antiga concluída",
+			assignee=self.facilitator,
+			status=ActionItemStatus.DONE,
 		)
-		Participant.objects.create(retrospective=older_retro, user=self.facilitator, votes_remaining=3)
-		Participant.objects.create(retrospective=latest_retro, user=self.facilitator, votes_remaining=3)
-		Participant.objects.create(retrospective=other_team, user=self.facilitator, votes_remaining=3)
-		older_item = ActionItem.objects.create(retrospective=older_retro, description="Antiga", assignee=self.facilitator)
-		latest_item = ActionItem.objects.create(retrospective=latest_retro, description="Recente", assignee=self.participant_user)
+		latest_pending = ActionItem.objects.create(
+			retrospective=latest_retro,
+			description="Recente em andamento",
+			assignee=self.participant_user,
+			status=ActionItemStatus.IN_PROGRESS,
+		)
 		ActionItem.objects.create(retrospective=other_team, description="Ignorar", assignee=self.facilitator)
+
+		response = self.client.get(self._previous_actions_url())
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		# Contract change: no singular retrospective_id any more.
+		self.assertNotIn("retrospective_id", response.data)
+		self.assertEqual(
+			[item["id"] for item in response.data["action_items"]],
+			[str(older_pending.id), str(latest_pending.id)],
+		)
+		self.assertNotIn(str(older_done.id), [item["id"] for item in response.data["action_items"]])
+		self.assertIn("status_updated_at", response.data["action_items"][0])
+
+	def test_recently_completed_contains_done_items_updated_after_latest_closed_retro(self):
+		older_retro = self._create_closed_retrospective("Sprint 4", "2026-04-01T12:00:00Z")
+		self._create_closed_retrospective("Sprint 4.1", "2026-04-10T12:00:00Z")
+
+		done_item = ActionItem.objects.create(
+			retrospective=older_retro,
+			description="Entregue depois do fechamento",
+			assignee=self.facilitator,
+			status=ActionItemStatus.DONE,
+		)
+
+		response = self.client.get(self._previous_actions_url())
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual([item["id"] for item in response.data["recently_completed"]], [str(done_item.id)])
+		self.assertEqual(response.data["action_items"], [])
+
+	def test_recently_completed_ignores_done_items_updated_before_latest_closed_retro(self):
+		older_retro = self._create_closed_retrospective("Sprint 4", "2026-04-01T12:00:00Z")
+		latest_retro = self._create_closed_retrospective("Sprint 4.1", "2026-04-10T12:00:00Z")
+		done_item = ActionItem.objects.create(
+			retrospective=older_retro,
+			description="Concluída antes da última retro",
+			assignee=self.facilitator,
+			status=ActionItemStatus.DONE,
+		)
+		# Simula o estado gravado pelo backfill: conclusão anterior ao corte temporal.
+		ActionItem.objects.filter(pk=done_item.pk).update(
+			status_updated_at=latest_retro.closed_at - timedelta(days=1)
+		)
+
+		response = self.client.get(self._previous_actions_url())
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		self.assertEqual(response.data["recently_completed"], [])
+		self.assertEqual(response.data["action_items"], [])
+
+	def test_reopening_done_previous_action_returns_it_to_pending_list(self):
+		older_retro = self._create_closed_retrospective("Sprint 4", "2026-04-01T12:00:00Z")
+		self._create_closed_retrospective("Sprint 4.1", "2026-04-10T12:00:00Z")
+		done_item = ActionItem.objects.create(
+			retrospective=older_retro,
+			description="Marcada como done por engano",
+			assignee=self.facilitator,
+			status=ActionItemStatus.DONE,
+		)
+		previous_status_updated_at = done_item.status_updated_at
+		url = f"/api/retrospectives/{self.retrospective.id}/previous-actions/{done_item.id}/status/"
+
+		response = self.client.put(url, {"status": ActionItemStatus.IN_PROGRESS}, format="json")
+
+		self.assertEqual(response.status_code, status.HTTP_200_OK)
+		done_item.refresh_from_db()
+		self.assertEqual(done_item.status, ActionItemStatus.IN_PROGRESS)
+		self.assertGreater(done_item.status_updated_at, previous_status_updated_at)
+
+		response = self.client.get(self._previous_actions_url())
+		self.assertEqual([item["id"] for item in response.data["action_items"]], [str(done_item.id)])
+		self.assertEqual(response.data["recently_completed"], [])
+
+	def test_previous_actions_without_closed_retrospective_returns_empty_lists(self):
 		url = f"/api/retrospectives/{self.retrospective.id}/previous-actions/"
 
 		response = self.client.get(url)
 
 		self.assertEqual(response.status_code, status.HTTP_200_OK)
-		self.assertEqual(response.data["retrospective_id"], str(latest_retro.id))
-		self.assertEqual([item["id"] for item in response.data["action_items"]], [str(latest_item.id)])
-		self.assertNotIn(str(older_item.id), [item["id"] for item in response.data["action_items"]])
+		self.assertEqual(response.data, {"action_items": [], "recently_completed": []})
+
+	def test_backfill_sets_status_updated_at_from_created_at(self):
+		legacy_item = ActionItem.objects.create(
+			retrospective=self.retrospective,
+			description="Registro legado",
+			assignee=self.facilitator,
+		)
+		# Estado de uma linha criada antes da coluna existir.
+		ActionItem.objects.filter(pk=legacy_item.pk).update(status_updated_at=None)
+		migration = importlib.import_module("apps.actions.migrations.0004_actionitem_status_updated_at")
+
+		migration.backfill_status_updated_at(django_apps, None)
+
+		legacy_item.refresh_from_db()
+		self.assertIsNotNone(legacy_item.status_updated_at)
+		self.assertEqual(legacy_item.status_updated_at, legacy_item.created_at)
 
 	def test_previous_action_status_update_accepts_not_started_alias(self):
 		previous_retro = Retrospective.objects.create(

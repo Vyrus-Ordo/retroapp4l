@@ -11,6 +11,7 @@ class ActionItemSerializer(serializers.ModelSerializer):
     card_id = serializers.UUIDField(write_only=True, required=False, allow_null=True)
     participant_id = serializers.SerializerMethodField()
     card = serializers.UUIDField(source="card_id", read_only=True)
+    status_updated_at = serializers.DateTimeField(read_only=True)
 
     class Meta:
         model = ActionItem
@@ -28,6 +29,7 @@ class ActionItemSerializer(serializers.ModelSerializer):
             "status",
             "external_tracker_url",
             "created_at",
+            "status_updated_at",
         )
         read_only_fields = (
             "id",
@@ -37,6 +39,7 @@ class ActionItemSerializer(serializers.ModelSerializer):
             "participant_id",
             "card",
             "created_at",
+            "status_updated_at",
         )
 
     def get_participant_id(self, obj):

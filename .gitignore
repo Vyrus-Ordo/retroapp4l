@@ -77,6 +77,8 @@ coverage.xml
 .hypothesis/
 .pytest_cache/
 cover/
+# JUnit da suíte do serviço `tests` (docker-compose.dev.yml)
+backend/reports/
 
 # Translations
 *.mo

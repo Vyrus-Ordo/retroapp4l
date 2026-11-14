@@ -164,11 +164,12 @@ export interface ActionItem {
   status: ActionStatus
   external_tracker_url: string | null
   created_at: string
+  status_updated_at: string | null
 }
 
 export interface PreviousActionsResponse {
-  retrospective_id: string | null
   action_items: ActionItem[]
+  recently_completed: ActionItem[]
 }
 
 export interface HistoryItem {

@@ -2,6 +2,7 @@ from asgiref.sync import async_to_sync
 from channels.layers import get_channel_layer
 from django.db.models.signals import post_delete, post_save, pre_save
 from django.dispatch import receiver
+from django.utils import timezone
 
 from apps.actions.models import ActionItem
 
@@ -18,14 +19,15 @@ def _serialize_action_item(instance):
 
 @receiver(pre_save, sender=ActionItem)
 def capture_previous_action_status(sender, instance, **kwargs):
-    if not instance.pk:
-        return
-
     previous = ActionItem.objects.filter(pk=instance.pk).values("status").first()
     if previous is None:
+        # Creation: mark the initial timestamp (also covers rows whose pk is pre-assigned).
+        instance.status_updated_at = timezone.now()
         return
 
     instance._previous_status = previous["status"]
+    if previous["status"] != instance.status:
+        instance.status_updated_at = timezone.now()
 
 
 @receiver(post_save, sender=ActionItem)
